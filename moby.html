@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loomings — Moby-Dick</title>
+<style>
+@keyframes fadeInUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+*{box-sizing:border-box;}
+body{font-family:Georgia,serif;background:#fafaf8;color:#111;margin:0;overscroll-behavior:none;-webkit-text-size-adjust:100%;}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;gap:10px;padding:0.75rem 1.5rem;border-bottom:0.5px solid #e0e0e0;background:#fafaf8;position:sticky;top:0;z-index:50;}
+.topbar-title{font-size:15px;font-weight:500;flex:1;}
+.topbar-sub{font-size:12px;color:#999;font-style:italic;}
+.topbar-badge{font-size:11px;padding:2px 8px;border-radius:20px;background:#FEF9C3;color:#713F12;border:0.5px solid #CA8A04;}
+
+/* ── LAYOUT ── */
+.reader-body{display:flex;min-height:calc(100vh - 52px);}
+.text-col{flex:0 0 auto;width:520px;max-width:100%;padding:2.5rem 2rem 4rem;border-right:0.5px solid #e0e0e0;position:relative;}
+.right-col{flex:1;position:relative;min-width:0;}
+
+@media(max-width:700px){
+  .reader-body{flex-direction:column;}
+  .text-col{width:100%;border-right:none;border-bottom:0.5px solid #e0e0e0;padding:1.5rem 1rem 2rem;}
+  .right-col{width:100%;}
+  .anno-popup{max-height:65vh;}
+  .compose-panel{position:fixed;bottom:0;left:0;right:0;width:100% !important;border-radius:16px 16px 0 0;max-height:80vh;overflow-y:auto;}
+}
+
+/* ── TEXT ── */
+.chapter-title{font-size:24px;font-weight:500;margin-bottom:4px;}
+.chapter-subtitle{font-size:13px;color:#999;font-style:italic;margin-bottom:2.5rem;display:block;}
+.para{font-size:15px;line-height:1.85;margin-bottom:1.4em;cursor:text;}
+.para:last-child{margin-bottom:0;}
+
+/* ── HIGHLIGHTS ── */
+.highlight{border-radius:2px;cursor:pointer;transition:filter .15s;}
+.highlight:hover{filter:brightness(.88);}
+
+/* ── HEAT LEGEND ── */
+.heat-legend{margin-top:2.5rem;padding-top:1rem;border-top:0.5px solid #eee;font-family:sans-serif;}
+.heat-legend-label{font-size:11px;color:#bbb;margin-bottom:5px;}
+.heat-swatches{display:flex;gap:3px;margin-bottom:3px;}
+.swatch{width:20px;height:8px;border-radius:2px;}
+.heat-ends{display:flex;justify-content:space-between;font-size:10px;color:#ccc;font-family:sans-serif;}
+
+/* ── RC TOOLBAR ── */
+.rc-toolbar{display:flex;gap:6px;padding:10px 10px 6px;border-bottom:0.5px solid #eee;flex-wrap:wrap;}
+.rc-toggle{font-size:11px;padding:3px 10px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#666;cursor:pointer;font-family:sans-serif;display:flex;align-items:center;gap:4px;}
+.rc-toggle:hover{background:#f5f5f5;}
+.rc-toggle.active{background:#111;color:#fff;border-color:#111;}
+
+/* ── FEED PANEL ── */
+.feed-panel{padding:10px;overflow-y:auto;max-height:calc(100vh - 130px);font-family:sans-serif;display:none;}
+.feed-panel.visible{display:block;}
+.feed-sort{display:flex;gap:4px;margin-bottom:10px;}
+.feed-sort-btn{font-size:11px;padding:3px 8px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;font-family:sans-serif;}
+.feed-sort-btn.active{background:#111;color:#fff;border-color:#111;}
+.feed-card{padding:8px;border:0.5px solid #eee;border-radius:8px;margin-bottom:7px;cursor:pointer;background:#fff;}
+.feed-card:hover{border-color:#bbb;}
+.feed-card-quote{font-size:10px;font-family:Georgia,serif;padding:1px 5px;border-radius:3px;margin-bottom:4px;display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.feed-card-subject{font-size:13px;font-weight:500;color:#111;margin-bottom:2px;}
+.feed-card-preview{font-size:12px;color:#777;line-height:1.4;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.feed-card-meta{display:flex;gap:8px;font-size:11px;color:#aaa;}
+.feed-empty{font-size:13px;color:#aaa;padding:.75rem 0;text-align:center;}
+
+/* ── ANNO POPUP ── */
+.anno-popup{position:absolute;z-index:100;width:275px;background:#fff;border:0.5px solid #ccc;border-radius:12px;padding:.9rem 1rem;pointer-events:none;opacity:0;transition:opacity .15s;left:10px;font-family:sans-serif;}
+.anno-popup.visible{opacity:1;pointer-events:all;}
+.pu-quote{font-size:11px;font-family:Georgia,serif;padding:3px 7px;border-radius:4px;margin-bottom:7px;display:inline-block;}
+.pu-subject{font-size:14px;font-weight:500;color:#111;margin-bottom:3px;}
+.pu-author{font-size:11px;color:#aaa;margin-bottom:5px;}
+.pu-preview{font-size:13px;color:#555;line-height:1.5;margin-bottom:7px;}
+.pu-global{font-size:10px;color:#7C3AED;background:#F3E8FF;padding:2px 7px;border-radius:20px;display:inline-block;margin-bottom:5px;}
+.pu-divider{height:0.5px;background:#eee;margin:8px 0;}
+.pu-stack-num{font-size:10px;color:#aaa;margin-bottom:4px;font-family:sans-serif;}
+.pu-meta{display:flex;align-items:center;justify-content:space-between;margin-top:5px;}
+.pu-actions{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.anno-btn{font-size:12px;padding:3px 8px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;display:flex;align-items:center;gap:3px;font-family:sans-serif;}
+.anno-btn:hover{background:#f0f0f0;}
+.open-btn{margin-top:6px;font-size:12px;padding:4px 10px;border-radius:20px;border:0.5px solid #ddd;background:#fafafa;color:#555;cursor:pointer;font-family:sans-serif;display:block;width:100%;text-align:center;}
+.open-btn:hover{background:#f0f0f0;color:#111;}
+.delete-btn{font-size:12px;padding:3px 8px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#aaa;cursor:pointer;display:flex;align-items:center;gap:3px;font-family:sans-serif;}
+.delete-btn:hover{background:#FEE2E2;color:#DC2626;border-color:#FCA5A5;}
+.delete-confirm{font-size:12px;color:#DC2626;margin-top:6px;display:flex;align-items:center;gap:6px;}
+.delete-confirm button{font-size:12px;padding:2px 8px;border-radius:20px;cursor:pointer;font-family:sans-serif;}
+.delete-confirm .yes{border:0.5px solid #DC2626;background:#DC2626;color:#fff;}
+.delete-confirm .no{border:0.5px solid #ddd;background:transparent;color:#555;}
+.pu-lookup-result{background:#F0F7FF;border:0.5px solid #BFDBFE;border-radius:8px;padding:8px 10px;font-family:sans-serif;font-size:12px;margin-top:8px;}
+
+/* ── COMPOSE PANEL ── */
+.compose-panel{position:absolute;left:10px;width:280px;background:#fff;border:0.5px solid #ccc;border-radius:12px;padding:.9rem 1rem;display:none;z-index:99;font-family:sans-serif;}
+.cp-quote{font-size:11px;font-style:italic;color:#555;padding:4px 7px;background:#f5f5f0;border-radius:4px;margin-bottom:8px;line-height:1.4;}
+.compose-panel input[type=text]{display:block;width:100%;margin-bottom:7px;font-size:13px;padding:6px 9px;border:0.5px solid #ccc;border-radius:8px;background:#f9f9f9;color:#111;font-family:sans-serif;outline:none;}
+.compose-panel input[type=text]:focus{border-color:#999;background:#fff;}
+.editor{min-height:60px;max-height:160px;overflow-y:auto;font-size:13px;line-height:1.6;padding:6px 9px;border:0.5px solid #ccc;border-radius:8px;background:#fff;color:#111;outline:none;font-family:sans-serif;margin-bottom:6px;}
+.editor:focus{border-color:#999;}
+.editor:empty:before{content:attr(data-placeholder);color:#aaa;pointer-events:none;}
+.toolbar{display:flex;gap:4px;margin-bottom:7px;flex-wrap:wrap;}
+.tb-btn{font-size:12px;padding:3px 7px;border-radius:6px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;font-family:sans-serif;display:flex;align-items:center;}
+.tb-btn:hover{background:#f0f0f0;}
+.btn-row{display:flex;gap:6px;margin-top:6px;}
+button.primary{flex:1;font-size:13px;padding:7px;border-radius:8px;border:none;background:#111;color:#fff;cursor:pointer;font-family:sans-serif;}
+button.primary:hover{background:#333;}
+button.cancel{flex:1;font-size:13px;padding:7px;border-radius:8px;border:0.5px solid #ddd;background:transparent;color:#888;cursor:pointer;font-family:sans-serif;}
+button.cancel:hover{background:#f0f0f0;}
+.cp-status{font-size:12px;margin-top:5px;min-height:14px;}
+.cp-status.err{color:#DC2626;}
+.cp-status.ok{color:#16A34A;}
+
+/* ── DEVICE TAGS ── */
+.anno-device-tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:20px;background:#F3E8FF;color:#6B21A8;margin:1px 2px;font-family:sans-serif;}
+.anno-allusion-tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:20px;background:#DBEAFE;color:#1E3A8A;margin:1px 2px;font-family:sans-serif;cursor:pointer;}
+.anno-allusion-tag:hover{background:#BFDBFE;}
+
+/* Device tagger in compose */
+.device-section{margin-top:8px;padding-top:8px;border-top:0.5px solid #eee;}
+.device-section-label{font-size:11px;color:#aaa;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;}
+.device-toggle-btn{font-size:11px;color:#7C3AED;cursor:pointer;border:none;background:none;padding:0;font-family:sans-serif;}
+.device-picker{display:none;margin-top:5px;}
+.device-picker.open{display:block;}
+.device-search{display:block;width:100%;font-size:12px;padding:5px 8px;border:0.5px solid #ccc;border-radius:8px;background:#f9f9f9;color:#111;font-family:sans-serif;margin-bottom:6px;outline:none;}
+.device-search:focus{border-color:#7C3AED;}
+.device-category{font-size:10px;font-weight:500;color:#aaa;letter-spacing:.06em;text-transform:uppercase;margin:6px 0 3px;}
+.device-grid{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px;}
+.device-pill{font-size:11px;padding:2px 8px;border-radius:20px;border:0.5px solid #ddd;background:#f5f5f5;color:#555;cursor:pointer;font-family:sans-serif;position:relative;}
+.device-pill:hover{border-color:#7C3AED;color:#7C3AED;background:#F3E8FF;}
+.device-pill.selected{background:#7C3AED;color:#fff;border-color:#7C3AED;}
+.device-pill-tooltip{display:none;position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:11px;padding:5px 8px;border-radius:6px;width:200px;line-height:1.4;z-index:300;pointer-events:none;white-space:normal;}
+.device-pill:hover .device-pill-tooltip{display:block;}
+.device-selected-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;}
+.device-tag{font-size:11px;padding:2px 8px;border-radius:20px;background:#7C3AED;color:#fff;display:flex;align-items:center;gap:4px;font-family:sans-serif;}
+.device-tag-x{cursor:pointer;font-size:13px;line-height:1;opacity:.7;}
+.device-tag-x:hover{opacity:1;}
+
+/* Allusion tagger */
+.allusion-section{margin-top:8px;padding-top:8px;border-top:0.5px solid #eee;}
+.allusion-section-label{font-size:11px;color:#aaa;margin-bottom:6px;}
+.allusion-cats{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px;}
+.allusion-pill{font-size:11px;padding:3px 10px;border-radius:20px;border:0.5px solid #ddd;background:#f5f5f5;color:#555;cursor:pointer;font-family:sans-serif;}
+.allusion-pill:hover{border-color:#2563EB;color:#2563EB;background:#DBEAFE;}
+.allusion-pill.selected{background:#2563EB;color:#fff;border-color:#2563EB;}
+.allusion-input-row{display:flex;gap:5px;margin-top:5px;}
+.allusion-text-input{flex:1;font-size:12px;padding:5px 8px;border:0.5px solid #ccc;border-radius:8px;background:#f9f9f9;color:#111;font-family:sans-serif;outline:none;}
+.allusion-text-input:focus{border-color:#2563EB;}
+.allusion-add-btn{font-size:12px;padding:5px 10px;border-radius:8px;border:0.5px solid #2563EB;background:transparent;color:#2563EB;cursor:pointer;font-family:sans-serif;}
+.allusion-add-btn:hover{background:#DBEAFE;}
+.allusion-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;}
+.allusion-tag{font-size:11px;padding:2px 8px;border-radius:20px;background:#DBEAFE;color:#1E3A8A;display:flex;align-items:center;gap:4px;font-family:sans-serif;}
+.allusion-tag-x{cursor:pointer;font-size:13px;line-height:1;opacity:.7;}
+.allusion-tag-x:hover{opacity:1;}
+
+/* ── DISC VIEW ── */
+#disc-view{display:none;max-width:700px;margin:0 auto;padding:2rem 1.5rem;font-family:sans-serif;}
+.disc-back{font-size:13px;padding:5px 12px;border-radius:8px;border:0.5px solid #ccc;background:transparent;color:#666;cursor:pointer;font-family:sans-serif;margin-bottom:1.5rem;}
+.disc-back:hover{background:#f0f0f0;}
+.disc-quote-banner{font-family:Georgia,serif;font-size:14px;padding:10px 14px;border-radius:8px;margin-bottom:1rem;display:inline-block;line-height:1.5;}
+.disc-subject{font-size:22px;font-weight:500;margin-bottom:4px;}
+.disc-meta{font-size:12px;color:#aaa;margin-bottom:1rem;}
+.disc-body{font-size:14px;line-height:1.7;color:#333;margin-bottom:1.5rem;}
+.disc-replies-label{font-size:12px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
+.disc-reply{padding:12px 14px;border:0.5px solid #eee;border-radius:10px;margin-bottom:8px;background:#fff;}
+.disc-reply-body{font-size:13px;line-height:1.6;color:#333;margin-bottom:5px;}
+.disc-reply-meta{font-size:11px;color:#bbb;}
+.disc-reply-compose{margin-top:1.5rem;}
+.disc-reply-editor{min-height:60px;max-height:140px;overflow-y:auto;font-size:13px;line-height:1.6;padding:8px 10px;border:0.5px solid #ccc;border-radius:8px;background:#fff;color:#111;outline:none;font-family:sans-serif;margin-bottom:6px;}
+.disc-reply-editor:focus{border-color:#aaa;}
+.disc-reply-editor:empty:before{content:attr(data-placeholder);color:#aaa;pointer-events:none;}
+.disc-reply-row{display:flex;gap:8px;align-items:center;}
+.disc-reply-user{font-size:13px;padding:6px 9px;border:0.5px solid #ccc;border-radius:8px;background:#f9f9f9;color:#111;font-family:sans-serif;outline:none;width:140px;}
+.disc-reply-user:focus{border-color:#999;background:#fff;}
+.disc-reply-btn{font-size:13px;padding:6px 14px;border-radius:8px;border:none;background:#111;color:#fff;cursor:pointer;font-family:sans-serif;}
+.disc-reply-btn:hover{background:#333;}
+.disc-reply-status{font-size:12px;color:#aaa;flex:1;}
+.disc-edit-panel{background:#fafaf8;border:0.5px solid #ddd;border-radius:10px;padding:12px 14px;margin-bottom:1rem;}
+.disc-edit-subject{display:block;width:100%;font-size:16px;font-weight:500;padding:5px 8px;border:0.5px solid #ddd;border-radius:8px;background:#fff;color:#111;font-family:Georgia,serif;margin-bottom:8px;}
+.disc-edit-body{min-height:80px;max-height:200px;overflow-y:auto;font-size:13px;line-height:1.6;padding:8px 10px;border:0.5px solid #ccc;border-radius:8px;background:#fff;color:#111;outline:none;font-family:sans-serif;}
+.disc-edit-body:focus{border-color:#aaa;}
+.disc-edit-row{display:flex;gap:8px;margin-top:8px;align-items:center;}
+.disc-edit-status{font-size:12px;color:#aaa;flex:1;}
+.edit-anno-btn{font-size:12px;padding:3px 9px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;font-family:sans-serif;}
+.edit-anno-btn:hover{background:#f0f0f0;color:#111;}
+
+/* Mobile overlay */
+.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.18);z-index:90;}
+.mobile-overlay.visible{display:block;}
+.mobile-annotate-btn{display:none;position:fixed;bottom:1.25rem;right:1.25rem;z-index:150;background:#111;color:#fff;border:none;border-radius:50px;padding:10px 18px;font-size:13px;font-family:sans-serif;cursor:pointer;align-items:center;gap:6px;box-shadow:0 2px 12px rgba(0,0,0,0.18);}
+@media(max-width:700px){.mobile-annotate-btn{display:flex;}}
+
+/* Guest notice */
+.guest-notice{font-size:12px;color:#888;padding:8px 10px;background:#f9f9f9;border-radius:8px;margin-bottom:8px;line-height:1.5;}
+.guest-notice a{color:#2563EB;text-decoration:none;}
+.guest-notice a:hover{text-decoration:underline;}
+
+/* Loading */
+.loading-msg{font-size:13px;color:#aaa;padding:1rem 10px;font-family:sans-serif;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="topbar-title">Moby-Dick · Chapter I: Loomings</div>
+    <div style="font-size:12px;color:#aaa;font-style:italic;">Herman Melville, 1851</div>
+  </div>
+  <span class="topbar-badge" id="anno-count-badge" style="display:none"></span>
+  <a href="index.html" style="font-size:12px;color:#888;text-decoration:none;white-space:nowrap;border:0.5px solid #ddd;padding:4px 10px;border-radius:8px;font-family:sans-serif;">← Dream Songs</a>
+</div>
+
+<div class="reader-body">
+
+  <!-- TEXT COLUMN -->
+  <div class="text-col" id="text-col">
+    <div class="chapter-title">Chapter I</div>
+    <span class="chapter-subtitle">Loomings</span>
+
+    <div id="text-content">
+      <p class="para">Call me Ishmael. Some years ago—never mind how long precisely—having little money in my purse, and nothing particular to interest me on shore, I thought I would sail about a little and see the watery part of the world. It is a way I have of driving off the spleen and regulating the circulation. Whenever I find myself growing grim about the mouth; whenever it is a damp, drizzly November in my soul; whenever I find myself involuntarily pausing before coffin warehouses, and bringing up the rear of every funeral I meet; and especially whenever my hypos get such an upper hand of me, that it requires a strong moral principle to prevent me from deliberately stepping into the street, and methodically knocking people's hats off—then, I account it high time to get to sea as soon as I can. This is my substitute for pistol and ball. With a philosophical flourish Cato throws himself upon his sword; I quietly take to the ship. There is nothing surprising in this. If they only knew it, almost all men in their degree, some time or other, cherish very nearly the same feelings towards the ocean with me.</p>
+
+      <p class="para">There now is your insular city of the Manhattoes, belted round by wharves as Indian isles by coral reefs, and commerce surrounding it with her surf. Right and left, the streets take you waterward. Its extreme downtown is the battery, where that noble mole is washed by waves, and cooled by breezes, which a few hours previous were out of sight of land. Look at the crowds of water-gazers there.</p>
+
+      <p class="para">Circumambulate the city of a dreamy Sabbath afternoon. Go from Corlears Hook to Coenties Slip, and from thence, by Whitehall, northward. What do you see?—Posted like silent sentinels all around the town, stand thousands upon thousands of mortal men fixed in ocean reveries. Some leaning against the spiles; some seated upon the pier-heads; some looking over the bulwarks of ships from China; some high aloft in the rigging, as if striving to get a still better seaward peep. But these are all landsmen; of week days pent up in lath and plaster—tied to counters, nailed to benches, clinched to desks. How then is this? Are the green fields gone? What do they do here?</p>
+
+      <p class="para">But look! here come more crowds, pacing straight for the water, and seemingly bound for a dive. Strange! Nothing will content them but the extremest limit of the land; loitering under the shady lee of yonder warehouses will not suffice. No. They must get just as nigh the water as they possibly can without falling in. And there they stand—miles of them—leagues. Inlanders all, they come from lanes and alleys, streets and avenues—north, east, south, and west. Yet here they all unite. Tell me, does the magnetic virtue of the needles of the compasses of all those ships attract them thither?</p>
+
+      <p class="para">Once more. Say you are in the country; in some high land of lakes. Take almost any path you please, and ten to one it carries you down in a dale, and leaves you there by a pool in the stream. There is magic in it. Let the most absent-minded of men be plunged in his deepest reveries—stand that man on his legs, set his feet a-going, and he will infallibly lead you to water, if water there be in all that region. Should you ever be athirst in the great American desert, try this experiment, if your caravan happen to be supplied with a metaphysical professor. Yes, as every one knows, meditation and water are wedded for ever.</p>
+
+      <p class="para">But here is an artist. He desires to paint you the dreamiest, shadiest, quietest, most enchanting bit of romantic landscape in all the Valley of Saginaw. What is the chief element he employs? There stand his trees, each with a hollow trunk, as if a hermit and a crucifix were within; and here sleeps his meadow, and there sleep his cattle; and up from yonder cottage goes a sleepy smoke. Deep into distant woodlands winds a mazy way, reaching to overlapping spurs of mountains bathed in their hill-side blue. But though the picture lies thus tranced, and though this pine-tree shakes down its sighs like leaves upon this shepherd's head, yet all were vain, unless the shepherd's eye were fixed upon the magic stream before him. Go visit the Prairies in June, when for scores on scores of miles you wade knee-deep among Tiger-lilies—what is the one charm wanting?—Water—there is not a drop of water there! Were Niagara but a cataract of sand, would you travel ten thousand miles to see it? Why did the poor poet of Tennessee, upon suddenly receiving two handfuls of silver, deliberate whether to buy him a coat, which he sadly needed, or invest his money in a pedestrian trip to Rockaway Beach? Why is almost every robust healthy boy with a robust healthy soul in him, at some time or other crazy to go to sea? Why upon your first voyage as a passenger, did you yourself feel such a mystical vibration, the first time the ship's keel cut the water?</p>
+
+      <p class="para">Why is almost every robust healthy boy with a robust healthy soul in him, at some time or other crazy to go to sea? Why upon your first voyage as a passenger, did you yourself feel such a mystical vibration, the first time the ship's keel cut the water? Why upon your first voyage as a passenger, did you yourself feel such a mystical vibration?</p>
+
+      <p class="para">Again, as the profound calm which only apparently precedes and prophesies of the storm, is perhaps more awful than the storm itself; for, indeed, the calm is but the wrapper and envelope of the storm; and contains it in itself, as the seemingly harmless rifle holds the fatal powder, and the ball, and the explosion; so the graceful repose of the line, as it silently serpentines about the lone boat in the still tropical sea, is perhaps the very essence of the terrible.</p>
+
+      <p class="para">And still deeper the meaning of that story of Narcissus, who because he could not grasp the tormenting, mild image he saw in the fountain, plunged into it and was drowned. But that same image, we ourselves see in all rivers and oceans. It is the image of the ungraspable phantom of life; and this is the key to it all.</p>
+    </div>
+
+    <div id="heat-legend-wrap" style="margin-top:2.5rem;padding-top:1rem;border-top:0.5px solid #eee;font-family:sans-serif;">
+      <div style="font-size:11px;color:#bbb;margin-bottom:5px;">Color = engagement · Opacity = annotation density</div>
+      <div class="heat-swatches" id="heat-swatches"></div>
+      <div class="heat-ends"><span>low</span><span>high</span></div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="right-col" id="right-col">
+    <div class="rc-toolbar">
+      <button class="rc-toggle" id="toggle-feed">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="2.5" rx="1" fill="currentColor"/><rect x="1" y="4.75" width="10" height="2.5" rx="1" fill="currentColor"/><rect x="1" y="8.5" width="10" height="2.5" rx="1" fill="currentColor"/></svg>
+        All annotations
+      </button>
+      <button class="rc-toggle" id="toggle-hide-all">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6s2-4 5-4 5 4 5 4-2 4-5 4-5-4-5-4z" stroke="currentColor" stroke-width="1.2"/><line x1="2" y1="2" x2="10" y2="10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Hide all
+      </button>
+      <button class="rc-toggle" id="toggle-devices-only">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 9.5l1-3 4-4.5 2 2-4 4.5z" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Devices only
+      </button>
+    </div>
+    <div class="feed-panel" id="feed-panel">
+      <div class="feed-sort">
+        <button class="feed-sort-btn active" id="sort-new">Newest</button>
+        <button class="feed-sort-btn" id="sort-top">Top</button>
+      </div>
+      <div id="feed-list"><div class="loading-msg">Loading annotations…</div></div>
+    </div>
+    <div class="anno-popup" id="anno-popup"></div>
+    <div class="compose-panel" id="compose-panel">
+      <div class="cp-quote" id="cp-quote"></div>
+      <div class="guest-notice">
+        Annotating as a guest — your note will be public.
+        <a href="index.html">Sign in</a> for a persistent account.
+      </div>
+      <input type="text" id="inp-user" placeholder="Your name (optional)…" maxlength="40" />
+      <input type="text" id="inp-subject" placeholder="Subject line…" maxlength="80" />
+      <div class="toolbar">
+        <button class="tb-btn" id="tb-bold"><b>B</b></button>
+        <button class="tb-btn" id="tb-italic"><i>I</i></button>
+      </div>
+      <div class="editor" id="editor" contenteditable="true" data-placeholder="Your annotation…"></div>
+      <div class="device-section">
+        <div class="device-section-label">
+          <span>Literary devices <span style="color:#bbb">(optional)</span></span>
+          <button class="device-toggle-btn" id="device-toggle-btn">+ Add tag</button>
+        </div>
+        <div class="device-selected-tags" id="device-selected-tags"></div>
+        <div class="device-picker" id="device-picker">
+          <input type="text" class="device-search" id="device-search" placeholder="Search devices…" autocomplete="off" />
+          <div id="device-list"></div>
+        </div>
+      </div>
+      <div class="allusion-section">
+        <div class="allusion-section-label">Allusions <span style="color:#bbb;font-size:10px;">(optional)</span></div>
+        <div class="allusion-cats" id="allusion-cats">
+          <button class="allusion-pill" data-cat="historical">Historical</button>
+          <button class="allusion-pill" data-cat="mythological">Mythological</button>
+          <button class="allusion-pill" data-cat="literary">Literary</button>
+          <button class="allusion-pill" data-cat="religious">Religious</button>
+          <button class="allusion-pill" data-cat="pop cultural">Pop Cultural</button>
+        </div>
+        <div class="allusion-input-row">
+          <input class="allusion-text-input" type="text" id="allusion-text" placeholder="Describe the allusion…" maxlength="120" />
+          <button class="allusion-add-btn" id="allusion-add-btn">Add</button>
+        </div>
+        <div class="allusion-tags" id="allusion-tags"></div>
+      </div>
+      <div class="btn-row" style="margin-top:8px;">
+        <button class="primary" id="btn-post">Post</button>
+        <button class="cancel" id="btn-cancel">Cancel</button>
+      </div>
+      <div class="cp-status" id="cp-status"></div>
+    </div>
+  </div>
+</div>
+
+<div id="disc-view"></div>
+<div class="mobile-overlay" id="mobile-overlay"></div>
+<button class="mobile-annotate-btn" id="mobile-annotate-btn">
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 13l1.5-4.5L11 1l2.5 2.5L5.5 11.5z" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  Annotate selection
+</button>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://cajrjmroqidjuzqsvzon.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhanJqbXJvcWlkanV6cXN2em9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MzY4NjEsImV4cCI6MjA5MjExMjg2MX0.mk-7_sAGkh9mAFHjTZXImm5WM_WAwzg-ulYgGlQ9oXg';
+
+// Moby Dick uses song_num = 1001 to avoid colliding with Dream Songs 1-91
+const MOBY_SONG_NUM = 1001;
+
+// ═══════════════════════════════════════════════════════════
+// SUPABASE
+// ═══════════════════════════════════════════════════════════
+async function sbFetch(path, opts = {}) {
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    'Prefer': opts.prefer || (opts.method === 'POST' ? 'return=representation' : 'return=minimal'),
+  };
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method: opts.method || 'GET',
+    headers,
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (!res.ok) {
+    const d = await res.json().catch(() => ({}));
+    throw new Error(d.message || d.error || res.statusText);
+  }
+  if (res.status === 204 || res.headers.get('content-length') === '0') return null;
+  return res.json();
+}
+
+const db = {
+  getAnnotations: () => sbFetch(`annotations?song_nums=cs.{${MOBY_SONG_NUM}}&order=created_at.asc`),
+  insertAnnotation: row => sbFetch('annotations', { method: 'POST', body: row }),
+  upvoteAnnotation: (id, v) => sbFetch(`annotations?id=eq.${id}`, { method: 'PATCH', body: { upvotes: v } }),
+  deleteAnnotation: id => sbFetch(`annotations?id=eq.${id}`, { method: 'DELETE' }),
+  updateAnnotation: (id, fields) => sbFetch(`annotations?id=eq.${id}`, { method: 'PATCH', body: fields }),
+  getReplies: annoId => sbFetch(`replies?annotation_id=eq.${annoId}&order=created_at.asc`),
+  insertReply: row => sbFetch('replies', { method: 'POST', body: row }),
+  getReplyCountsForAnnotations: ids => sbFetch(`replies?annotation_id=in.(${ids.join(',')})&select=annotation_id`),
+};
+
+// ═══════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════
+const SPECTRUM_HEX = ['#7C3AED','#2563EB','#16A34A','#CA8A04','#EA580C','#DC2626'];
+const SPECTRUM = [
+  {bg:'#EDE9FE',border:'#7C3AED',text:'#4C1D95'},
+  {bg:'#DBEAFE',border:'#2563EB',text:'#1E3A8A'},
+  {bg:'#DCFCE7',border:'#16A34A',text:'#14532D'},
+  {bg:'#FEF9C3',border:'#CA8A04',text:'#713F12'},
+  {bg:'#FED7AA',border:'#EA580C',text:'#7C2D12'},
+  {bg:'#FEE2E2',border:'#DC2626',text:'#7F1D1D'},
+];
+
+document.getElementById('heat-swatches').innerHTML =
+  SPECTRUM_HEX.map(c => `<div class="swatch" style="background:${c}"></div>`).join('');
+
+const DEVICES = {
+  'Sound': [
+    {name:'Alliteration', def:'Repetition of the same initial consonant sound in successive or proximate words.'},
+    {name:'Anaphora', def:'Repetition of the same words or phrases at the beginning of successive phrases or clauses.'},
+    {name:'Assonance', def:'Repetition of identical or similar vowel sounds in successive or proximate words.'},
+    {name:'Cacophony', def:'Use of harsh sounds to evoke chaos or dread.'},
+    {name:'Onomatopoeia', def:'A word approximating the sound of what it describes.'},
+    {name:'Euphony', def:'Melodic tones that are enjoyable to read or listen to.'},
+  ],
+  'Figurative Language': [
+    {name:'Metaphor', def:'One thing pictured as if it were something else, suggesting analogy without "like" or "as."'},
+    {name:'Simile', def:'A direct comparison using "like" or "as."'},
+    {name:'Extended Metaphor', def:'A series of comparisons sustained across a piece of writing.'},
+    {name:'Personification', def:'Treating a nonhuman object as if it were a person.'},
+    {name:'Hyperbole', def:'Overstatement characterized by exaggerated language.'},
+    {name:'Conceit', def:'An extended metaphor drawing out an unlikely comparison.'},
+    {name:'Synecdoche', def:'A figure of speech in which a part signifies the whole.'},
+    {name:'Metonymy', def:'Using an attribute or associated feature to name something.'},
+  ],
+  'Rhetorical': [
+    {name:'Allusion', def:'A literary, historical, religious, or mythological reference.'},
+    {name:'Apostrophe', def:'Addressing an inanimate abstraction or absent person.'},
+    {name:'Antithesis', def:'Juxtaposition of sharply contrasting ideas.'},
+    {name:'Rhetorical Question', def:'A question where no answer is expected from the audience.'},
+    {name:'Hypophora', def:'When a rhetorical question is raised and then answered.'},
+    {name:'Paradox', def:'A statement that seems contradictory but is probably true.'},
+    {name:'Chiasmus', def:'Reversed grammatical structure in successive phrases.'},
+    {name:'Accumulation', def:'A list that builds up to emphasize a point.'},
+  ],
+  'Syntactical': [
+    {name:'Asyndeton', def:'Conjunctions omitted in a series, producing rapid prose.'},
+    {name:'Polysyndeton', def:'Several coordinating conjunctions used in succession.'},
+    {name:'Anastrophe', def:'Reversal of the usual order of sentence parts.'},
+    {name:'Periodic Sentence', def:'A long sentence whose main clause is not completed until the end.'},
+    {name:'Parallelism', def:'Similar grammatical forms used for nouns, verbs, phrases, or thoughts.'},
+    {name:'Enjambment', def:'A thought carries over from one sentence to another without pause.'},
+  ],
+  'Narrative': [
+    {name:'Allegory', def:'A narrative where characters and setting demonstrate multiple levels of meaning.'},
+    {name:'Allusion', def:'A reference to another literary, historical, or cultural work.'},
+    {name:'Digression', def:'A temporary departure from the main subject.'},
+    {name:'Frame narrative', def:'A story within a story — an outer narrative framing an inner one.'},
+    {name:'In medias res', def:'Beginning a narrative in the middle of the action.'},
+  ],
+  'Tone / Diction': [
+    {name:'Ambiguity', def:'A word or situation with two or more possible meanings.'},
+    {name:'Colloquial Diction', def:'The language of common, ordinary speech.'},
+    {name:'Jargon', def:'Specialized or technical language of a trade or group.'},
+    {name:'Diction', def:'The specific word choice an author uses to convey tone, purpose, or effect.'},
+  ],
+};
+const ALL_DEVICES = Object.entries(DEVICES).flatMap(([cat, items]) => items.map(d => ({...d, cat})));
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let annotations = [];
+let highlightFilter = 'all'; // 'all' | 'none' | 'devices'
+let pendingSelection = null;
+let pendingParaIndex = -1;
+let pendingSegments = null;
+let popupTimeout = null;
+let currentQuote = null;
+let selectedDevices = [];
+let selectedAllusions = [];
+let _selectedAllusionCat = null;
+let feedSortOrder = 'new'; // 'new' | 'top'
+
+function engScore(a) { return a.upvotes + (a._replyCount || 0) * 2; }
+function spIdx(a) { const s = engScore(a); if(s<4)return 0;if(s<9)return 1;if(s<16)return 2;if(s<25)return 3;if(s<36)return 4;return 5; }
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', async () => {
+  initDevicePicker();
+  initAllusionPicker();
+  initComposeButtons();
+  initFeedToggles();
+  await loadAnnotations();
+  applyHighlights();
+  renderFeed();
+});
+
+async function loadAnnotations() {
+  try {
+    annotations = await db.getAnnotations() || [];
+    annotations.forEach(a => a._replyCount = 0);
+    if (annotations.length > 0) {
+      const ids = annotations.map(a => a.id);
+      try {
+        const rows = await db.getReplyCountsForAnnotations(ids) || [];
+        rows.forEach(r => {
+          const a = annotations.find(x => x.id === r.annotation_id);
+          if (a) a._replyCount = (a._replyCount || 0) + 1;
+        });
+      } catch(_) {}
+    }
+    const badge = document.getElementById('anno-count-badge');
+    if (annotations.length > 0) {
+      badge.textContent = annotations.length + ' annotation' + (annotations.length !== 1 ? 's' : '');
+      badge.style.display = '';
+    }
+  } catch(e) {
+    console.error('Failed to load annotations:', e);
+    annotations = [];
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// HIGHLIGHTS
+// ═══════════════════════════════════════════════════════════
+function blendColors(hex1, hex2) {
+  function hexRgb(hex) {
+    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    return {r,g,b};
+  }
+  const c1 = hexRgb(hex1), c2 = hexRgb(hex2);
+  const r = Math.round((c1.r+c2.r)/2), g = Math.round((c1.g+c2.g)/2), b = Math.round((c1.b+c2.b)/2);
+  const l = 0.4;
+  return `rgb(${Math.round(r+(255-r)*l)},${Math.round(g+(255-g)*l)},${Math.round(b+(255-b)*l)})`;
+}
+
+function applyHighlights() {
+  if (document.getElementById('compose-panel').style.display === 'block') return;
+
+  const paras = Array.from(document.querySelectorAll('.para'));
+  if (!paras.length) return;
+
+  // Reset
+  paras.forEach(p => {
+    const text = p.textContent;
+    p.innerHTML = '';
+    p.appendChild(document.createTextNode(text));
+  });
+
+  if (highlightFilter === 'none') return;
+
+  let visible = annotations;
+  if (highlightFilter === 'devices') {
+    visible = annotations.filter(a => {
+      try { const d = typeof a.devices==='string'?JSON.parse(a.devices):a.devices; return Array.isArray(d)&&d.length>0; } catch(_){return false;}
+    });
+  }
+  if (!visible.length) return;
+
+  // Group by paragraph index
+  const byPara = {};
+  visible.forEach(anno => {
+    const pi = anno.line_index;
+    if (pi == null || pi < 0 || pi >= paras.length) return;
+    if (!byPara[pi]) byPara[pi] = [];
+    byPara[pi].push(anno);
+  });
+
+  Object.entries(byPara).forEach(([piStr, annos]) => {
+    const para = paras[parseInt(piStr)];
+    if (!para) return;
+    const paraText = para.textContent;
+
+    // Build segments
+    const segments = [];
+    annos.forEach(anno => {
+      const q = anno.quote;
+      if (!q) return;
+      const idx = paraText.indexOf(q);
+      if (idx === -1) return;
+      const col = SPECTRUM_HEX[spIdx(anno)];
+      segments.push({ start: idx, end: idx + q.length, quote: q, anno, color: col });
+    });
+    if (!segments.length) return;
+
+    // Sort and merge overlapping
+    segments.sort((a,b) => a.start - b.start || b.end - a.end);
+
+    // Find all unique characters affected and build spans
+    const charColors = new Array(paraText.length).fill(null);
+    const charQuotes = {};
+    segments.forEach(seg => {
+      for (let i = seg.start; i < seg.end; i++) {
+        if (!charQuotes[i]) charQuotes[i] = [];
+        charQuotes[i].push(seg.quote);
+        if (!charColors[i]) charColors[i] = seg.color;
+        else charColors[i] = blendColors(charColors[i], seg.color);
+      }
+    });
+
+    // Build spans
+    para.innerHTML = '';
+    let i = 0;
+    while (i < paraText.length) {
+      if (!charColors[i]) {
+        let j = i;
+        while (j < paraText.length && !charColors[j]) j++;
+        para.appendChild(document.createTextNode(paraText.slice(i, j)));
+        i = j;
+      } else {
+        const color = charColors[i];
+        const quotes = charQuotes[i];
+        let j = i;
+        while (j < paraText.length && charColors[j] === color) j++;
+        const sp = document.createElement('span');
+        sp.className = 'highlight';
+        sp.style.background = color;
+        sp.textContent = paraText.slice(i, j);
+        sp.addEventListener('mouseenter', () => {
+          clearTimeout(popupTimeout);
+          const matchedAnnos = annotations.filter(a => quotes.includes(a.quote) && a.line_index === parseInt(piStr));
+          if (matchedAnnos.length) showPopup(matchedAnnos, sp, parseInt(piStr));
+        });
+        sp.addEventListener('mouseleave', () => { popupTimeout = setTimeout(() => hidePopup(), 300); });
+        sp.addEventListener('click', e => {
+          e.stopPropagation();
+          if (document.getElementById('compose-panel').style.display !== 'block') {
+            const matchedAnnos = annotations.filter(a => quotes.includes(a.quote) && a.line_index === parseInt(piStr));
+            if (matchedAnnos.length) showPopup(matchedAnnos, sp, parseInt(piStr));
+          }
+        });
+        para.appendChild(sp);
+        i = j;
+      }
+    }
+    // Rebind selection
+    bindParaEvents(para, parseInt(piStr));
+  });
+
+  // Re-bind unmodified paragraphs
+  paras.forEach((p, idx) => {
+    if (!byPara[idx]) bindParaEvents(p, idx);
+  });
+}
+
+function hidePopup() {
+  document.getElementById('anno-popup').classList.remove('visible');
+}
+
+// ═══════════════════════════════════════════════════════════
+// POPUP
+// ═══════════════════════════════════════════════════════════
+const popup = document.getElementById('anno-popup');
+const cpanel = document.getElementById('compose-panel');
+
+function posRC(anchor) {
+  if (window.innerWidth <= 700) return;
+  const aR = anchor.getBoundingClientRect();
+  const rR = document.getElementById('right-col').getBoundingClientRect();
+  popup.style.top = Math.max(0, aR.top - rR.top - 8) + 'px';
+}
+
+function showPopup(annos, anchor, paraIdx) {
+  clearTimeout(popupTimeout);
+  cpanel.style.display = 'none';
+  currentQuote = annos[0].quote;
+
+  let html = '';
+  annos.forEach((anno, i) => {
+    const si = spIdx(anno);
+    const col = SPECTRUM[si];
+    const isLast = i === annos.length - 1;
+    html += `
+      <div class="pu-stack-item" data-annoid="${anno.id}">
+        ${annos.length > 1 ? `<div class="pu-stack-num">${i+1} of ${annos.length}</div>` : ''}
+        <div class="pu-quote" style="background:${col.bg};color:${col.text}">"${anno.quote}"</div>
+        <div class="pu-subject">${anno.subject}</div>
+        <div class="pu-author">by ${anno.username || 'anonymous'} · ${anno.date}</div>
+        <div class="pu-preview">${anno.body.replace(/<[^>]*>/g,'').slice(0,90)}${anno.body.length>90?'…':''}</div>
+        ${renderDeviceTagsHtml(anno)}
+        ${renderAllusionTagsHtml(anno)}
+        <div class="pu-meta"><div class="pu-actions">
+          <button class="anno-btn pu-up-btn" data-id="${anno.id}" data-upvotes="${anno.upvotes}">
+            <svg width="10" height="10" viewBox="0 0 12 12"><path d="M6 2L10 9H2L6 2Z" fill="currentColor"/></svg>${anno.upvotes}
+          </button>
+          <button class="anno-btn pu-re-btn" data-id="${anno.id}">
+            <svg width="10" height="10" viewBox="0 0 12 12"><path d="M1 2h10v7H7l-3 2V9H1V2z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>${anno._replyCount||0}
+          </button>
+          <button class="anno-btn pu-lookup-btn" data-id="${anno.id}" data-subject="${anno.subject.replace(/"/g,'&quot;')}" title="Look up on Wikipedia">🔍</button>
+        </div></div>
+        <div class="pu-lookup-result" id="pu-lookup-${anno.id}" style="display:none;"></div>
+        <button class="open-btn pu-open-btn" data-id="${anno.id}">Open discussion →</button>
+      </div>
+      ${!isLast ? '<div class="pu-divider"></div>' : ''}`;
+  });
+
+  popup.innerHTML = html;
+  posRC(anchor);
+  popup.classList.add('visible');
+
+  popup.addEventListener('mouseenter', () => clearTimeout(popupTimeout));
+  popup.addEventListener('mouseleave', () => { popupTimeout = setTimeout(hidePopup, 300); });
+
+  popup.querySelectorAll('.pu-up-btn').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      e.stopPropagation();
+      const id = parseInt(btn.dataset.id);
+      const anno = annotations.find(a => a.id === id);
+      if (!anno) return;
+      anno.upvotes++;
+      try { await db.upvoteAnnotation(id, anno.upvotes); } catch(_) {}
+      applyHighlights();
+      showPopup(annotations.filter(a => annos.some(x => x.id === a.id)), anchor, paraIdx);
+    });
+  });
+  popup.querySelectorAll('.pu-re-btn').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); openDiscussion(parseInt(btn.dataset.id)); });
+  });
+  popup.querySelectorAll('.pu-open-btn').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); openDiscussion(parseInt(btn.dataset.id)); });
+  });
+  popup.querySelectorAll('.pu-lookup-btn').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      e.stopPropagation();
+      const id = btn.dataset.id, subject = btn.dataset.subject;
+      const panel = popup.querySelector(`#pu-lookup-${id}`);
+      if (!panel) return;
+      if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+      panel.style.display = 'block';
+      panel.innerHTML = '<span style="color:#93C5FD;font-style:italic;">Looking up…</span>';
+      try {
+        async function fetchSummary(t) {
+          const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`,{headers:{'Accept':'application/json'}});
+          if(!r.ok) throw new Error();
+          return r.json();
+        }
+        let data = await fetchSummary(subject);
+        if (data.type === 'disambiguation' || !data.extract) {
+          const sr = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(subject)}&srlimit=1&format=json&origin=*`);
+          const sd = await sr.json();
+          const best = sd?.query?.search?.[0]?.title;
+          if (best) data = await fetchSummary(best);
+        }
+        const summary = data.extract ? data.extract.slice(0,220)+(data.extract.length>220?'…':'') : 'No summary found.';
+        const url = data.content_urls?.desktop?.page || `https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(subject)}`;
+        panel.innerHTML = `<div style="font-weight:600;color:#1E3A8A;margin-bottom:4px;">${data.title||subject}</div><div style="color:#374151;line-height:1.5;">${summary}</div><a href="${url}" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;font-size:11px;color:#2563EB;">Read more →</a>`;
+      } catch(_) {
+        panel.innerHTML = `<a href="https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(subject)}" target="_blank" rel="noopener" style="font-size:11px;color:#2563EB;">Search Wikipedia →</a>`;
+      }
+    });
+  });
+}
+
+function renderDeviceTagsHtml(anno) {
+  if (!anno.devices) return '';
+  try {
+    const devs = typeof anno.devices==='string'?JSON.parse(anno.devices):anno.devices;
+    if (!Array.isArray(devs)||!devs.length) return '';
+    return '<div style="margin-top:4px;">'+devs.map(name=>`<span class="anno-device-tag">${name}</span>`).join('')+'</div>';
+  } catch(_){return '';}
+}
+
+function renderAllusionTagsHtml(anno) {
+  if (!anno.allusions) return '';
+  try {
+    const als = typeof anno.allusions==='string'?JSON.parse(anno.allusions):anno.allusions;
+    if (!Array.isArray(als)||!als.length) return '';
+    return '<div style="margin-top:3px;">'+als.map(a=>`<span class="anno-allusion-tag" data-cat="${a.cat||''}">${a.cat?a.cat+': ':''}${a.text}</span>`).join('')+'</div>';
+  } catch(_){return '';}
+}
+
+// ═══════════════════════════════════════════════════════════
+// TEXT SELECTION
+// ═══════════════════════════════════════════════════════════
+function bindParaEvents(para, idx) {
+  para.addEventListener('mouseup', e => handleSel(e, idx));
+  para.addEventListener('dblclick', e => { e.preventDefault(); window.getSelection()?.removeAllRanges(); });
+}
+
+function handleSel(e, paraIdx) {
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed) return;
+  const text = sel.toString().trim();
+  if (!text || text.length < 2) return;
+
+  // Ensure selection is within this paragraph
+  const para = document.querySelectorAll('.para')[paraIdx];
+  if (!para) return;
+  const range = sel.getRangeAt(0);
+  if (!para.contains(range.commonAncestorContainer)) return;
+
+  pendingSelection = text;
+  pendingParaIndex = paraIdx;
+  pendingSegments = null;
+
+  document.getElementById('cp-quote').textContent = '"' + text.slice(0, 80) + (text.length > 80 ? '…' : '') + '"';
+
+  // Position compose panel
+  const pR = para.getBoundingClientRect();
+  const rR = document.getElementById('right-col').getBoundingClientRect();
+  if (window.innerWidth > 700) {
+    cpanel.style.top = Math.max(0, pR.top - rR.top) + 'px';
+    cpanel.style.position = 'absolute';
+  }
+  cpanel.style.display = 'block';
+  hidePopup();
+  document.getElementById('mobile-annotate-btn').style.display = 'none';
+  document.getElementById('mobile-overlay').classList.remove('visible');
+  window.getSelection().removeAllRanges();
+
+  // On mobile, show mobile annotate btn first
+  if (window.innerWidth <= 700) {
+    cpanel.style.display = 'none';
+    document.getElementById('mobile-annotate-btn').style.display = 'flex';
+    document.getElementById('mobile-overlay').classList.add('visible');
+  }
+}
+
+document.getElementById('mobile-annotate-btn').addEventListener('click', () => {
+  document.getElementById('mobile-annotate-btn').style.display = 'none';
+  cpanel.style.display = 'block';
+});
+
+document.getElementById('mobile-overlay').addEventListener('click', () => {
+  pendingSelection = null;
+  pendingParaIndex = -1;
+  document.getElementById('mobile-annotate-btn').style.display = 'none';
+  document.getElementById('mobile-overlay').classList.remove('visible');
+  cpanel.style.display = 'none';
+});
+
+// Bind initial paragraphs
+document.querySelectorAll('.para').forEach((p, idx) => bindParaEvents(p, idx));
+
+// ═══════════════════════════════════════════════════════════
+// COMPOSE PANEL
+// ═══════════════════════════════════════════════════════════
+function initComposeButtons() {
+  document.getElementById('tb-bold').addEventListener('click', () => { document.getElementById('editor').focus(); document.execCommand('bold'); });
+  document.getElementById('tb-italic').addEventListener('click', () => { document.getElementById('editor').focus(); document.execCommand('italic'); });
+
+  document.getElementById('btn-cancel').addEventListener('click', () => {
+    pendingSelection = null; pendingParaIndex = -1; selectedDevices = []; selectedAllusions = [];
+    document.getElementById('inp-user').value = '';
+    document.getElementById('inp-subject').value = '';
+    document.getElementById('editor').innerHTML = '';
+    document.getElementById('cp-status').textContent = '';
+    document.getElementById('device-selected-tags').innerHTML = '';
+    document.getElementById('device-picker').classList.remove('open');
+    document.getElementById('allusion-tags').innerHTML = '';
+    document.querySelectorAll('.allusion-pill').forEach(p => p.classList.remove('selected'));
+    _selectedAllusionCat = null;
+    cpanel.style.display = 'none';
+    document.getElementById('mobile-annotate-btn').style.display = 'none';
+    document.getElementById('mobile-overlay').classList.remove('visible');
+  });
+
+  document.getElementById('btn-post').addEventListener('click', async () => {
+    const username = document.getElementById('inp-user').value.trim() || 'anonymous';
+    const subject  = document.getElementById('inp-subject').value.trim();
+    const body     = document.getElementById('editor').innerHTML.trim();
+    const status   = document.getElementById('cp-status');
+    if (!subject || !body || !pendingSelection) {
+      status.textContent = 'Please fill in subject and annotation.';
+      status.className = 'cp-status err';
+      return;
+    }
+    status.textContent = 'Saving…'; status.className = 'cp-status';
+    const dateStr = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric' });
+    const row = {
+      song_nums:  [MOBY_SONG_NUM],
+      quote:      pendingSelection,
+      line_index: pendingParaIndex,
+      segments:   pendingSegments ? JSON.stringify(pendingSegments) : null,
+      subject, username, body,
+      date: dateStr,
+      upvotes: 0,
+      is_global: false,
+      devices: selectedDevices.length ? JSON.stringify(selectedDevices) : null,
+      allusions: selectedAllusions.length ? JSON.stringify(selectedAllusions) : null,
+      user_id: null,
+    };
+    try {
+      let saved;
+      try {
+        saved = await db.insertAnnotation(row);
+      } catch(e) {
+        if (e.message && (e.message.includes('allusions') || e.message.includes('column'))) {
+          const rowFallback = { ...row }; delete rowFallback.allusions;
+          saved = await db.insertAnnotation(rowFallback);
+        } else throw e;
+      }
+      const newAnno = Array.isArray(saved) ? saved[0] : saved;
+      newAnno._replyCount = 0;
+      annotations.push(newAnno);
+      pendingSelection = null; pendingParaIndex = -1; selectedDevices = []; selectedAllusions = [];
+      document.getElementById('inp-user').value = '';
+      document.getElementById('inp-subject').value = '';
+      document.getElementById('editor').innerHTML = '';
+      document.getElementById('device-selected-tags').innerHTML = '';
+      document.getElementById('device-picker').classList.remove('open');
+      document.getElementById('allusion-tags').innerHTML = '';
+      document.querySelectorAll('.allusion-pill').forEach(p => p.classList.remove('selected'));
+      _selectedAllusionCat = null;
+      cpanel.style.display = 'none';
+      document.getElementById('mobile-annotate-btn').style.display = 'none';
+      document.getElementById('mobile-overlay').classList.remove('visible');
+      status.textContent = '';
+      // Update badge
+      const badge = document.getElementById('anno-count-badge');
+      badge.textContent = annotations.length + ' annotation' + (annotations.length !== 1 ? 's' : '');
+      badge.style.display = '';
+      applyHighlights();
+      renderFeed();
+    } catch(e) {
+      status.textContent = 'Error: ' + (e.message || 'Check connection.');
+      status.className = 'cp-status err';
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// FEED
+// ═══════════════════════════════════════════════════════════
+function initFeedToggles() {
+  document.getElementById('toggle-feed').addEventListener('click', function() {
+    const fp = document.getElementById('feed-panel');
+    const isOpen = fp.classList.contains('visible');
+    fp.classList.toggle('visible', !isOpen);
+    this.classList.toggle('active', !isOpen);
+    if (!isOpen) renderFeed();
+  });
+  document.getElementById('toggle-hide-all').addEventListener('click', function() {
+    highlightFilter = this.classList.contains('active') ? 'all' : 'none';
+    this.classList.toggle('active');
+    document.getElementById('toggle-devices-only').classList.remove('active');
+    applyHighlights();
+  });
+  document.getElementById('toggle-devices-only').addEventListener('click', function() {
+    highlightFilter = this.classList.contains('active') ? 'all' : 'devices';
+    this.classList.toggle('active');
+    document.getElementById('toggle-hide-all').classList.remove('active');
+    applyHighlights();
+  });
+  document.getElementById('sort-new').addEventListener('click', function() {
+    feedSortOrder = 'new';
+    this.classList.add('active'); document.getElementById('sort-top').classList.remove('active');
+    renderFeed();
+  });
+  document.getElementById('sort-top').addEventListener('click', function() {
+    feedSortOrder = 'top';
+    this.classList.add('active'); document.getElementById('sort-new').classList.remove('active');
+    renderFeed();
+  });
+}
+
+function renderFeed() {
+  const list = document.getElementById('feed-list');
+  if (!list) return;
+  if (!annotations.length) { list.innerHTML = '<div class="feed-empty">No annotations yet — select text to add one.</div>'; return; }
+  let sorted = [...annotations];
+  if (feedSortOrder === 'top') sorted.sort((a,b) => engScore(b) - engScore(a));
+  else sorted.sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0));
+
+  list.innerHTML = sorted.map(anno => {
+    const col = SPECTRUM[spIdx(anno)];
+    return `<div class="feed-card" data-id="${anno.id}">
+      <div class="feed-card-quote" style="background:${col.bg};color:${col.text}">"${anno.quote.slice(0,40)}${anno.quote.length>40?'…':''}"</div>
+      <div class="feed-card-subject">${anno.subject}</div>
+      <div class="feed-card-preview">${anno.body.replace(/<[^>]*>/g,'')}</div>
+      <div class="feed-card-meta"><span>by ${anno.username||'anonymous'}</span><span>${anno.date||''}</span><span>↑${anno.upvotes} · 💬${anno._replyCount||0}</span></div>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('.feed-card').forEach(card => {
+    card.addEventListener('click', () => openDiscussion(parseInt(card.dataset.id)));
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// DISCUSSION VIEW
+// ═══════════════════════════════════════════════════════════
+async function openDiscussion(id) {
+  const anno = annotations.find(a => a.id === id);
+  if (!anno) return;
+  const col = SPECTRUM[spIdx(anno)];
+
+  const discView = document.getElementById('disc-view');
+  const readerBody = document.querySelector('.reader-body');
+  readerBody.style.display = 'none';
+  discView.style.display = 'block';
+  hidePopup();
+
+  let replies = [];
+  try { replies = await db.getReplies(id) || []; } catch(_) {}
+
+  function renderDisc(editMode = false) {
+    const isOwner = !anno.user_id; // any guest can edit their own for now (no ownership check on public)
+    discView.innerHTML = `
+      <button class="disc-back" id="disc-back">← Back to Loomings</button>
+      <div class="disc-quote-banner" style="background:${col.bg};color:${col.text}">"${anno.quote}"</div>
+      ${editMode ? `
+        <div class="disc-edit-panel" id="disc-edit-panel">
+          <input class="disc-edit-subject" id="disc-edit-subject" value="${anno.subject.replace(/"/g,'&quot;')}" />
+          <div class="disc-edit-body" id="disc-edit-body" contenteditable="true">${anno.body}</div>
+          <div class="disc-edit-row">
+            <div class="disc-edit-status" id="disc-edit-status"></div>
+            <button class="cancel" id="disc-edit-cancel" style="flex:0 0 auto;font-size:12px;padding:5px 12px;">Cancel</button>
+            <button class="primary" id="disc-edit-save" style="flex:0 0 auto;font-size:12px;padding:5px 12px;">Save</button>
+          </div>
+        </div>
+      ` : `
+        <div class="disc-subject">${anno.subject}</div>
+        <div class="disc-meta">by ${anno.username||'anonymous'} · ${anno.date} · ↑${anno.upvotes}</div>
+        <div class="disc-body">${anno.body}</div>
+        ${renderDeviceTagsHtml(anno)}
+        ${renderAllusionTagsHtml(anno)}
+        <div style="display:flex;gap:8px;margin-bottom:1.5rem;">
+          <button class="edit-anno-btn" id="disc-edit-btn">✎ Edit</button>
+          <button class="delete-btn" id="disc-del-btn">Delete</button>
+        </div>
+      `}
+      <div class="disc-replies-label">${replies.length} ${replies.length===1?'reply':'replies'}</div>
+      <div id="disc-replies-list">
+        ${replies.map(r => `
+          <div class="disc-reply" data-reply-id="${r.id}">
+            <div class="disc-reply-body">${r.body}</div>
+            <div class="disc-reply-meta">by ${r.username||'anonymous'} · ${r.date||''}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="disc-reply-compose">
+        <div class="disc-replies-label" style="margin-top:1rem;">Add a reply</div>
+        <div class="guest-notice" style="margin-bottom:8px;">Replying as guest. <a href="index.html">Sign in</a> for an account.</div>
+        <div class="disc-reply-editor" id="disc-reply-editor" contenteditable="true" data-placeholder="Your reply…"></div>
+        <div class="disc-reply-row">
+          <input class="disc-reply-user" id="disc-reply-user" type="text" placeholder="Your name…" maxlength="40" />
+          <button class="disc-reply-btn" id="disc-reply-btn">Reply</button>
+          <span class="disc-reply-status" id="disc-reply-status"></span>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('disc-back').addEventListener('click', () => {
+      discView.style.display = 'none';
+      readerBody.style.display = 'flex';
+    });
+
+    if (!editMode) {
+      document.getElementById('disc-edit-btn').addEventListener('click', () => renderDisc(true));
+      document.getElementById('disc-del-btn').addEventListener('click', async () => {
+        if (!confirm('Delete this annotation?')) return;
+        try {
+          await db.deleteAnnotation(id);
+          annotations = annotations.filter(a => a.id !== id);
+          discView.style.display = 'none';
+          readerBody.style.display = 'flex';
+          applyHighlights();
+          renderFeed();
+        } catch(e) { alert('Could not delete: ' + e.message); }
+      });
+    } else {
+      document.getElementById('disc-edit-cancel').addEventListener('click', () => renderDisc(false));
+      document.getElementById('disc-edit-save').addEventListener('click', async () => {
+        const newSubject = document.getElementById('disc-edit-subject').value.trim();
+        const newBody = document.getElementById('disc-edit-body').innerHTML.trim();
+        if (!newSubject || !newBody) { document.getElementById('disc-edit-status').textContent = 'Subject and body required.'; return; }
+        document.getElementById('disc-edit-status').textContent = 'Saving…';
+        try {
+          await db.updateAnnotation(id, { subject: newSubject, body: newBody });
+          anno.subject = newSubject; anno.body = newBody;
+          renderDisc(false);
+          renderFeed();
+        } catch(e) { document.getElementById('disc-edit-status').textContent = 'Error: ' + e.message; }
+      });
+    }
+
+    document.getElementById('disc-reply-btn').addEventListener('click', async () => {
+      const body = document.getElementById('disc-reply-editor').innerHTML.trim();
+      const username = document.getElementById('disc-reply-user').value.trim() || 'anonymous';
+      const status = document.getElementById('disc-reply-status');
+      if (!body) { status.textContent = 'Please write a reply.'; return; }
+      status.textContent = 'Posting…';
+      try {
+        const dateStr = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        const saved = await db.insertReply({ annotation_id: id, body, username, date: dateStr });
+        const newReply = Array.isArray(saved)?saved[0]:saved;
+        replies.push(newReply);
+        anno._replyCount = (anno._replyCount||0) + 1;
+        status.textContent = '';
+        renderDisc(false);
+        renderFeed();
+      } catch(e) { status.textContent = 'Error: ' + e.message; }
+    });
+  }
+
+  renderDisc(false);
+}
+
+// ═══════════════════════════════════════════════════════════
+// DEVICE PICKER
+// ═══════════════════════════════════════════════════════════
+function initDevicePicker() {
+  document.getElementById('device-toggle-btn').addEventListener('click', () => {
+    const picker = document.getElementById('device-picker');
+    picker.classList.toggle('open');
+    if (picker.classList.contains('open')) { renderDevicePicker(); setTimeout(() => document.getElementById('device-search').focus(), 50); }
+  });
+  document.getElementById('device-search').addEventListener('input', renderDevicePicker);
+}
+
+function renderDevicePicker() {
+  const search = document.getElementById('device-search').value.toLowerCase();
+  const list = document.getElementById('device-list');
+  let html = '';
+  Object.entries(DEVICES).forEach(([cat, items]) => {
+    const filtered = search ? items.filter(d => d.name.toLowerCase().includes(search) || d.def.toLowerCase().includes(search)) : items;
+    if (!filtered.length) return;
+    html += `<div class="device-category">${cat}</div><div class="device-grid">`;
+    filtered.forEach(d => {
+      const sel = selectedDevices.includes(d.name);
+      html += `<div class="device-pill${sel?' selected':''}" data-name="${d.name}"><span class="device-pill-tooltip">${d.def}</span>${d.name}</div>`;
+    });
+    html += '</div>';
+  });
+  list.innerHTML = html;
+  list.querySelectorAll('.device-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      const name = pill.dataset.name;
+      if (selectedDevices.includes(name)) selectedDevices = selectedDevices.filter(n => n !== name);
+      else selectedDevices.push(name);
+      renderDevicePicker();
+      renderSelectedDeviceTags();
+    });
+  });
+}
+
+function renderSelectedDeviceTags() {
+  const el = document.getElementById('device-selected-tags');
+  el.innerHTML = selectedDevices.map(name =>
+    `<div class="device-tag">${name}<span class="device-tag-x" data-name="${name}">×</span></div>`
+  ).join('');
+  el.querySelectorAll('.device-tag-x').forEach(x => {
+    x.addEventListener('click', () => {
+      selectedDevices = selectedDevices.filter(n => n !== x.dataset.name);
+      renderDevicePicker();
+      renderSelectedDeviceTags();
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// ALLUSION PICKER
+// ═══════════════════════════════════════════════════════════
+function initAllusionPicker() {
+  document.querySelectorAll('.allusion-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.allusion-pill').forEach(p => p.classList.remove('selected'));
+      if (_selectedAllusionCat === pill.dataset.cat) { _selectedAllusionCat = null; }
+      else { pill.classList.add('selected'); _selectedAllusionCat = pill.dataset.cat; }
+    });
+  });
+  document.getElementById('allusion-add-btn').addEventListener('click', addAllusion);
+  document.getElementById('allusion-text').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addAllusion(); } });
+}
+
+function addAllusion() {
+  const text = document.getElementById('allusion-text').value.trim();
+  if (!text) return;
+  selectedAllusions.push({ cat: _selectedAllusionCat || '', text });
+  document.getElementById('allusion-text').value = '';
+  _selectedAllusionCat = null;
+  document.querySelectorAll('.allusion-pill').forEach(p => p.classList.remove('selected'));
+  renderAllusionTags();
+}
+
+function renderAllusionTags() {
+  const el = document.getElementById('allusion-tags');
+  el.innerHTML = selectedAllusions.map((a, i) =>
+    `<div class="allusion-tag">${a.cat ? a.cat+': ' : ''}${a.text}<span class="allusion-tag-x" data-i="${i}">×</span></div>`
+  ).join('');
+  el.querySelectorAll('.allusion-tag-x').forEach(x => {
+    x.addEventListener('click', () => {
+      selectedAllusions.splice(parseInt(x.dataset.i), 1);
+      renderAllusionTags();
+    });
+  });
+}
+
+// Close popup on outside click
+document.addEventListener('click', e => {
+  if (!popup.contains(e.target) && !e.target.closest('.highlight')) hidePopup();
+  if (!cpanel.contains(e.target) && !e.target.closest('.para') && cpanel.style.display === 'block') {
+    // Don't close if clicking inside text col
+  }
+});
+</script>
+</body>
+</html>
