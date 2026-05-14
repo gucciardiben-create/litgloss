@@ -195,6 +195,107 @@ button.cancel:hover{background:#f0f0f0;}
 
 /* Loading */
 .loading-msg{font-size:13px;color:#aaa;padding:1rem 10px;font-family:sans-serif;}
+
+/* ── FLOATING IMAGES ── */
+.text-col{position:relative;}
+.float-img-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;}
+.float-img-layer.hidden{display:none;}
+#text-content{position:relative;z-index:1;}
+.float-img{position:absolute;opacity:0.07;filter:blur(1px) saturate(0.6);max-width:160px;max-height:160px;border-radius:6px;pointer-events:none;transition:opacity 0.3s;}
+
+/* ── NOTEBOOK ── */
+.notebook-panel{padding:10px;overflow-y:auto;max-height:calc(100vh - 120px);font-family:sans-serif;display:none;}
+.notebook-panel.visible{display:block;}
+.nb-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.nb-title{font-size:13px;font-weight:500;color:#555;}
+.nb-save-status{font-size:11px;color:#aaa;}
+.nb-song-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;}
+.nb-tab{font-size:11px;padding:3px 8px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;font-family:sans-serif;}
+.nb-tab.active{background:#111;color:#fff;border-color:#111;}
+.nb-tab.has-notes{border-color:#7C3AED;color:#7C3AED;}
+.nb-tab.has-notes.active{background:#7C3AED;color:#fff;border-color:#7C3AED;}
+.nb-editor{min-height:160px;max-height:340px;overflow-y:auto;font-size:13px;line-height:1.7;padding:8px 10px;border:0.5px solid #ccc;border-radius:8px;background:#fafaf8;color:#111;outline:none;margin-bottom:8px;font-family:Georgia,serif;}
+.nb-editor:focus{border-color:#aaa;background:#fff;}
+.nb-editor:empty:before{content:attr(data-placeholder);color:#ccc;pointer-events:none;font-family:sans-serif;font-size:13px;}
+.nb-editor blockquote{border-left:3px solid #7C3AED;margin:6px 0;padding:4px 10px;background:#F3E8FF;border-radius:0 4px 4px 0;font-style:italic;}
+.nb-toolbar{display:flex;gap:3px;margin-bottom:6px;align-items:center;background:#f5f5f5;border:0.5px solid #e0e0e0;border-radius:8px;padding:4px 6px;flex-wrap:wrap;}
+.nb-btn{height:26px;padding:0 8px;border:none;border-radius:5px;background:transparent;color:#444;cursor:pointer;font-size:12px;font-family:sans-serif;display:flex;align-items:center;gap:3px;}
+.nb-btn:hover{background:#fff;}
+.nb-cite-btn{border:0.5px solid #7C3AED;color:#7C3AED;border-radius:20px;padding:0 10px;}
+.nb-cite-btn:hover{background:#F3E8FF;}
+
+/* ── DICTIONARY ── */
+.dict-panel{padding:10px;overflow-y:auto;max-height:calc(100vh - 120px);font-family:sans-serif;display:none;}
+.dict-panel.visible{display:block;}
+.dict-hint{font-size:12px;color:#aaa;text-align:center;padding:1rem 0;line-height:1.6;}
+.dict-word{font-size:18px;font-weight:500;color:#111;margin-bottom:2px;font-family:Georgia,serif;}
+.dict-phonetic{font-size:13px;color:#aaa;margin-bottom:10px;}
+.dict-pos{font-size:11px;font-weight:500;color:#7C3AED;text-transform:uppercase;letter-spacing:.06em;margin:8px 0 4px;}
+.dict-def{font-size:13px;color:#333;line-height:1.6;margin-bottom:4px;padding-left:10px;border-left:2px solid #eee;}
+.dict-example{font-size:12px;color:#888;font-style:italic;margin:2px 0 6px 10px;}
+.dict-synonyms{font-size:12px;color:#555;margin:6px 0;}
+.dict-syn-label{font-weight:500;color:#333;}
+.dict-syn-pill{display:inline-block;background:#f0f0f0;border-radius:20px;padding:1px 8px;margin:2px;font-size:11px;color:#444;cursor:pointer;}
+.dict-syn-pill:hover{background:#e0e0e0;}
+.dict-loading{font-size:13px;color:#aaa;text-align:center;padding:1rem;}
+.dict-error{font-size:13px;color:#DC2626;text-align:center;padding:1rem;}
+.dict-search-row{display:flex;gap:6px;margin-bottom:10px;}
+.dict-search-row input{flex:1;font-size:13px;padding:6px 9px;border:0.5px solid #ccc;border-radius:8px;background:#f9f9f9;color:#111;font-family:sans-serif;outline:none;}
+.dict-search-row input:focus{border-color:#7C3AED;background:#fff;}
+.dict-search-row button{font-size:12px;padding:6px 11px;border-radius:8px;border:0.5px solid #ccc;background:transparent;color:#111;cursor:pointer;font-family:sans-serif;}
+.dict-search-row button:hover{background:#f0f0f0;}
+.dict-divider{height:0.5px;background:#e0e0e0;margin:14px 0;}
+.wiki-label{font-size:10px;font-weight:500;color:#aaa;letter-spacing:.07em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.wiki-title{font-size:15px;font-weight:500;color:#111;margin-bottom:5px;font-family:Georgia,serif;}
+.wiki-extract{font-size:12px;color:#444;line-height:1.65;margin-bottom:8px;}
+.wiki-more{font-size:11px;color:#2563EB;cursor:pointer;text-decoration:none;}
+.wiki-more:hover{text-decoration:underline;}
+.wiki-none{font-size:12px;color:#aaa;font-style:italic;}
+
+/* ── LINE PANEL ── */
+.line-panel{position:absolute;left:10px;width:280px;background:#fff;border:0.5px solid #ccc;border-radius:12px;padding:.9rem 1rem;display:none;z-index:98;font-family:sans-serif;max-height:70vh;overflow-y:auto;}
+.line-panel.visible{display:block;}
+.lp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.lp-title{font-size:13px;font-weight:500;color:#555;}
+.lp-close{font-size:18px;color:#aaa;cursor:pointer;border:none;background:none;line-height:1;padding:0 2px;}
+.lp-close:hover{color:#111;}
+.lp-sort{display:flex;gap:4px;margin-bottom:10px;}
+.lp-sort-btn{font-size:11px;padding:3px 8px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;font-family:sans-serif;}
+.lp-sort-btn.active{background:#111;color:#fff;border-color:#111;}
+.lp-card{padding:8px 0;border-bottom:0.5px solid #eee;cursor:pointer;}
+.lp-card:last-child{border-bottom:none;}
+.lp-card:hover .lp-card-subject{text-decoration:underline;}
+.lp-card-quote{font-size:11px;font-family:Georgia,serif;padding:2px 6px;border-radius:3px;margin-bottom:5px;display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lp-card-subject{font-size:13px;font-weight:500;color:#111;margin-bottom:2px;}
+.lp-card-preview{font-size:12px;color:#777;line-height:1.4;margin-bottom:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.lp-card-meta{display:flex;gap:8px;font-size:11px;color:#aaa;}
+.lp-empty{font-size:13px;color:#aaa;padding:.5rem 0;}
+@media(max-width:700px){
+  .line-panel{position:fixed;bottom:0;left:0;right:0;width:100%;max-height:70vh;border-radius:16px 16px 0 0;border:none;border-top:0.5px solid #ccc;z-index:200;}
+  .notebook-panel{max-height:82vh;}
+  .dict-panel{max-height:75vh;}
+  .notebook-panel.visible,
+  .dict-panel.visible{display:block;}
+}
+
+/* ── GRAFFITI ── */
+.graffiti-canvas{position:absolute;inset:0;z-index:2;cursor:crosshair;touch-action:none;}
+.graffiti-canvas.hidden{display:none;pointer-events:none;}
+.graffiti-toolbar{display:none;padding:8px 10px;background:#fafaf8;border-bottom:0.5px solid #eee;font-family:sans-serif;flex-wrap:wrap;gap:6px;align-items:center;}
+.graffiti-toolbar.visible{display:flex;}
+.gt-label{font-size:10px;color:#aaa;letter-spacing:.06em;text-transform:uppercase;margin-right:2px;}
+.gt-tool{width:28px;height:26px;border:0.5px solid #ddd;border-radius:5px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;font-family:sans-serif;color:#555;}
+.gt-tool:hover{background:#f0f0f0;}
+.gt-tool.active{background:#111;color:#fff;border-color:#111;}
+.gt-color{width:20px;height:20px;border-radius:50%;border:2px solid transparent;cursor:pointer;flex-shrink:0;}
+.gt-color.active{border-color:#111;}
+.gt-sep{width:1px;height:20px;background:#e0e0e0;margin:0 2px;}
+.gt-size{width:26px;height:26px;border:0.5px solid #ddd;border-radius:5px;background:transparent;cursor:pointer;font-size:11px;font-family:sans-serif;color:#555;display:flex;align-items:center;justify-content:center;}
+.gt-size:hover{background:#f0f0f0;}
+.gt-size.active{background:#111;color:#fff;border-color:#111;}
+.gt-clear{font-size:11px;padding:3px 8px;border-radius:6px;border:0.5px solid #ddd;background:transparent;color:#DC2626;cursor:pointer;font-family:sans-serif;}
+.gt-clear:hover{background:#FEE2E2;}
+.gt-users{font-size:11px;color:#aaa;margin-left:4px;}
 </style>
 </head>
 <body>
@@ -212,6 +313,8 @@ button.cancel:hover{background:#f0f0f0;}
 
   <!-- TEXT COLUMN -->
   <div class="text-col" id="text-col">
+    <div class="float-img-layer" id="float-img-layer"></div>
+    <canvas class="graffiti-canvas hidden" id="graffiti-canvas"></canvas>
     <div class="chapter-title">Chapter I</div>
     <span class="chapter-subtitle">Loomings</span>
 
@@ -249,6 +352,22 @@ button.cancel:hover{background:#f0f0f0;}
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="2.5" rx="1" fill="currentColor"/><rect x="1" y="4.75" width="10" height="2.5" rx="1" fill="currentColor"/><rect x="1" y="8.5" width="10" height="2.5" rx="1" fill="currentColor"/></svg>
         All annotations
       </button>
+      <button class="rc-toggle" id="toggle-floats">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="2" width="10" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2"/><circle cx="4" cy="5" r="1.2" fill="currentColor"/><path d="M1 9l2.5-2.5 2 2 2-2.5 3 3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Floaties
+      </button>
+      <button class="rc-toggle" id="toggle-notebook">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1.5" y="1" width="9" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><line x1="3.5" y1="4" x2="8.5" y2="4" stroke="currentColor" stroke-width="1"/><line x1="3.5" y1="6" x2="8.5" y2="6" stroke="currentColor" stroke-width="1"/><line x1="3.5" y1="8" x2="6.5" y2="8" stroke="currentColor" stroke-width="1"/></svg>
+        Notebook
+      </button>
+      <button class="rc-toggle" id="toggle-dict">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2h8v8H2z" stroke="currentColor" stroke-width="1.2" rx="1"/><path d="M4 5h4M4 7h2" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><path d="M6 2v8" stroke="currentColor" stroke-width="0.8" stroke-dasharray="1.5 1"/></svg>
+        Dictionary
+      </button>
+      <button class="rc-toggle" id="toggle-graffiti">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 9.5l1-3L9 1l2 2-6 6.5z" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 9.5c-.5.5-.5 1 0 1s1-.5 1-1" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>
+        Graffiti
+      </button>
       <button class="rc-toggle" id="toggle-hide-all">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6s2-4 5-4 5 4 5 4-2 4-5 4-5-4-5-4z" stroke="currentColor" stroke-width="1.2"/><line x1="2" y1="2" x2="10" y2="10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
         Hide all
@@ -258,6 +377,31 @@ button.cancel:hover{background:#f0f0f0;}
         Devices only
       </button>
     </div>
+    <div class="graffiti-toolbar" id="graffiti-toolbar">
+      <span class="gt-label">Tool</span>
+      <button class="gt-tool active" id="gt-pen" title="Pen">✏</button>
+      <button class="gt-tool" id="gt-arrow" title="Arrow">↗</button>
+      <button class="gt-tool" id="gt-rect" title="Rectangle">▭</button>
+      <button class="gt-tool" id="gt-circle" title="Circle">◯</button>
+      <button class="gt-tool" id="gt-text" title="Text">T</button>
+      <button class="gt-tool" id="gt-eraser" title="Eraser">⌫</button>
+      <div class="gt-sep"></div>
+      <span class="gt-label">Color</span>
+      <div class="gt-color active" id="gtc-0" data-color="#111111" style="background:#111111"></div>
+      <div class="gt-color" id="gtc-1" data-color="#DC2626" style="background:#DC2626"></div>
+      <div class="gt-color" id="gtc-2" data-color="#2563EB" style="background:#2563EB"></div>
+      <div class="gt-color" id="gtc-3" data-color="#16A34A" style="background:#16A34A"></div>
+      <div class="gt-color" id="gtc-4" data-color="#CA8A04" style="background:#CA8A04"></div>
+      <div class="gt-color" id="gtc-5" data-color="#7C3AED" style="background:#7C3AED"></div>
+      <div class="gt-color" id="gtc-6" data-color="#ffffff" style="background:#fff;border:1.5px solid #ddd"></div>
+      <div class="gt-sep"></div>
+      <button class="gt-size active" id="gts-s" data-size="2">S</button>
+      <button class="gt-size" id="gts-m" data-size="5">M</button>
+      <button class="gt-size" id="gts-l" data-size="10">L</button>
+      <div class="gt-sep"></div>
+      <button class="gt-clear" id="gt-clear-all">Clear all</button>
+      <span class="gt-users" id="gt-users"></span>
+    </div>
     <div class="feed-panel" id="feed-panel">
       <div class="feed-sort">
         <button class="feed-sort-btn active" id="sort-new">Newest</button>
@@ -265,7 +409,10 @@ button.cancel:hover{background:#f0f0f0;}
       </div>
       <div id="feed-list"><div class="loading-msg">Loading annotations…</div></div>
     </div>
+    <div class="notebook-panel" id="notebook-panel"></div>
+    <div class="dict-panel" id="dict-panel"></div>
     <div class="anno-popup" id="anno-popup"></div>
+    <div class="line-panel" id="line-panel"></div>
     <div class="compose-panel" id="compose-panel">
       <div class="cp-quote" id="cp-quote"></div>
       <div class="guest-notice">
@@ -744,7 +891,7 @@ function renderAllusionTagsHtml(anno) {
 // ═══════════════════════════════════════════════════════════
 function bindParaEvents(para, idx) {
   para.addEventListener('mouseup', e => handleSel(e, idx));
-  para.addEventListener('dblclick', e => { e.preventDefault(); window.getSelection()?.removeAllRanges(); });
+  para.addEventListener('dblclick', e => { e.preventDefault(); window.getSelection()?.removeAllRanges(); if (typeof openLinePanel === 'function') openLinePanel(idx, para); });
 }
 
 function handleSel(e, paraIdx) {
@@ -923,6 +1070,421 @@ function initFeedToggles() {
     renderFeed();
   });
 }
+
+// ── FLOATING IMAGES ──────────────────────────────────────
+let floatiesVisible = false;
+let floatieAnimFrame = null;
+let floatieStates = [];
+
+function extractImages(annos) {
+  const imgs = [];
+  annos.forEach(anno => {
+    const div = document.createElement('div');
+    div.innerHTML = anno.body || '';
+    div.querySelectorAll('img').forEach(img => imgs.push(img.src));
+  });
+  return imgs;
+}
+
+function renderFloaties() {
+  const layer = document.getElementById('float-img-layer');
+  layer.innerHTML = '';
+  if (floatieAnimFrame) { cancelAnimationFrame(floatieAnimFrame); floatieAnimFrame = null; }
+  floatieStates = [];
+  if (!floatiesVisible) { layer.classList.add('hidden'); return; }
+  layer.classList.remove('hidden');
+  const imgs = extractImages(annotations);
+  if (!imgs.length) return;
+  const textCol = document.getElementById('text-col');
+  imgs.forEach((src, i) => {
+    const img = document.createElement('img');
+    img.className = 'float-img';
+    img.src = src;
+    img.style.position = 'absolute';
+    img.style.maxWidth = '140px';
+    img.style.maxHeight = '140px';
+    img.style.opacity = String(0.07 + (i % 3) * 0.025);
+    img.style.filter = 'blur(0.8px) saturate(0.5)';
+    img.style.borderRadius = '6px';
+    img.style.pointerEvents = 'none';
+    img.style.willChange = 'transform';
+    layer.appendChild(img);
+    const s1 = (i * 137 + 42) % 100 / 100, s2 = (i * 97 + 13) % 100 / 100;
+    const s3 = (i * 61 + 7) % 100 / 100, s4 = (i * 53 + 19) % 100 / 100;
+    floatieStates.push({ el: img, x: s1, y: s2, vx: (s3 - 0.5) * 0.00025 * (1 + i % 3), vy: (s4 - 0.5) * 0.00022 * (1 + i % 2), rot: (s1 - 0.5) * 20, rotV: (s2 - 0.5) * 0.003, w: 0, h: 0, loaded: false });
+    img.onload = () => { const state = floatieStates[i]; if (state) { state.w = img.offsetWidth || 120; state.h = img.offsetHeight || 120; state.loaded = true; } };
+    if (img.complete) { const state = floatieStates[i]; if (state) { state.w = img.offsetWidth || 120; state.h = img.offsetHeight || 120; state.loaded = true; } }
+  });
+  let lastTime = null;
+  function animate(ts) {
+    if (!floatiesVisible) return;
+    if (lastTime === null) lastTime = ts;
+    const dt = Math.min(ts - lastTime, 50); lastTime = ts;
+    const cw = textCol.offsetWidth || 520, ch = textCol.offsetHeight || 600;
+    floatieStates.forEach(s => {
+      if (!s.loaded) { s.w = s.el.offsetWidth || 120; s.h = s.el.offsetHeight || 120; s.loaded = s.w > 0; }
+      const imgW = s.w || 120, imgH = s.h || 120;
+      const maxX = (cw - imgW) / cw, maxY = (ch - imgH) / ch;
+      s.x += s.vx * dt; s.y += s.vy * dt; s.rot += s.rotV * dt;
+      if (s.x <= 0) { s.x = 0; s.vx = Math.abs(s.vx); }
+      if (s.x >= maxX) { s.x = maxX; s.vx = -Math.abs(s.vx); }
+      if (s.y <= 0) { s.y = 0; s.vy = Math.abs(s.vy); }
+      if (s.y >= maxY) { s.y = maxY; s.vy = -Math.abs(s.vy); }
+      s.el.style.left = (s.x * cw) + 'px'; s.el.style.top = (s.y * ch) + 'px'; s.el.style.transform = `rotate(${s.rot}deg)`;
+    });
+    floatieAnimFrame = requestAnimationFrame(animate);
+  }
+  floatieAnimFrame = requestAnimationFrame(animate);
+}
+
+document.getElementById('toggle-floats').addEventListener('click', () => {
+  floatiesVisible = !floatiesVisible;
+  document.getElementById('toggle-floats').classList.toggle('active', floatiesVisible);
+  if (!floatiesVisible && floatieAnimFrame) { cancelAnimationFrame(floatieAnimFrame); floatieAnimFrame = null; }
+  renderFloaties();
+});
+
+// ── GRAFFITI MODE ────────────────────────────────────────
+let graffitiMode = false;
+let graffitiTool = 'pen';
+let graffitiColor = '#111111';
+let graffitiSize = 2;
+let graffitiStrokes = [];
+let graffitiRealtimeSub = null;
+let graffitiDrawing = false;
+let graffitiCurrentStroke = null;
+let graffitiStartX = 0, graffitiStartY = 0;
+let graffitiTextInput = null;
+const GRAFFITI_OPACITY = 0.72;
+
+function graffitiCanvas() { return document.getElementById('graffiti-canvas'); }
+function graffitiCtx()    { return graffitiCanvas().getContext('2d'); }
+
+function resizeGraffitiCanvas() {
+  const tc = document.getElementById('text-col');
+  const cv = graffitiCanvas(); if (!cv) return;
+  cv.width = tc.offsetWidth; cv.height = tc.offsetHeight;
+  redrawGraffiti();
+}
+
+function redrawGraffiti() {
+  const cv = graffitiCanvas(); if (!cv) return;
+  const ctx = graffitiCtx();
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  graffitiStrokes.forEach(s => drawStroke(ctx, s));
+  if (graffitiCurrentStroke) drawStroke(ctx, graffitiCurrentStroke);
+}
+
+function drawStroke(ctx, s) {
+  if (!s || !s.points) return;
+  ctx.save(); ctx.globalAlpha = GRAFFITI_OPACITY;
+  ctx.strokeStyle = s.color || '#111'; ctx.fillStyle = s.color || '#111';
+  ctx.lineWidth = s.size || 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (s.tool === 'pen' || s.tool === 'eraser') {
+    if (s.tool === 'eraser') { ctx.globalCompositeOperation = 'destination-out'; ctx.globalAlpha = 1; }
+    const pts = s.points;
+    if (pts.length < 2) { ctx.beginPath(); ctx.arc(pts[0]?.x||0, pts[0]?.y||0, s.size/2, 0, Math.PI*2); ctx.fill(); }
+    else { ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y); for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y); ctx.stroke(); }
+  } else if (s.tool === 'arrow') {
+    const [p0, p1] = [s.points[0], s.points[s.points.length-1]]; if (!p0 || !p1) { ctx.restore(); return; }
+    ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+    const angle = Math.atan2(p1.y - p0.y, p1.x - p0.x), hw = Math.max(s.size * 3, 10);
+    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p1.x - hw * Math.cos(angle - 0.4), p1.y - hw * Math.sin(angle - 0.4)); ctx.lineTo(p1.x - hw * Math.cos(angle + 0.4), p1.y - hw * Math.sin(angle + 0.4)); ctx.closePath(); ctx.fill();
+  } else if (s.tool === 'rect') {
+    const [p0, p1] = [s.points[0], s.points[s.points.length-1]]; if (!p0 || !p1) { ctx.restore(); return; }
+    ctx.beginPath(); ctx.rect(p0.x, p0.y, p1.x - p0.x, p1.y - p0.y); ctx.stroke();
+  } else if (s.tool === 'circle') {
+    const [p0, p1] = [s.points[0], s.points[s.points.length-1]]; if (!p0 || !p1) { ctx.restore(); return; }
+    const cx = (p0.x + p1.x) / 2, cy = (p0.y + p1.y) / 2, rx = Math.abs(p1.x - p0.x) / 2, ry = Math.abs(p1.y - p0.y) / 2;
+    ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.stroke();
+  } else if (s.tool === 'text') {
+    ctx.font = `${Math.max(s.size * 4, 14)}px Georgia,serif`; ctx.fillText(s.text || '', s.points[0]?.x || 0, s.points[0]?.y || 0);
+  }
+  ctx.restore();
+}
+
+function getCanvasPos(e) {
+  const cv = graffitiCanvas(), r = cv.getBoundingClientRect();
+  const src = e.touches ? e.touches[0] : e;
+  return { x: src.clientX - r.left, y: src.clientY - r.top };
+}
+
+async function saveGraffitiStroke(stroke) {
+  const username = document.getElementById('inp-user').value.trim() || 'anonymous';
+  try {
+    const saved = await sbFetch('graffiti', { method: 'POST', body: { song_num: MOBY_SONG_NUM, username, tool: stroke.tool, color: stroke.color, size: stroke.size, points: stroke.points, text: stroke.text || null }});
+    if (saved && saved[0]) { stroke.id = saved[0].id; stroke.username = username; }
+  } catch(_) {}
+}
+
+async function loadGraffitiStrokes() {
+  try {
+    const rows = await sbFetch(`graffiti?song_num=eq.${MOBY_SONG_NUM}&order=created_at.asc`) || [];
+    graffitiStrokes = rows.map(r => ({ id: r.id, tool: r.tool, color: r.color, size: r.size, points: typeof r.points === 'string' ? JSON.parse(r.points) : r.points, username: r.username, text: r.text }));
+  } catch(_) { graffitiStrokes = []; }
+  redrawGraffiti();
+}
+
+function setupGraffitiRealtime() {
+  if (graffitiRealtimeSub) clearInterval(graffitiRealtimeSub);
+  graffitiRealtimeSub = setInterval(async () => { if (!graffitiMode) return; await loadGraffitiStrokes(); }, 4000);
+}
+
+function teardownGraffitiRealtime() {
+  if (graffitiRealtimeSub) { clearInterval(graffitiRealtimeSub); graffitiRealtimeSub = null; }
+}
+
+function graffitiPointerDown(e) {
+  if (!graffitiMode) return; e.preventDefault();
+  if (graffitiTool === 'text') { const pos = getCanvasPos(e); showGraffitiTextInput(pos.x, pos.y); return; }
+  graffitiDrawing = true;
+  const pos = getCanvasPos(e); graffitiStartX = pos.x; graffitiStartY = pos.y;
+  graffitiCurrentStroke = { tool: graffitiTool, color: graffitiColor, size: graffitiSize, points: [pos] };
+}
+
+function graffitiPointerMove(e) {
+  if (!graffitiMode || !graffitiDrawing || !graffitiCurrentStroke) return; e.preventDefault();
+  const pos = getCanvasPos(e);
+  if (graffitiTool === 'pen' || graffitiTool === 'eraser') graffitiCurrentStroke.points.push(pos);
+  else graffitiCurrentStroke.points = [{ x: graffitiStartX, y: graffitiStartY }, pos];
+  redrawGraffiti();
+}
+
+async function graffitiPointerUp(e) {
+  if (!graffitiMode || !graffitiDrawing || !graffitiCurrentStroke) return;
+  graffitiDrawing = false;
+  const stroke = graffitiCurrentStroke; graffitiCurrentStroke = null;
+  graffitiStrokes.push(stroke); redrawGraffiti();
+  await saveGraffitiStroke(stroke);
+}
+
+function showGraffitiTextInput(x, y) {
+  const cv = graffitiCanvas(), r = cv.getBoundingClientRect();
+  if (graffitiTextInput) graffitiTextInput.remove();
+  const inp = document.createElement('input'); inp.type = 'text';
+  inp.style.cssText = `position:fixed;left:${r.left+x}px;top:${r.top+y-14}px;font-size:${Math.max(graffitiSize*4,14)}px;font-family:Georgia,serif;color:${graffitiColor};background:transparent;border:none;border-bottom:1px dashed ${graffitiColor};outline:none;z-index:500;min-width:80px;`;
+  document.body.appendChild(inp); inp.focus(); graffitiTextInput = inp;
+  inp.addEventListener('keydown', async ev => {
+    if (ev.key === 'Enter' || ev.key === 'Escape') {
+      const text = inp.value.trim(); inp.remove(); graffitiTextInput = null;
+      if (text) { const stroke = { tool: 'text', color: graffitiColor, size: graffitiSize, points: [{x, y}], text }; graffitiStrokes.push(stroke); redrawGraffiti(); await saveGraffitiStroke(stroke); }
+    }
+  });
+  inp.addEventListener('blur', () => { inp.remove(); graffitiTextInput = null; });
+}
+
+function initGraffitiCanvas() {
+  const cv = graffitiCanvas(); cv.classList.remove('hidden'); resizeGraffitiCanvas();
+  cv.addEventListener('mousedown', graffitiPointerDown); cv.addEventListener('mousemove', graffitiPointerMove);
+  cv.addEventListener('mouseup', graffitiPointerUp); cv.addEventListener('mouseleave', graffitiPointerUp);
+  cv.addEventListener('touchstart', graffitiPointerDown, {passive:false}); cv.addEventListener('touchmove', graffitiPointerMove, {passive:false}); cv.addEventListener('touchend', graffitiPointerUp);
+}
+
+function teardownGraffitiCanvas() {
+  const cv = graffitiCanvas(); cv.classList.add('hidden'); const ctx = graffitiCtx(); ctx.clearRect(0, 0, cv.width, cv.height);
+  cv.removeEventListener('mousedown', graffitiPointerDown); cv.removeEventListener('mousemove', graffitiPointerMove);
+  cv.removeEventListener('mouseup', graffitiPointerUp); cv.removeEventListener('mouseleave', graffitiPointerUp);
+  cv.removeEventListener('touchstart', graffitiPointerDown); cv.removeEventListener('touchmove', graffitiPointerMove); cv.removeEventListener('touchend', graffitiPointerUp);
+}
+
+document.getElementById('toggle-graffiti').addEventListener('click', async () => {
+  graffitiMode = !graffitiMode;
+  document.getElementById('toggle-graffiti').classList.toggle('active', graffitiMode);
+  document.getElementById('graffiti-toolbar').classList.toggle('visible', graffitiMode);
+  if (graffitiMode) { initGraffitiCanvas(); await loadGraffitiStrokes(); setupGraffitiRealtime(); }
+  else { teardownGraffitiCanvas(); teardownGraffitiRealtime(); graffitiStrokes = []; }
+});
+
+document.querySelectorAll('.gt-tool').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.gt-tool').forEach(b => b.classList.remove('active')); btn.classList.add('active');
+    graffitiTool = btn.id.replace('gt-', '');
+    const cv = graffitiCanvas(); cv.style.cursor = graffitiTool === 'eraser' ? 'cell' : graffitiTool === 'text' ? 'text' : 'crosshair';
+  });
+});
+document.querySelectorAll('.gt-color').forEach(dot => {
+  dot.addEventListener('click', () => { document.querySelectorAll('.gt-color').forEach(d => d.classList.remove('active')); dot.classList.add('active'); graffitiColor = dot.dataset.color; });
+});
+document.querySelectorAll('.gt-size').forEach(btn => {
+  btn.addEventListener('click', () => { document.querySelectorAll('.gt-size').forEach(b => b.classList.remove('active')); btn.classList.add('active'); graffitiSize = parseInt(btn.dataset.size); });
+});
+document.getElementById('gt-clear-all').addEventListener('click', async () => {
+  if (!confirm('Clear all graffiti on Loomings for everyone?')) return;
+  try { await sbFetch(`graffiti?song_num=eq.${MOBY_SONG_NUM}`, { method: 'DELETE', prefer: 'return=minimal' }); graffitiStrokes = []; redrawGraffiti(); } catch(_) {}
+});
+window.addEventListener('resize', () => { if (graffitiMode) resizeGraffitiCanvas(); });
+
+// ── NOTEBOOK ─────────────────────────────────────────────
+let notebookVisible = false;
+const NB_KEY = 'moby_nb_loomings';
+function nbLoad() { try { return localStorage.getItem(NB_KEY) || ''; } catch(_) { return ''; } }
+function nbSave(html) { try { localStorage.setItem(NB_KEY, html); } catch(_) {} }
+
+function renderNotebook() {
+  const np = document.getElementById('notebook-panel');
+  if (!notebookVisible) { np.classList.remove('visible'); return; }
+  np.classList.add('visible');
+  np.innerHTML = `
+    <div class="nb-header">
+      <span class="nb-title">Notebook — Loomings</span>
+      <span class="nb-save-status" id="nb-save-status">saved locally</span>
+    </div>
+    <div class="nb-toolbar">
+      <button class="nb-btn" id="nb-bold"><svg width="14" height="14" viewBox="0 0 16 16"><text x="3" y="13" font-family="Georgia,serif" font-size="13" font-weight="bold" fill="currentColor">B</text></svg></button>
+      <button class="nb-btn" id="nb-italic"><svg width="14" height="14" viewBox="0 0 16 16"><text x="5" y="13" font-family="Georgia,serif" font-size="13" font-style="italic" fill="currentColor">I</text></svg></button>
+      <button class="nb-btn nb-cite-btn" id="nb-cite">+ Quote from Loomings</button>
+    </div>
+    <div class="nb-editor" id="nb-editor" contenteditable="true" data-placeholder="Your notes on Loomings…"></div>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <button class="primary" id="nb-save" style="font-size:12px;padding:4px 12px;">Save</button>
+      <span style="font-size:11px;color:#aaa;">Auto-saves as you type</span>
+    </div>`;
+  const nbed = np.querySelector('#nb-editor'); nbed.innerHTML = nbLoad();
+  let autoSaveTimer = null;
+  nbed.addEventListener('input', () => {
+    clearTimeout(autoSaveTimer);
+    np.querySelector('#nb-save-status').textContent = 'unsaved…';
+    autoSaveTimer = setTimeout(() => { nbSave(nbed.innerHTML); np.querySelector('#nb-save-status').textContent = 'saved locally'; }, 1200);
+  });
+  np.querySelector('#nb-save').addEventListener('click', () => { nbSave(nbed.innerHTML); np.querySelector('#nb-save-status').textContent = 'saved locally'; });
+  np.querySelector('#nb-bold').addEventListener('mousedown', e => { e.preventDefault(); nbed.focus(); document.execCommand('bold'); });
+  np.querySelector('#nb-italic').addEventListener('mousedown', e => { e.preventDefault(); nbed.focus(); document.execCommand('italic'); });
+  np.querySelector('#nb-cite').addEventListener('click', () => {
+    const sel = window.getSelection(), poemText = sel && sel.toString().trim();
+    const cite = poemText || 'Moby-Dick, Chapter I: Loomings';
+    const html = `<blockquote>${cite}<span class="nb-cite" style="font-size:11px;color:#888;font-style:normal;display:block;margin-top:2px;">— Loomings, Melville</span></blockquote><p><br></p>`;
+    nbed.focus(); document.execCommand('insertHTML', false, html); nbSave(nbed.innerHTML);
+  });
+}
+
+document.getElementById('toggle-notebook').addEventListener('click', () => {
+  notebookVisible = !notebookVisible;
+  document.getElementById('toggle-notebook').classList.toggle('active', notebookVisible);
+  // close other panels
+  if (notebookVisible) { dictVisible = false; document.getElementById('toggle-dict').classList.remove('active'); document.getElementById('dict-panel').classList.remove('visible'); }
+  renderNotebook();
+});
+
+// ── DICTIONARY + ENCYCLOPEDIA ────────────────────────────
+let dictVisible = false;
+let lastDictQuery = '';
+
+async function lookupWikipedia(query) {
+  try {
+    const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`;
+    const res = await fetch(url); if (!res.ok) return null;
+    const data = await res.json();
+    if (data.type === 'disambiguation' || !data.extract) return null;
+    return { title: data.title, extract: data.extract.slice(0, 320) + (data.extract.length > 320 ? '…' : ''), url: data.content_urls?.desktop?.page };
+  } catch(_) { return null; }
+}
+
+async function lookupWord(query) {
+  const dp = document.getElementById('dict-panel');
+  const target = dp.querySelector('#dict-results') || dp;
+  const clean = query.trim();
+  if (!clean || clean === lastDictQuery) return;
+  lastDictQuery = clean;
+  target.innerHTML = `<div class="dict-loading">Looking up "${clean}"…</div>`;
+  const isSingleWord = !clean.includes(' ');
+  const [dictResult, wikiResult] = await Promise.all([
+    isSingleWord ? (async () => { try { const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(clean)}`); if (!r.ok) return null; return await r.json(); } catch(_) { return null; } })() : Promise.resolve(null),
+    lookupWikipedia(clean),
+  ]);
+  let html = '';
+  if (dictResult && dictResult[0]) {
+    const entry = dictResult[0];
+    const phonetic = entry.phonetics?.find(p => p.text)?.text || '';
+    html += `<div class="dict-word">${entry.word}</div>`;
+    if (phonetic) html += `<div class="dict-phonetic">${phonetic}</div>`;
+    entry.meanings?.forEach(m => {
+      html += `<div class="dict-pos">${m.partOfSpeech}</div>`;
+      m.definitions?.slice(0, 3).forEach(d => {
+        html += `<div class="dict-def">${d.definition}</div>`;
+        if (d.example) html += `<div class="dict-example">"${d.example}"</div>`;
+      });
+      if (m.synonyms?.length) { html += `<div class="dict-synonyms"><span class="dict-syn-label">Synonyms: </span>`; m.synonyms.slice(0,10).forEach(s => { html += `<span class="dict-syn-pill" data-word="${s}">${s}</span>`; }); html += `</div>`; }
+      if (m.antonyms?.length) { html += `<div class="dict-synonyms"><span class="dict-syn-label">Antonyms: </span>`; m.antonyms.slice(0,6).forEach(s => { html += `<span class="dict-syn-pill" data-word="${s}">${s}</span>`; }); html += `</div>`; }
+    });
+  } else if (isSingleWord) {
+    html += `<div class="dict-word">${clean}</div><div class="dict-phonetic" style="color:#bbb">No dictionary entry found</div>`;
+  }
+  if (html) html += `<div class="dict-divider"></div>`;
+  html += `<div><div class="wiki-label"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1"/><path d="M4 6c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><line x1="6" y1="9" x2="6" y2="9.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg> Encyclopedia</div>`;
+  if (wikiResult) {
+    html += `<div class="wiki-title">${wikiResult.title}</div><div class="wiki-extract">${wikiResult.extract}</div>${wikiResult.url ? `<a class="wiki-more" href="${wikiResult.url}" target="_blank">Read more on Wikipedia →</a>` : ''}`;
+  } else {
+    html += `<div class="wiki-none">No Wikipedia article found for "${clean}".</div>`;
+  }
+  html += `</div>`;
+  if (!dictResult && !wikiResult) { target.innerHTML = `<div class="dict-error">Nothing found for "${clean}".</div>`; return; }
+  target.innerHTML = html;
+  target.querySelectorAll('.dict-syn-pill').forEach(pill => { pill.addEventListener('click', () => { lastDictQuery = ''; lookupWord(pill.dataset.word); }); });
+}
+
+function initDictPanel() {
+  const dp = document.getElementById('dict-panel');
+  dp.innerHTML = `<div class="dict-search-row"><input type="text" id="dict-input" placeholder="Look up a word or phrase…" autocomplete="off" /><button id="dict-search-btn">Look up</button></div><div id="dict-results"><div class="dict-hint">Type any word or phrase and press Enter or Look up.</div></div>`;
+  const inp = dp.querySelector('#dict-input'), btn = dp.querySelector('#dict-search-btn');
+  const doLookup = () => { const q = inp.value.trim(); if (!q) return; lastDictQuery = ''; lookupWord(q); };
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') doLookup(); });
+  btn.addEventListener('click', doLookup);
+  inp.focus();
+}
+
+document.getElementById('toggle-dict').addEventListener('click', () => {
+  dictVisible = !dictVisible;
+  document.getElementById('toggle-dict').classList.toggle('active', dictVisible);
+  if (dictVisible) {
+    notebookVisible = false; document.getElementById('toggle-notebook').classList.remove('active'); renderNotebook();
+    initDictPanel(); lastDictQuery = '';
+  }
+  document.getElementById('dict-panel').classList.toggle('visible', dictVisible);
+});
+
+// ── LINE PANEL (double-click para) ───────────────────────
+let linePanelSort = 'recent';
+
+function getAnnotationsForPara(paraIdx) {
+  return annotations.filter(a => a.line_index === paraIdx);
+}
+
+function openLinePanel(paraIdx, paraEl) {
+  hidePopup();
+  const lp = document.getElementById('line-panel');
+  const annos = getAnnotationsForPara(paraIdx);
+  function render() {
+    let sorted = [...annos];
+    if (linePanelSort === 'recent') sorted.sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0));
+    else sorted.sort((a,b) => (b.upvotes + (b._replyCount||0)*2) - (a.upvotes + (a._replyCount||0)*2));
+    const paraText = paraEl.textContent.trim(), preview = paraText.length > 40 ? paraText.slice(0,38)+'…' : paraText;
+    let html = `<div class="lp-header"><span class="lp-title">"${preview}"</span><button class="lp-close" id="lp-close">×</button></div>`;
+    if (!annos.length) {
+      html += `<div class="lp-empty">No annotations on this paragraph yet.<br><span style="font-size:11px;color:#bbb;">Select text above to add one.</span></div>`;
+    } else {
+      html += `<div class="lp-sort"><button class="lp-sort-btn${linePanelSort==='recent'?' active':''}" data-sort="recent">Most recent</button><button class="lp-sort-btn${linePanelSort==='top'?' active':''}" data-sort="top">Most upvoted</button></div>`;
+      sorted.forEach(anno => {
+        const si = spIdx(anno), col = SPECTRUM[si];
+        html += `<div class="lp-card" data-id="${anno.id}"><div class="lp-card-quote" style="background:${col.bg};color:${col.text}">"${anno.quote}"</div><div class="lp-card-subject">${anno.subject}</div><div class="lp-card-preview">${anno.body.replace(/<[^>]*>/g,'')}</div><div class="lp-card-meta"><span>by ${anno.username||'anonymous'}</span><span>▲ ${anno.upvotes}</span><span>💬 ${anno._replyCount||0}</span></div></div>`;
+      });
+    }
+    lp.innerHTML = html;
+    lp.querySelector('#lp-close').addEventListener('click', () => lp.classList.remove('visible'));
+    lp.querySelectorAll('.lp-sort-btn').forEach(btn => { btn.addEventListener('click', () => { linePanelSort = btn.dataset.sort; render(); }); });
+    lp.querySelectorAll('.lp-card').forEach(card => { card.addEventListener('click', () => openDiscussion(parseInt(card.dataset.id))); });
+  }
+  render();
+  if (window.innerWidth > 700) {
+    const rR = document.getElementById('right-col').getBoundingClientRect();
+    const pR = paraEl.getBoundingClientRect();
+    lp.style.top = Math.max(0, pR.top - rR.top - 8) + 'px';
+  }
+  lp.classList.add('visible');
+}
+
+
+
+
 
 function renderFeed() {
   const list = document.getElementById('feed-list');
