@@ -6807,18 +6807,21 @@ async function authRefreshSession() {
 // Init: check for saved session or invite token on page load
 authLoadSession();
 window.addEventListener('DOMContentLoaded', async () => {
-  // Check for password recovery token in URL hash (from reset email link)
+  // ── PASSWORD RECOVERY: check FIRST, before any session logic ──
+  // Supabase reset links arrive as: index.html#access_token=...&type=recovery
   const hash = window.location.hash.substring(1);
   if (hash) {
     const hashParams = new URLSearchParams(hash);
     if (hashParams.get('type') === 'recovery') {
       const accessToken = hashParams.get('access_token');
       if (accessToken) {
-        // Clear the hash from the URL so it's not bookmarked / reused
+        // Clear hash so it can't be bookmarked or reused
         window.history.replaceState({}, '', window.location.pathname);
-        // Store token so the set-password handler can use it
+        // Clear any existing session — it would otherwise override the recovery flow
+        authClearSession();
+        // Stash token for the set-password button handler
         window._recoveryToken = accessToken;
-        // Show login screen in "set new password" mode
+        // Show the "set new password" panel
         showLoginScreen();
         showAuthPanel('set-password');
         return;
