@@ -114,6 +114,40 @@ button.cancel:hover{background:#f0f0f0;}
 .anno-allusion-tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:20px;background:#DBEAFE;color:#1E3A8A;margin:1px 2px;font-family:sans-serif;cursor:pointer;}
 .anno-allusion-tag:hover{background:#BFDBFE;}
 
+/* ── ANNOTATION TYPE TAGS ── */
+.tag-section{margin-top:8px;padding-top:8px;border-top:0.5px solid #eee;}
+.tag-section-label{font-size:11px;color:#aaa;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.tag-ai-badge{font-size:10px;background:#F3E8FF;color:#7C3AED;border-radius:20px;padding:1px 7px;font-weight:500;}
+.tag-pills{display:flex;flex-wrap:wrap;gap:5px;}
+.tag-pill{font-size:11px;padding:3px 10px;border-radius:20px;border:0.5px solid #ddd;background:#f5f5f5;color:#555;cursor:pointer;font-family:sans-serif;transition:all .15s;}
+.tag-pill:hover{border-color:#7C3AED;color:#7C3AED;background:#F3E8FF;}
+.tag-pill.selected{color:#fff;border-color:transparent;}
+.tag-pill[data-tag="Question"].selected{background:#2563EB;}
+.tag-pill[data-tag="Analysis"].selected{background:#16A34A;}
+.tag-pill[data-tag="Free Write"].selected{background:#CA8A04;}
+.tag-pill[data-tag="Analysis/Criticism"].selected{background:#DC2626;}
+.tag-pill[data-tag="Connection"].selected{background:#7C3AED;}
+.tag-ai-spinner{font-size:10px;color:#aaa;margin-left:4px;display:none;}
+.tag-ai-spinner.visible{display:inline;}
+/* Tag badges on cards */
+.anno-type-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:20px;font-weight:500;margin-bottom:4px;color:#fff;}
+.anno-type-tag.Question{background:#2563EB;}
+.anno-type-tag.Analysis{background:#16A34A;}
+.anno-type-tag.Free-Write{background:#CA8A04;}
+.anno-type-tag.Analysis-Criticism{background:#DC2626;}
+.anno-type-tag.Connection{background:#7C3AED;}
+/* Feed filter */
+.feed-tag-filter{display:flex;gap:4px;flex-wrap:wrap;padding:6px 10px;border-bottom:0.5px solid #eee;}
+.ftf-btn{font-size:11px;padding:2px 9px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;font-family:sans-serif;}
+.ftf-btn:hover{background:#f0f0f0;}
+.ftf-btn.active{color:#fff;border-color:transparent;}
+.ftf-btn[data-tag="Question"].active{background:#2563EB;}
+.ftf-btn[data-tag="Analysis"].active{background:#16A34A;}
+.ftf-btn[data-tag="Free Write"].active{background:#CA8A04;}
+.ftf-btn[data-tag="Analysis/Criticism"].active{background:#DC2626;}
+.ftf-btn[data-tag="Connection"].active{background:#7C3AED;}
+.ftf-btn[data-tag="all"].active{background:#111;}
+
 /* Device tagger in compose */
 .device-section{margin-top:8px;padding-top:8px;border-top:0.5px solid #eee;}
 .device-section-label{font-size:11px;color:#aaa;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;}
@@ -407,6 +441,14 @@ button.cancel:hover{background:#f0f0f0;}
         <button class="feed-sort-btn active" id="sort-new">Newest</button>
         <button class="feed-sort-btn" id="sort-top">Top</button>
       </div>
+      <div class="feed-tag-filter" id="feed-tag-filter">
+        <button class="ftf-btn active" data-tag="all">All</button>
+        <button class="ftf-btn" data-tag="Question">❓</button>
+        <button class="ftf-btn" data-tag="Analysis">🔍</button>
+        <button class="ftf-btn" data-tag="Free Write">✍️</button>
+        <button class="ftf-btn" data-tag="Analysis/Criticism">📚</button>
+        <button class="ftf-btn" data-tag="Connection">🔗</button>
+      </div>
       <div id="feed-list"><div class="loading-msg">Loading annotations…</div></div>
     </div>
     <div class="notebook-panel" id="notebook-panel"></div>
@@ -451,6 +493,19 @@ button.cancel:hover{background:#f0f0f0;}
           <button class="allusion-add-btn" id="allusion-add-btn">Add</button>
         </div>
         <div class="allusion-tags" id="allusion-tags"></div>
+      </div>
+      <div class="tag-section">
+        <div class="tag-section-label">
+          Annotation type <span class="tag-ai-badge">✦ AI</span>
+          <span class="tag-ai-spinner" id="tag-ai-spinner">thinking…</span>
+        </div>
+        <div class="tag-pills" id="tag-pills">
+          <button class="tag-pill" data-tag="Question">❓ Question</button>
+          <button class="tag-pill" data-tag="Analysis">🔍 Analysis</button>
+          <button class="tag-pill" data-tag="Free Write">✍️ Free Write</button>
+          <button class="tag-pill" data-tag="Analysis/Criticism">📚 Criticism</button>
+          <button class="tag-pill" data-tag="Connection">🔗 Connection</button>
+        </div>
       </div>
       <div class="btn-row" style="margin-top:8px;">
         <button class="primary" id="btn-post">Post</button>
@@ -924,6 +979,10 @@ function handleSel(e, paraIdx) {
   document.getElementById('mobile-annotate-btn').style.display = 'none';
   document.getElementById('mobile-overlay').classList.remove('visible');
   window.getSelection().removeAllRanges();
+  // Reset tag selection and wire up AI auto-tag
+  selectedTag = null;
+  document.querySelectorAll('.tag-pill').forEach(p => p.classList.remove('selected'));
+  initTagListeners();
 
   // On mobile, show mobile annotate btn first
   if (window.innerWidth <= 700) {
@@ -996,6 +1055,7 @@ function initComposeButtons() {
       devices: selectedDevices.length ? JSON.stringify(selectedDevices) : null,
       allusions: selectedAllusions.length ? JSON.stringify(selectedAllusions) : null,
       user_id: null,
+      tag: selectedTag || null,
     };
     try {
       let saved;
@@ -1010,7 +1070,8 @@ function initComposeButtons() {
       const newAnno = Array.isArray(saved) ? saved[0] : saved;
       newAnno._replyCount = 0;
       annotations.push(newAnno);
-      pendingSelection = null; pendingParaIndex = -1; selectedDevices = []; selectedAllusions = [];
+      pendingSelection = null; pendingParaIndex = -1; selectedDevices = []; selectedAllusions = []; selectedTag = null;
+      document.querySelectorAll('.tag-pill').forEach(p => p.classList.remove('selected'));
       document.getElementById('inp-user').value = '';
       document.getElementById('inp-subject').value = '';
       document.getElementById('editor').innerHTML = '';
@@ -1034,6 +1095,84 @@ function initComposeButtons() {
       status.className = 'cp-status err';
     }
   });
+}
+
+// ═══════════════════════════════════════════════════════════
+// ANNOTATION TYPE TAGS
+// ═══════════════════════════════════════════════════════════
+let selectedTag = null;
+let feedTagFilter = 'all';
+
+// Tag pill selection
+document.getElementById('tag-pills').addEventListener('click', e => {
+  const pill = e.target.closest('.tag-pill');
+  if (!pill) return;
+  const tag = pill.dataset.tag;
+  if (selectedTag === tag) {
+    selectedTag = null;
+    document.querySelectorAll('.tag-pill').forEach(p => p.classList.remove('selected'));
+  } else {
+    selectedTag = tag;
+    document.querySelectorAll('.tag-pill').forEach(p => p.classList.toggle('selected', p.dataset.tag === tag));
+  }
+});
+
+// AI auto-tag: fires when user finishes typing subject or body
+let aiTagTimer = null;
+function scheduleAiTag() {
+  clearTimeout(aiTagTimer);
+  aiTagTimer = setTimeout(runAiTag, 1200);
+}
+async function runAiTag() {
+  const subject = document.getElementById('inp-subject')?.value.trim();
+  const body = document.getElementById('editor')?.innerText.trim();
+  if (!subject && !body) return;
+  const spinner = document.getElementById('tag-ai-spinner');
+  if (spinner) { spinner.classList.add('visible'); }
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 20,
+        system: 'You classify literary annotations. Reply with ONLY one of these exact labels: Question, Analysis, Free Write, Analysis/Criticism, Connection. No explanation.',
+        messages: [{ role: 'user', content: `Subject: ${subject}\n\nAnnotation: ${body}` }]
+      })
+    });
+    const data = await res.json();
+    const tag = data?.content?.[0]?.text?.trim();
+    const valid = ['Question','Analysis','Free Write','Analysis/Criticism','Connection'];
+    if (tag && valid.includes(tag)) {
+      selectedTag = tag;
+      document.querySelectorAll('.tag-pill').forEach(p => p.classList.toggle('selected', p.dataset.tag === tag));
+    }
+  } catch(_) {}
+  if (spinner) spinner.classList.remove('visible');
+}
+
+// Wire up auto-tag triggers after compose opens
+function initTagListeners() {
+  document.getElementById('inp-subject')?.addEventListener('input', scheduleAiTag);
+  document.getElementById('editor')?.addEventListener('input', scheduleAiTag);
+}
+
+// Feed tag filter
+document.getElementById('feed-tag-filter').addEventListener('click', e => {
+  const btn = e.target.closest('.ftf-btn');
+  if (!btn) return;
+  feedTagFilter = btn.dataset.tag;
+  document.querySelectorAll('.ftf-btn').forEach(b => b.classList.toggle('active', b.dataset.tag === feedTagFilter));
+  renderFeed();
+});
+
+function tagClass(tag) {
+  return tag ? tag.replace(/\//g,'-').replace(/ /g,'-') : '';
+}
+function tagBadge(tag) {
+  if (!tag) return '';
+  const icons = { 'Question':'❓', 'Analysis':'🔍', 'Free Write':'✍️', 'Analysis/Criticism':'📚', 'Connection':'🔗' };
+  return `<span class="anno-type-tag ${tagClass(tag)}">${icons[tag]||''} ${tag}</span>`;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1442,6 +1581,26 @@ document.getElementById('toggle-dict').addEventListener('click', () => {
   document.getElementById('dict-panel').classList.toggle('visible', dictVisible);
 });
 
+// Auto-lookup when user selects text in the poem
+document.getElementById('text-content').addEventListener('mouseup', () => {
+  const sel = window.getSelection();
+  const text = sel && sel.toString().trim();
+  if (!text || text.length > 80) return;
+  // Open dict panel if not already open
+  if (!dictVisible) {
+    dictVisible = true;
+    document.getElementById('toggle-dict').classList.add('active');
+    document.getElementById('dict-panel').classList.add('visible');
+    notebookVisible = false; document.getElementById('toggle-notebook').classList.remove('active'); renderNotebook();
+    initDictPanel();
+  } else if (!document.getElementById('dict-input')) {
+    initDictPanel();
+  }
+  // Populate input and trigger lookup
+  const inp = document.getElementById('dict-input');
+  if (inp) { inp.value = text; lastDictQuery = ''; lookupWord(text); }
+});
+
 // ── LINE PANEL (double-click para) ───────────────────────
 let linePanelSort = 'recent';
 
@@ -1491,12 +1650,16 @@ function renderFeed() {
   if (!list) return;
   if (!annotations.length) { list.innerHTML = '<div class="feed-empty">No annotations yet — select text to add one.</div>'; return; }
   let sorted = [...annotations];
+  if (feedTagFilter && feedTagFilter !== 'all') sorted = sorted.filter(a => a.tag === feedTagFilter);
   if (feedSortOrder === 'top') sorted.sort((a,b) => engScore(b) - engScore(a));
   else sorted.sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0));
+
+  if (!sorted.length) { list.innerHTML = '<div class="feed-empty">No annotations with this tag yet.</div>'; return; }
 
   list.innerHTML = sorted.map(anno => {
     const col = SPECTRUM[spIdx(anno)];
     return `<div class="feed-card" data-id="${anno.id}">
+      ${anno.tag ? tagBadge(anno.tag) : ''}
       <div class="feed-card-quote" style="background:${col.bg};color:${col.text}">"${anno.quote.slice(0,40)}${anno.quote.length>40?'…':''}"</div>
       <div class="feed-card-subject">${anno.subject}</div>
       <div class="feed-card-preview">${anno.body.replace(/<[^>]*>/g,'')}</div>
