@@ -1117,6 +1117,7 @@ function initComposeButtons() {
     document.getElementById('allusion-tags').innerHTML = '';
     document.querySelectorAll('.allusion-pill').forEach(p => p.classList.remove('selected'));
     _selectedAllusionCat = null;
+    cpanel.querySelectorAll('.map-pin-inject').forEach(b => b.remove());
     cpanel.style.display = 'none';
     document.getElementById('mobile-annotate-btn').style.display = 'none';
     document.getElementById('mobile-overlay').classList.remove('visible');
@@ -1687,17 +1688,17 @@ document.getElementById('toggle-dict').addEventListener('click', () => {
 });
 
 // Auto-lookup when user selects text in the poem
-// Dict auto-lookup: listen on document with delay so annotation handler doesn't steal selection
+// Uses pendingSelection (set in handleSel before selection is cleared) so the lookup
+// still works even after removeAllRanges() has fired.
 document.addEventListener('mouseup', e => {
-  // Only trigger inside text-content, not inside compose/popup/panels
   const tc = document.getElementById('text-content');
   if (!tc || !tc.contains(e.target)) return;
   if (e.target.closest('.compose-panel, .anno-popup, .rc-col, #disc-view')) return;
   setTimeout(() => {
-    const sel = window.getSelection();
-    const text = sel && sel.toString().trim();
+    // Prefer pendingSelection (set by handleSel before selection cleared); fall back to live selection
+    const text = (pendingSelection && pendingSelection.trim()) ||
+                 (window.getSelection() && window.getSelection().toString().trim());
     if (!text || text.length > 120) return;
-    // Open dict panel if not already open
     if (!dictVisible) {
       dictVisible = true;
       document.getElementById('toggle-dict').classList.add('active');
@@ -2223,28 +2224,36 @@ function showPopupWithMapPin(annos, anchor, paraIdx) {
   _origShowPopupCompose(annos, anchor, paraIdx);
 }
 
-// Intercept compose popup to inject map pin button
+// Intercept compose panel to inject map pin button
 function injectMapPinIntoPopup(quote) {
   setTimeout(() => {
-    const popup = document.getElementById('anno-popup');
-    if (!popup || !popup.classList.contains('visible')) return;
-    if (popup.querySelector('.map-pin-inject')) return;
+    // After a selection, handleSel shows the compose-panel, not anno-popup
+    const panel = document.getElementById('compose-panel');
+    if (!panel || panel.style.display === 'none') return;
+    if (panel.querySelector('.map-pin-inject')) return;
     const btn = document.createElement('button');
     btn.className = 'map-pin-inject';
-    btn.style.cssText = 'display:block;width:100%;text-align:left;font-size:12px;padding:5px 0 0;border:none;background:none;color:#F59E0B;cursor:pointer;font-family:sans-serif;';
+    btn.style.cssText = 'display:block;width:100%;text-align:left;font-size:12px;padding:6px 0 2px;border:none;background:none;color:#F59E0B;cursor:pointer;font-family:sans-serif;';
     btn.innerHTML = '📍 Drop map pin for this place';
-    btn.addEventListener('click', () => { popup.classList.remove('visible'); showMapDropDialog(quote); });
-    popup.appendChild(btn);
+    btn.addEventListener('click', () => { panel.style.display = 'none'; showMapDropDialog(quote); });
+    // Insert before the Post/Cancel buttons row
+    const btnRow = panel.querySelector('.btn-row');
+    if (btnRow) {
+      panel.insertBefore(btn, btnRow);
+    } else {
+      panel.appendChild(btn);
+    }
   }, 80);
 }
 
 // Hook into text selection to offer map pin
+// Uses pendingSelection so it still works after removeAllRanges() fires in handleSel
 document.addEventListener('mouseup', e => {
   const tc = document.getElementById('text-content');
   if (!tc || !tc.contains(e.target)) return;
   setTimeout(() => {
-    const sel = window.getSelection();
-    const text = sel && sel.toString().trim();
+    const text = (pendingSelection && pendingSelection.trim()) ||
+                 (window.getSelection() && window.getSelection().toString().trim());
     if (text && text.length > 1 && text.length < 60) {
       injectMapPinIntoPopup(text);
     }

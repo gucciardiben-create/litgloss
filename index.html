@@ -4538,8 +4538,9 @@ document.addEventListener('mouseup', e => {
   if (!tc || !tc.contains(e.target)) return;
   if (e.target.closest('.compose-panel, .anno-popup, .rc-col, #disc-view')) return;
   setTimeout(() => {
-    const sel = window.getSelection();
-    const text = sel && sel.toString().trim();
+    // Use pendingSelection (captured by handleSel before removeAllRanges fires)
+    const text = (pendingSelection && pendingSelection.trim()) ||
+                 (window.getSelection() && window.getSelection().toString().trim());
     if (!text || text.length > 120) return;
     if (!dictVisible) {
       dictVisible = true;
@@ -5290,7 +5291,9 @@ document.getElementById('btn-cancel').addEventListener('click', () => {
   selectedDevices  = [];
   document.getElementById('inp-user').value    = currentProfile ? currentProfile.username : '';
   document.getElementById('inp-subject').value = '';
-  editor.innerHTML = ''; cpanel.style.display = 'none';
+  editor.innerHTML = '';
+  cpanel.querySelectorAll('.map-pin-inject').forEach(b => b.remove());
+  cpanel.style.display = 'none';
   document.getElementById('cp-status').textContent = '';
   document.getElementById('device-selected-tags').innerHTML = '';
   document.getElementById('device-picker').classList.remove('open');
@@ -8215,15 +8218,17 @@ function showMapDropDialog(quote) {
 
 function injectMapPinIntoPopup(quote) {
   setTimeout(() => {
-    const popup = document.querySelector('.anno-popup.visible, #anno-popup.visible');
-    if (!popup) return;
-    if (popup.querySelector('.map-pin-inject')) return;
+    // After selection, handleSel shows compose-panel, not anno-popup
+    const panel = document.getElementById('compose-panel');
+    if (!panel || panel.style.display === 'none') return;
+    if (panel.querySelector('.map-pin-inject')) return;
     const btn = document.createElement('button');
     btn.className = 'map-pin-inject';
     btn.style.cssText = 'display:block;width:100%;text-align:left;font-size:12px;padding:6px 0 2px;border:none;background:none;color:#F59E0B;cursor:pointer;font-family:sans-serif;';
     btn.innerHTML = '📍 Drop map pin for this place';
-    btn.addEventListener('click', () => { popup.classList.remove('visible'); showMapDropDialog(quote); });
-    popup.appendChild(btn);
+    btn.addEventListener('click', () => { panel.style.display = 'none'; showMapDropDialog(quote); });
+    const btnRow = panel.querySelector('.btn-row');
+    if (btnRow) { panel.insertBefore(btn, btnRow); } else { panel.appendChild(btn); }
   }, 100);
 }
 
@@ -8231,7 +8236,9 @@ document.addEventListener('mouseup', e => {
   const tc = document.getElementById('text-content');
   if (!tc || !tc.contains(e.target)) return;
   setTimeout(() => {
-    const sel = window.getSelection(), text = sel && sel.toString().trim();
+    // Use pendingSelection — captured before removeAllRanges clears it
+    const text = (pendingSelection && pendingSelection.trim()) ||
+                 (window.getSelection() && window.getSelection().toString().trim());
     if (text && text.length > 1 && text.length < 60) injectMapPinIntoPopup(text);
   }, 220);
 });
