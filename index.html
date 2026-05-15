@@ -1,6 +1,3 @@
-<script>
-if(window.location.hostname==='gucciardiben-create.github.io'&&!window.location.pathname.startsWith('/litgloss')){window.location.replace('https://gucciardiben-create.github.io/litgloss/'+window.location.hash);}
-</script>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -526,6 +523,37 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
 .loading-msg{font-size:13px;color:#aaa;padding:1rem 0;}
 
 /* ── DEVICE TAGGER ── */
+/* ── ANNOTATION TYPE TAGS ── */
+.tag-section{margin-top:8px;padding-top:8px;border-top:0.5px solid #eee;}
+.tag-section-label{font-size:11px;color:#aaa;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.tag-ai-badge{font-size:10px;background:#F3E8FF;color:#7C3AED;border-radius:20px;padding:1px 7px;font-weight:500;}
+.tag-pills{display:flex;flex-wrap:wrap;gap:5px;}
+.tag-pill{font-size:11px;padding:3px 10px;border-radius:20px;border:0.5px solid #ddd;background:#f5f5f5;color:#555;cursor:pointer;font-family:sans-serif;transition:all .15s;}
+.tag-pill:hover{border-color:#7C3AED;color:#7C3AED;background:#F3E8FF;}
+.tag-pill.selected{color:#fff;border-color:transparent;}
+.tag-pill[data-tag="Question"].selected{background:#2563EB;}
+.tag-pill[data-tag="Analysis"].selected{background:#16A34A;}
+.tag-pill[data-tag="Free Write"].selected{background:#CA8A04;}
+.tag-pill[data-tag="Analysis/Criticism"].selected{background:#DC2626;}
+.tag-pill[data-tag="Connection"].selected{background:#7C3AED;}
+.tag-ai-spinner{font-size:10px;color:#aaa;margin-left:4px;display:none;}
+.tag-ai-spinner.visible{display:inline;}
+.anno-type-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:20px;font-weight:500;margin-bottom:4px;color:#fff;}
+.anno-type-tag.Question{background:#2563EB;}
+.anno-type-tag.Analysis{background:#16A34A;}
+.anno-type-tag.Free-Write{background:#CA8A04;}
+.anno-type-tag.Analysis-Criticism{background:#DC2626;}
+.anno-type-tag.Connection{background:#7C3AED;}
+.feed-tag-filter{display:flex;gap:4px;flex-wrap:wrap;padding:6px 10px;border-bottom:0.5px solid #eee;}
+.ftf-btn{font-size:11px;padding:2px 9px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;font-family:sans-serif;}
+.ftf-btn:hover{background:#f0f0f0;}
+.ftf-btn.active{color:#fff;border-color:transparent;}
+.ftf-btn[data-tag="Question"].active{background:#2563EB;}
+.ftf-btn[data-tag="Analysis"].active{background:#16A34A;}
+.ftf-btn[data-tag="Free Write"].active{background:#CA8A04;}
+.ftf-btn[data-tag="Analysis/Criticism"].active{background:#DC2626;}
+.ftf-btn[data-tag="Connection"].active{background:#7C3AED;}
+.ftf-btn[data-tag="all"].active{background:#111;}
 .device-section{margin-top:8px;padding-top:8px;border-top:0.5px solid #eee;}
 .device-section-label{font-size:11px;color:#aaa;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;}
 .device-toggle-btn{font-size:11px;color:#7C3AED;cursor:pointer;border:none;background:none;padding:0;font-family:sans-serif;}
@@ -1308,6 +1336,19 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
               <button class="allusion-add-btn" id="allusion-add-btn">Add</button>
             </div>
             <div class="allusion-tags" id="allusion-tags"></div>
+          </div>
+          <div class="tag-section">
+            <div class="tag-section-label">
+              Annotation type <span class="tag-ai-badge">✦ AI</span>
+              <span class="tag-ai-spinner" id="tag-ai-spinner">thinking…</span>
+            </div>
+            <div class="tag-pills" id="tag-pills">
+              <button class="tag-pill" data-tag="Question">❓ Question</button>
+              <button class="tag-pill" data-tag="Analysis">🔍 Analysis</button>
+              <button class="tag-pill" data-tag="Free Write">✍️ Free Write</button>
+              <button class="tag-pill" data-tag="Analysis/Criticism">📚 Criticism</button>
+              <button class="tag-pill" data-tag="Connection">🔗 Connection</button>
+            </div>
           </div>
           <div class="btn-row" style="margin-top:8px;">
             <button class="primary" id="btn-post">Post</button>
@@ -3619,10 +3660,12 @@ function sortAnnotations(annos, sortBy) {
 
 function filterAnnotations(annos) {
   const me = document.getElementById('inp-user').value.trim();
-  if (feedFilter === 'me') return annos.filter(a => a.username === me);
-  if (feedFilter === 'allbutme') return annos.filter(a => a.username !== me);
-  if (feedFilter === 'specific') return annos.filter(a => a.username === feedFilterUser);
-  return annos; // 'all'
+  let result = annos;
+  if (feedFilter === 'me') result = result.filter(a => a.username === me);
+  else if (feedFilter === 'allbutme') result = result.filter(a => a.username !== me);
+  else if (feedFilter === 'specific') result = result.filter(a => a.username === feedFilterUser);
+  if (feedTagFilter && feedTagFilter !== 'all') result = result.filter(a => a.tag === feedTagFilter);
+  return result;
 }
 
 function renderFeed() {
@@ -3648,6 +3691,14 @@ function renderFeed() {
     ${allUsers.map(u => `<button class="feed-user-btn${feedFilterUser===u?' active':''}" data-user="${u}">${u}</button>`).join('')}
     ${!allUsers.length ? '<span style="font-size:11px;color:#aaa">No annotations yet</span>' : ''}
   </div>` : ''}
+  <div class="feed-tag-filter" id="feed-tag-filter-inner">
+    <button class="ftf-btn${feedTagFilter==='all'?' active':''}" data-tag="all">All</button>
+    <button class="ftf-btn${feedTagFilter==='Question'?' active':''}" data-tag="Question">❓</button>
+    <button class="ftf-btn${feedTagFilter==='Analysis'?' active':''}" data-tag="Analysis">🔍</button>
+    <button class="ftf-btn${feedTagFilter==='Free Write'?' active':''}" data-tag="Free Write">✍️</button>
+    <button class="ftf-btn${feedTagFilter==='Analysis/Criticism'?' active':''}" data-tag="Analysis/Criticism">📚</button>
+    <button class="ftf-btn${feedTagFilter==='Connection'?' active':''}" data-tag="Connection">🔗</button>
+  </div>
   <div class="feed-sort">
     <button class="feed-sort-btn${feedSort==='hottest'?' active':''}" data-sort="hottest">Hottest</button>
     <button class="feed-sort-btn${feedSort==='recent'?' active':''}" data-sort="recent">Recent</button>
@@ -3660,6 +3711,7 @@ function renderFeed() {
     sorted.forEach(anno => {
       const si = spIdx(anno), col = SPECTRUM[si];
       html += `<div class="feed-card" data-id="${anno.id}">
+        ${anno.tag ? tagBadge(anno.tag) : ''}
         <div class="feed-card-quote" style="background:${col.bg};color:${col.text}">"${anno.quote}"</div>
         <div class="feed-card-subject">${anno.subject}</div>
         <div class="feed-card-preview">${renderMentions(anno.body).replace(/<(?!span class="mention)[^>]*>/g,'')}</div>
@@ -3688,6 +3740,9 @@ function renderFeed() {
   });
   fp.querySelectorAll('.feed-sort-btn').forEach(btn => {
     btn.addEventListener('click', () => { feedSort = btn.dataset.sort; renderFeed(); });
+  });
+  fp.querySelectorAll('.ftf-btn').forEach(btn => {
+    btn.addEventListener('click', () => { feedTagFilter = btn.dataset.tag; renderFeed(); });
   });
   fp.querySelectorAll('.feed-card').forEach(card => {
     card.addEventListener('click', () => openDiscussion(parseInt(card.dataset.id)));
@@ -4222,6 +4277,54 @@ document.getElementById('toggle-notebook').addEventListener('click', () => {
 
 // ── DICTIONARY + ENCYCLOPEDIA ────────────────────────────
 let dictVisible = false;
+let feedTagFilter = 'all';
+let selectedTag = null;
+
+function initTagListeners() {
+  document.getElementById('inp-subject')?.addEventListener('input', scheduleAiTag);
+  document.getElementById('editor')?.addEventListener('input', scheduleAiTag);
+}
+let aiTagTimer = null;
+function scheduleAiTag() { clearTimeout(aiTagTimer); aiTagTimer = setTimeout(runAiTag, 1200); }
+async function runAiTag() {
+  const subject = document.getElementById('inp-subject')?.value.trim();
+  const body = document.getElementById('editor')?.innerText.trim();
+  if (!subject && !body) return;
+  const spinner = document.getElementById('tag-ai-spinner');
+  if (spinner) spinner.classList.add('visible');
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514', max_tokens: 20,
+        system: 'You classify literary annotations. Reply with ONLY one of these exact labels: Question, Analysis, Free Write, Analysis/Criticism, Connection. No explanation.',
+        messages: [{ role: 'user', content: `Subject: ${subject}\n\nAnnotation: ${body}` }]
+      })
+    });
+    const data = await res.json();
+    const tag = data?.content?.[0]?.text?.trim();
+    const valid = ['Question','Analysis','Free Write','Analysis/Criticism','Connection'];
+    if (tag && valid.includes(tag)) {
+      selectedTag = tag;
+      document.querySelectorAll('.tag-pill').forEach(p => p.classList.toggle('selected', p.dataset.tag === tag));
+    }
+  } catch(_) {}
+  if (spinner) spinner.classList.remove('visible');
+}
+document.addEventListener('click', e => {
+  const pill = e.target.closest('.tag-pill');
+  if (!pill) return;
+  const tag = pill.dataset.tag;
+  selectedTag = selectedTag === tag ? null : tag;
+  document.querySelectorAll('.tag-pill').forEach(p => p.classList.toggle('selected', p.dataset.tag === selectedTag));
+});
+function tagClass(tag) { return tag ? tag.replace(/\//g,'-').replace(/ /g,'-') : ''; }
+function tagBadge(tag) {
+  if (!tag) return '';
+  const icons = { 'Question':'❓', 'Analysis':'🔍', 'Free Write':'✍️', 'Analysis/Criticism':'📚', 'Connection':'🔗' };
+  return `<span class="anno-type-tag ${tagClass(tag)}">${icons[tag]||''} ${tag}</span>`;
+}
 let dictLookupTimer = null;
 let lastDictQuery = '';
 
@@ -4345,6 +4448,23 @@ document.getElementById('toggle-dict').addEventListener('click', () => {
   document.getElementById('toggle-dict').classList.toggle('active', dictVisible);
   if (dictVisible) { initDictPanel(); lastDictQuery = ''; }
   document.getElementById('dict-panel').classList.toggle('visible', dictVisible);
+});
+
+// Auto-lookup when user selects text in the poem
+document.getElementById('text-content').addEventListener('mouseup', () => {
+  const sel = window.getSelection();
+  const text = sel && sel.toString().trim();
+  if (!text || text.length > 80) return;
+  if (!dictVisible) {
+    dictVisible = true;
+    document.getElementById('toggle-dict').classList.add('active');
+    document.getElementById('dict-panel').classList.add('visible');
+    initDictPanel();
+  } else if (!document.getElementById('dict-input')) {
+    initDictPanel();
+  }
+  const inp = document.getElementById('dict-input');
+  if (inp) { inp.value = text; lastDictQuery = ''; lookupWord(text); }
 });
 
 // Remove selection-based lookup — replaced by search box above
@@ -4497,6 +4617,10 @@ function openComposePanel(segments) {
   posRC(firstLine || allLines[0], cpanel);
   if (window.innerWidth <= 600) showMobileOverlay(true);
   document.getElementById('inp-user').focus();
+  // Reset and wire up AI auto-tag
+  selectedTag = null;
+  document.querySelectorAll('.tag-pill').forEach(p => p.classList.remove('selected'));
+  initTagListeners();
 }
 
 function handleSel() {
@@ -5015,6 +5139,7 @@ document.getElementById('btn-post').addEventListener('click', async () => {
     devices:    selectedDevices.length ? JSON.stringify(selectedDevices) : null,
     allusions:  selectedAllusions.length ? JSON.stringify(selectedAllusions) : null,
     user_id:    currentAuthUser ? currentAuthUser.id : null,
+    tag:        selectedTag || null,
   };
   try {
     let saved;
@@ -5053,6 +5178,8 @@ document.getElementById('btn-post').addEventListener('click', async () => {
     _selectedAllusionCat = null;
     document.querySelectorAll('.allusion-pill').forEach(p => p.classList.remove('selected'));
     document.getElementById('allusion-tags').innerHTML = '';
+    selectedTag = null;
+    document.querySelectorAll('.tag-pill').forEach(p => p.classList.remove('selected'));
     cpanel.style.display = 'none';
     status.textContent = '';
     document.getElementById('mobile-annotate-btn').style.display = 'none';
