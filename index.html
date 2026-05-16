@@ -217,13 +217,15 @@ body{font-family:Georgia,serif;background:#fafaf8;color:#111;overscroll-behavior
 .nav-counter{font-size:12px;color:#aaa;min-width:42px;text-align:center;}
 .reader-body{display:flex;flex:1;}
 .poem-col{flex:0 0 auto;width:460px;padding:2rem 1.5rem;border-right:0.5px solid #e0e0e0;}
-.right-col{flex:1;position:relative;min-width:0;}
+.right-col{flex:1;position:relative;min-width:0;overflow-y:auto;height:calc(100vh - 49px);}
 .poem-title-el{font-size:17px;font-weight:500;display:block;margin-bottom:1.5rem;}
 .poem-stanza{margin-bottom:1.4em;}
 .poem-line{display:block;font-size:15px;line-height:1.9;}
 .placeholder-notice{font-size:13px;color:#bbb;font-style:italic;margin-top:2rem;line-height:1.7;}
 .poem-subheading{display:block;font-size:13px;color:#888;font-style:italic;margin-bottom:0.4em;letter-spacing:.02em;}
 .highlight{border-radius:2px;cursor:pointer;transition:filter .15s;}
+.highlight.has-device{position:relative;}
+.highlight.has-device::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:2.5px;background:linear-gradient(90deg,#7C3AED,#2563EB,#16A34A,#CA8A04,#EA580C,#DC2626,#7C3AED);border-radius:2px;}
 .highlight:hover{filter:brightness(.88);}
 .highlight-overlap{border-radius:2px;cursor:pointer;transition:filter .15s;position:relative;}
 .highlight-overlap::after{content:'';position:absolute;inset:0;border-radius:2px;mix-blend-mode:multiply;pointer-events:none;}
@@ -520,6 +522,18 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
 .delete-confirm button{font-size:12px;padding:2px 8px;border-radius:20px;cursor:pointer;font-family:sans-serif;}
 .delete-confirm .yes{border:0.5px solid #DC2626;background:#DC2626;color:#fff;}
 .delete-confirm .no{border:0.5px solid #ddd;background:transparent;color:#555;}
+
+/* ── TEACHER PROMPT ── */
+.teacher-prompt-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:#fff;background:linear-gradient(135deg,#7C3AED,#2563EB);border-radius:20px;padding:2px 8px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px;}
+.teacher-prompt-badge svg{flex-shrink:0;}
+.anno-popup.teacher-prompt{border:2px solid #7C3AED;box-shadow:0 0 0 3px #F3E8FF,0 4px 20px rgba(124,58,237,.2);}
+.highlight.teacher-prompt{background:repeating-linear-gradient(45deg,#F3E8FF,#F3E8FF 4px,#DDD6FE 4px,#DDD6FE 8px) !important;border-bottom:2px solid #7C3AED;}
+.feed-card.teacher-prompt{border-left:3px solid #7C3AED;background:#FAFAF8;}
+.tp-checkbox-row{display:flex;align-items:center;gap:6px;margin-top:6px;padding-top:6px;border-top:0.5px solid #eee;font-size:12px;color:#555;font-family:sans-serif;cursor:pointer;}
+.tp-checkbox-row input[type=checkbox]{width:14px;height:14px;accent-color:#7C3AED;cursor:pointer;}
+.tp-checkbox-row .tp-label{display:flex;align-items:center;gap:4px;}
+.tp-checkbox-row .tp-badge{font-size:10px;background:#7C3AED;color:#fff;border-radius:20px;padding:1px 6px;font-weight:600;}
+.disc-teacher-banner{background:linear-gradient(135deg,#F3E8FF,#EDE9FE);border:1px solid #DDD6FE;border-radius:8px;padding:8px 12px;margin-bottom:12px;display:flex;align-items:center;gap:8px;font-size:12px;color:#4C1D95;font-family:sans-serif;}
 .loading-msg{font-size:13px;color:#aaa;padding:1rem 0;}
 
 /* ── DEVICE TAGGER ── */
@@ -554,6 +568,39 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
 .ftf-btn[data-tag="Analysis/Criticism"].active{background:#DC2626;}
 .ftf-btn[data-tag="Connection"].active{background:#7C3AED;}
 .ftf-btn[data-tag="all"].active{background:#111;}
+
+/* ── MAP PANEL ── */
+.map-panel{display:none;flex-direction:column;font-family:sans-serif;}
+.map-panel.visible{display:flex;}
+.map-header{padding:10px 10px 6px;border-bottom:0.5px solid #eee;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.map-title{font-size:13px;font-weight:500;color:#555;}
+.map-hint{font-size:11px;color:#aaa;padding:8px 10px;line-height:1.5;border-bottom:0.5px solid #eee;flex-shrink:0;}
+.map-hint b{color:#7C3AED;}
+#map-container{flex:1;min-height:320px;position:relative;overflow:hidden;}
+.map-pins-list{padding:8px 10px;border-top:0.5px solid #eee;flex-shrink:0;max-height:130px;overflow-y:auto;}
+.map-pin-item{display:flex;align-items:flex-start;gap:6px;padding:4px 0;border-bottom:0.5px solid #f0f0f0;font-size:12px;}
+.map-pin-item:last-child{border-bottom:none;}
+.map-pin-dot{width:10px;height:10px;border-radius:50%;background:#F59E0B;flex-shrink:0;margin-top:2px;border:1.5px solid #D97706;}
+.map-pin-text{flex:1;}
+.map-pin-place{font-weight:500;color:#111;}
+.map-pin-quote{color:#888;font-style:italic;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;}
+.map-pin-user{font-size:10px;color:#aaa;}
+.map-drop-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:400;display:flex;align-items:center;justify-content:center;}
+.map-drop-overlay.hidden{display:none;}
+.map-drop-box{background:#fff;border-radius:14px;padding:1.4rem;width:min(340px,90vw);font-family:sans-serif;}
+.map-drop-title{font-size:14px;font-weight:500;margin-bottom:10px;color:#111;}
+.map-drop-quote{font-size:12px;font-style:italic;color:#888;margin-bottom:12px;padding:4px 8px;background:#f5f5f5;border-radius:6px;}
+.map-drop-input{display:block;width:100%;font-size:13px;padding:7px 10px;border:0.5px solid #ccc;border-radius:8px;background:#f9f9f9;color:#111;font-family:sans-serif;outline:none;margin-bottom:8px;box-sizing:border-box;}
+.map-drop-input:focus{border-color:#7C3AED;background:#fff;}
+.map-drop-suggest{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.map-drop-pill{font-size:11px;padding:2px 9px;border-radius:20px;border:0.5px solid #ddd;background:#f5f5f5;color:#555;cursor:pointer;font-family:sans-serif;}
+.map-drop-pill:hover{border-color:#7C3AED;color:#7C3AED;background:#F3E8FF;}
+.map-drop-btns{display:flex;gap:8px;justify-content:flex-end;}
+.map-drop-btn{font-size:12px;padding:6px 14px;border-radius:8px;border:0.5px solid #ddd;background:transparent;cursor:pointer;font-family:sans-serif;}
+.map-drop-btn.primary{background:#7C3AED;color:#fff;border-color:#7C3AED;}
+.map-drop-btn.primary:hover{background:#6D28D9;}
+.map-drop-btn:hover:not(.primary){background:#f0f0f0;}
+.map-drop-status{font-size:12px;color:#aaa;margin-top:6px;min-height:16px;}
 .device-section{margin-top:8px;padding-top:8px;border-top:0.5px solid #eee;}
 .device-section-label{font-size:11px;color:#aaa;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;}
 .device-toggle-btn{font-size:11px;color:#7C3AED;cursor:pointer;border:none;background:none;padding:0;font-family:sans-serif;}
@@ -588,6 +635,180 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
 .allusion-text-input:focus{border-color:#2563EB;}
 .allusion-add-btn{font-size:12px;padding:5px 10px;border-radius:8px;border:0.5px solid #2563EB;background:transparent;color:#2563EB;cursor:pointer;font-family:sans-serif;white-space:nowrap;}
 .allusion-add-btn:hover{background:#DBEAFE;}
+/* ═══════════════════════════════════════════════
+   SENTENCE DIAGRAMMER
+═══════════════════════════════════════════════ */
+.diag-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:600;display:flex;align-items:center;justify-content:center;}
+.diag-overlay.hidden{display:none;}
+.diag-box{background:#fff;border-radius:16px;width:min(820px,96vw);max-height:90vh;display:flex;flex-direction:column;font-family:sans-serif;overflow:hidden;}
+.diag-header{padding:14px 18px;border-bottom:0.5px solid #eee;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.diag-title{font-size:14px;font-weight:600;color:#111;}
+.diag-sentence{font-size:12px;font-style:italic;color:#888;margin-top:3px;}
+.diag-close{font-size:22px;color:#aaa;cursor:pointer;border:none;background:none;line-height:1;}
+.diag-close:hover{color:#111;}
+.diag-body{flex:1;overflow:auto;padding:24px;min-height:200px;}
+.diag-svg{width:100%;overflow:visible;}
+.diag-legend{padding:10px 18px 14px;border-top:0.5px solid #eee;display:flex;flex-wrap:wrap;gap:10px;flex-shrink:0;}
+.diag-leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#555;}
+.diag-leg-color{width:14px;height:3px;border-radius:2px;}
+/* Reed-Kellogg SVG elements */
+.rk-text{font-family:Georgia,serif;font-size:13px;fill:#111;}
+.rk-text.subj{fill:#2563EB;}
+.rk-text.verb{fill:#16A34A;}
+.rk-text.obj{fill:#DC2626;}
+.rk-text.mod{fill:#CA8A04;}
+.rk-text.prep{fill:#7C3AED;}
+.rk-text.conj{fill:#aaa;}
+.rk-line{stroke:#333;stroke-width:1.5;fill:none;}
+.rk-diag{stroke:#999;stroke-width:1;fill:none;}
+
+/* ═══════════════════════════════════════════════
+   RHETORICAL MODE
+═══════════════════════════════════════════════ */
+.rhet-mode-bar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#fff;border:0.5px solid #ddd;border-radius:40px;padding:6px 10px;display:flex;gap:5px;align-items:center;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,.12);font-family:sans-serif;display:none;}
+.rhet-mode-bar.visible{display:flex;}
+.rhet-mode-label{font-size:11px;color:#aaa;padding:0 4px;white-space:nowrap;}
+.rhet-btn{font-size:11px;padding:3px 9px;border-radius:20px;border:0.5px solid #ddd;background:transparent;cursor:pointer;font-family:sans-serif;white-space:nowrap;transition:all .15s;}
+.rhet-btn:hover{filter:brightness(.92);}
+.rhet-btn.suggested{outline:2px solid #111;outline-offset:1px;}
+.rhet-btn[data-mode="Argumentation"]{background:#FDE68A;color:#92400E;border-color:#F59E0B;}
+.rhet-btn[data-mode="Narration"]{background:#BFDBFE;color:#1E40AF;border-color:#3B82F6;}
+.rhet-btn[data-mode="Description"]{background:#BBF7D0;color:#14532D;border-color:#22C55E;}
+.rhet-btn[data-mode="Cause and Effect"]{background:#FECACA;color:#7F1D1D;border-color:#EF4444;}
+.rhet-btn[data-mode="Classification"]{background:#DDD6FE;color:#4C1D95;border-color:#8B5CF6;}
+.rhet-btn[data-mode="Example"]{background:#FED7AA;color:#7C2D12;border-color:#F97316;}
+.rhet-btn[data-mode="Analogy"]{background:#CFFAFE;color:#164E63;border-color:#06B6D4;}
+.rhet-btn[data-mode="Process"]{background:#FCE7F3;color:#831843;border-color:#EC4899;}
+.rhet-btn.active-mode{outline:3px solid #111 !important;outline-offset:2px;transform:scale(1.05);}
+.rhet-dismiss{font-size:16px;color:#bbb;cursor:pointer;border:none;background:none;padding:0 2px;margin-left:4px;}
+/* Rhetorical mode spans in text */
+.rhet-span{border-radius:3px;cursor:pointer;}
+.rhet-span[data-mode="Argumentation"]{background:#FDE68A88;}
+.rhet-span[data-mode="Narration"]{background:#BFDBFE88;}
+.rhet-span[data-mode="Description"]{background:#BBF7D088;}
+.rhet-span[data-mode="Cause and Effect"]{background:#FECACA88;}
+.rhet-span[data-mode="Classification"]{background:#DDD6FE88;}
+.rhet-span[data-mode="Example"]{background:#FED7AA88;}
+.rhet-span[data-mode="Analogy"]{background:#CFFAFE88;}
+.rhet-span[data-mode="Process"]{background:#FCE7F388;}
+.rhet-toggle-bar{display:flex;flex-wrap:wrap;gap:4px;padding:6px 10px;border-bottom:0.5px solid #eee;}
+
+/* ═══════════════════════════════════════════════
+   ARGUMENT MAP — ARCADE STYLE
+═══════════════════════════════════════════════ */
+.argmap-overlay{position:fixed;inset:0;z-index:600;display:flex;align-items:stretch;justify-content:flex-end;pointer-events:none;}
+.argmap-overlay.hidden{display:none;}
+.argmap-overlay.hidden *{pointer-events:none;}
+.argmap-overlay.visible{pointer-events:all;}
+.argmap-panel{width:min(480px,100vw);background:#6B0000;border-left:3px solid #DC2626;display:flex;flex-direction:column;box-shadow:-8px 0 40px rgba(0,0,0,.5);font-family:'Courier New',Courier,monospace;}
+.argmap-header{padding:16px 18px 10px;border-bottom:2px solid #DC2626;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.argmap-title{font-size:18px;font-weight:700;color:#fff;letter-spacing:.08em;text-transform:uppercase;text-shadow:0 0 12px #FF6B6B;}
+.argmap-subtitle{font-size:10px;color:#FF6B6B;letter-spacing:.15em;text-transform:uppercase;margin-top:2px;}
+.argmap-close{font-size:22px;color:#FF6B6B;cursor:pointer;border:none;background:none;line-height:1;}
+.argmap-mode-bar{padding:10px 18px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid #8B0000;flex-shrink:0;}
+.argmap-slot-btn{font-size:11px;padding:4px 11px;border-radius:20px;border:1.5px solid transparent;cursor:pointer;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:.06em;background:transparent;transition:all .15s;}
+.argmap-slot-btn[data-slot="claim"]{color:#FFD700;border-color:#FFD700;}
+.argmap-slot-btn[data-slot="evidence"]{color:#90EE90;border-color:#90EE90;}
+.argmap-slot-btn[data-slot="reasoning"]{color:#87CEEB;border-color:#87CEEB;}
+.argmap-slot-btn[data-slot="counter"]{color:#FF6B6B;border-color:#FF6B6B;}
+.argmap-slot-btn[data-slot="audience"]{color:#DDA0DD;border-color:#DDA0DD;}
+.argmap-slot-btn.active{color:#111 !important;}
+.argmap-slot-btn[data-slot="claim"].active{background:#FFD700;border-color:#FFD700;}
+.argmap-slot-btn[data-slot="evidence"].active{background:#90EE90;border-color:#90EE90;}
+.argmap-slot-btn[data-slot="reasoning"].active{background:#87CEEB;border-color:#87CEEB;}
+.argmap-slot-btn[data-slot="counter"].active{background:#FF6B6B;border-color:#FF6B6B;}
+.argmap-slot-btn[data-slot="audience"].active{background:#DDA0DD;border-color:#DDA0DD;}
+.argmap-body{flex:1;overflow-y:auto;padding:14px 18px;}
+.argmap-section{margin-bottom:16px;}
+.argmap-section-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;}
+.argmap-section-label[data-slot="claim"]{color:#FFD700;}
+.argmap-section-label[data-slot="evidence"]{color:#90EE90;}
+.argmap-section-label[data-slot="reasoning"]{color:#87CEEB;}
+.argmap-section-label[data-slot="counter"]{color:#FF6B6B;}
+.argmap-section-label[data-slot="audience"]{color:#DDA0DD;}
+.argmap-entries{min-height:36px;border:1px solid #8B0000;border-radius:6px;padding:6px 8px;background:#500000;}
+.argmap-entry{font-size:12px;color:#fff;line-height:1.5;padding:3px 0;border-bottom:1px solid #8B0000;display:flex;align-items:flex-start;gap:6px;}
+.argmap-entry:last-child{border-bottom:none;}
+.argmap-entry-text{flex:1;}
+.argmap-entry-del{font-size:14px;color:#8B0000;cursor:pointer;border:none;background:none;line-height:1;flex-shrink:0;}
+.argmap-entry-del:hover{color:#FF6B6B;}
+.argmap-empty{font-size:11px;color:#8B0000;font-style:italic;}
+.argmap-footer{padding:10px 18px;border-top:1px solid #8B0000;display:flex;gap:8px;flex-shrink:0;}
+.argmap-save-btn{flex:1;font-size:12px;padding:8px;border-radius:8px;border:1.5px solid #FFD700;background:transparent;color:#FFD700;cursor:pointer;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:.06em;}
+.argmap-save-btn:hover{background:#FFD700;color:#111;}
+.argmap-clear-btn{font-size:12px;padding:8px 14px;border-radius:8px;border:1.5px solid #8B0000;background:transparent;color:#8B0000;cursor:pointer;font-family:'Courier New',monospace;}
+.argmap-clear-btn:hover{border-color:#FF6B6B;color:#FF6B6B;}
+.argmap-saved-maps{padding:8px 18px;border-top:1px solid #8B0000;max-height:90px;overflow-y:auto;flex-shrink:0;}
+.argmap-saved-label{font-size:10px;color:#8B0000;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;}
+.argmap-saved-item{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#FF6B6B;padding:2px 0;cursor:pointer;}
+.argmap-saved-item:hover{color:#fff;}
+/* Highlight mode cursor hint */
+.argmap-active-hint{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#6B0000;border:1.5px solid #FFD700;border-radius:20px;padding:5px 16px;font-size:12px;font-family:'Courier New',monospace;color:#FFD700;z-index:700;pointer-events:none;display:none;text-transform:uppercase;letter-spacing:.06em;}
+.argmap-active-hint.visible{display:block;}
+
+/* ═══════════════════════════════════════════════
+   FALLACY TRACKER
+═══════════════════════════════════════════════ */
+.fallacy-panel{padding:10px;font-family:sans-serif;display:none;overflow-y:auto;max-height:calc(100vh - 120px);}
+.fallacy-panel.visible{display:block;}
+.fallacy-panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.fallacy-panel-title{font-size:13px;font-weight:500;color:#555;}
+.fallacy-mode-toggle{display:flex;gap:4px;align-items:center;font-size:11px;color:#aaa;}
+.fallacy-mode-toggle button{font-size:11px;padding:2px 8px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;font-family:sans-serif;}
+.fallacy-mode-toggle button.active{background:#DC2626;color:#fff;border-color:#DC2626;}
+.fallacy-list-section{margin-bottom:12px;}
+.fallacy-list-label{font-size:10px;color:#aaa;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
+.fallacy-def-card{padding:6px 8px;border:0.5px solid #eee;border-radius:8px;margin-bottom:6px;cursor:pointer;transition:border-color .15s;}
+.fallacy-def-card:hover{border-color:#DC2626;}
+.fallacy-def-card.active-tag{border-color:#DC2626;background:#FFF5F5;}
+.fallacy-def-name{font-size:12px;font-weight:500;color:#111;display:flex;align-items:center;justify-content:space-between;}
+.fallacy-def-desc{font-size:11px;color:#777;line-height:1.5;margin-top:2px;}
+.fallacy-tagged-section{margin-top:12px;border-top:0.5px solid #eee;padding-top:10px;}
+.fallacy-tagged-label{font-size:10px;color:#aaa;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
+.fallacy-tagged-item{padding:6px 8px;border-radius:6px;background:#FFF5F5;border:0.5px solid #FECACA;margin-bottom:5px;font-size:12px;}
+.fallacy-tagged-name{font-weight:500;color:#DC2626;margin-bottom:2px;}
+.fallacy-tagged-quote{font-style:italic;color:#777;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fallacy-tagged-del{font-size:12px;color:#FECACA;cursor:pointer;border:none;background:none;float:right;}
+.fallacy-tagged-del:hover{color:#DC2626;}
+.fallacy-span{border-radius:2px;cursor:pointer;background:#FECACA55;border-bottom:2px solid #DC2626;}
+.fallacy-span:hover{background:#FECACA99;}
+
+.vocab-save-btn{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 10px;border-radius:20px;border:0.5px solid #16A34A;color:#16A34A;background:transparent;cursor:pointer;font-family:sans-serif;margin-top:8px;}
+.vocab-save-btn:hover{background:#DCFCE7;}
+.vocab-save-btn.saved{background:#16A34A;color:#fff;border-color:#16A34A;}
+.vocab-panel{padding:10px;font-family:sans-serif;display:none;overflow-y:auto;max-height:calc(100vh - 120px);}
+.vocab-panel.visible{display:block;}
+.vocab-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.vocab-title{font-size:13px;font-weight:500;color:#555;}
+.vocab-actions{display:flex;gap:6px;}
+.vocab-action-btn{font-size:11px;padding:3px 10px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;font-family:sans-serif;}
+.vocab-action-btn:hover{background:#f0f0f0;}
+.vocab-action-btn.primary{border-color:#7C3AED;color:#7C3AED;}
+.vocab-action-btn.primary:hover{background:#F3E8FF;}
+.vocab-empty{font-size:13px;color:#aaa;text-align:center;padding:2rem 0;line-height:1.6;}
+.vocab-item{padding:8px 0;border-bottom:0.5px solid #eee;display:flex;align-items:flex-start;gap:8px;}
+.vocab-item:last-child{border-bottom:none;}
+.vocab-word{font-size:14px;font-weight:500;color:#111;font-family:Georgia,serif;min-width:90px;}
+.vocab-def{font-size:12px;color:#555;line-height:1.5;flex:1;}
+.vocab-del{font-size:14px;color:#ddd;cursor:pointer;border:none;background:none;padding:0 2px;line-height:1;flex-shrink:0;}
+.vocab-del:hover{color:#DC2626;}
+.flashcard-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:flex;align-items:center;justify-content:center;}
+.flashcard-overlay.hidden{display:none;}
+.flashcard-box{background:#fff;border-radius:16px;padding:2rem;width:min(480px,90vw);font-family:sans-serif;text-align:center;position:relative;}
+.fc-progress{font-size:11px;color:#aaa;margin-bottom:1rem;}
+.fc-card{min-height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;user-select:none;}
+.fc-word{font-size:28px;font-weight:500;font-family:Georgia,serif;color:#111;margin-bottom:12px;}
+.fc-hint{font-size:12px;color:#aaa;}
+.fc-def{font-size:15px;color:#444;line-height:1.6;margin-top:10px;display:none;}
+.fc-def.visible{display:block;}
+.fc-btns{display:flex;gap:10px;justify-content:center;margin-top:1.5rem;}
+.fc-btn{font-size:13px;padding:8px 20px;border-radius:8px;border:0.5px solid #ddd;background:transparent;cursor:pointer;font-family:sans-serif;}
+.fc-btn.good{border-color:#16A34A;color:#16A34A;}
+.fc-btn.good:hover{background:#DCFCE7;}
+.fc-btn.hard{border-color:#DC2626;color:#DC2626;}
+.fc-btn.hard:hover{background:#FEE2E2;}
+.fc-close{position:absolute;top:12px;right:16px;font-size:20px;color:#aaa;cursor:pointer;border:none;background:none;}
+
 .allusion-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;min-height:0;}
 .allusion-tag{font-size:11px;padding:2px 8px;border-radius:20px;background:#DBEAFE;color:#1E3A8A;display:flex;align-items:center;gap:4px;font-family:sans-serif;}
 .allusion-tag-x{cursor:pointer;font-size:13px;line-height:1;opacity:.7;}
@@ -611,7 +832,7 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
 .allusion-lookup-link:hover{text-decoration:underline;}
 
 /* ── RIGHT-COL TOOLBAR ── */
-.rc-toolbar{display:flex;gap:6px;padding:10px 10px 6px;border-bottom:0.5px solid #eee;}
+.rc-toolbar{display:flex;gap:6px;padding:10px 10px 6px;border-bottom:0.5px solid #eee;position:sticky;top:0;z-index:40;background:#fff;flex-wrap:wrap;}
 .rc-toggle{font-size:11px;padding:3px 10px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#666;cursor:pointer;font-family:sans-serif;display:flex;align-items:center;gap:4px;}
 .rc-toggle:hover{background:#f5f5f5;}
 .rc-toggle.active{background:#111;color:#fff;border-color:#111;}
@@ -1010,6 +1231,8 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
 .flashcard-open-btn{font-size:11px;padding:3px 9px;border-radius:20px;border:0.5px solid #ccc;background:#fff;color:#555;cursor:pointer;white-space:nowrap;font-family:sans-serif;}
 .flashcard-open-btn:hover{background:#f0f0f0;}
 </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -1286,6 +1509,10 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
         <div class="feed-panel" id="feed-panel"></div>
         <div class="notebook-panel" id="notebook-panel"></div>
         <div class="dict-panel" id="dict-panel"></div>
+        <div class="vocab-panel" id="vocab-panel"></div>
+        <div class="map-panel" id="map-panel"></div>
+        <div class="fallacy-panel" id="fallacy-panel"></div>
+        <div class="flashcard-overlay hidden" id="flashcard-overlay"></div>
         <div class="anno-popup" id="anno-popup"></div>
         <div class="line-panel" id="line-panel"></div>
         <div class="compose-panel" id="compose-panel">
@@ -1336,6 +1563,12 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
               <button class="allusion-add-btn" id="allusion-add-btn">Add</button>
             </div>
             <div class="allusion-tags" id="allusion-tags"></div>
+          </div>
+          <div class="tp-checkbox-row" id="tp-checkbox-row">
+            <input type="checkbox" id="tp-checkbox"/>
+            <label class="tp-label" for="tp-checkbox">
+              <span class="tp-badge">★</span> Mark as Teacher Prompt
+            </label>
           </div>
           <div class="tag-section">
             <div class="tag-section-label">
@@ -3425,7 +3658,10 @@ function applyHighlights() {
           } catch(_) { return false; }
         })
       );
-      sp.className = (seg.isOverlap ? 'highlight-overlap' : 'highlight') + (hasDevices ? ' highlight-device' : '');
+      const hasTeacherPrompt = seg.quotes.some(q =>
+        visibleAnnotations.filter(a => a.quote === q).some(a => isTeacherAnnotation(a))
+      );
+      sp.className = (seg.isOverlap ? 'highlight-overlap' : 'highlight') + (hasDevices ? ' highlight-device' : '') + (hasTeacherPrompt ? ' teacher-prompt' : '');
       sp.dataset.quotes = JSON.stringify(seg.quotes);
       sp.style.color = seg.textCol;
       sp.style.outline = `1px solid ${seg.border}66`;
@@ -3712,7 +3948,8 @@ function renderFeed() {
       const si = spIdx(anno), col = SPECTRUM[si];
       html += `<div class="feed-card" data-id="${anno.id}">
         ${anno.tag ? tagBadge(anno.tag) : ''}
-        <div class="feed-card-quote" style="background:${col.bg};color:${col.text}">"${anno.quote}"</div>
+        ${isTeacherAnnotation(anno) ? teacherBadgeHtml() : ''}
+        <div class="feed-card-quote${isTeacherAnnotation(anno) ? ' teacher-prompt' : ''}" style="background:${col.bg};color:${col.text}">"${anno.quote}"</div>
         <div class="feed-card-subject">${anno.subject}</div>
         <div class="feed-card-preview">${renderMentions(anno.body).replace(/<(?!span class="mention)[^>]*>/g,'')}</div>
         ${renderDeviceTags(anno)}
@@ -3746,6 +3983,59 @@ function renderFeed() {
   });
   fp.querySelectorAll('.feed-card').forEach(card => {
     card.addEventListener('click', () => openDiscussion(parseInt(card.dataset.id)));
+  });
+}
+
+
+
+// ═══════════════════════════════════════════════════════════
+// TEACHER PROMPT FEATURE
+// ═══════════════════════════════════════════════════════════
+const TEACHER_BADGE_HTML = `<span class="teacher-prompt-badge"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><polygon points="6,1 7.5,4.5 11,5 8.5,7.5 9.2,11 6,9.2 2.8,11 3.5,7.5 1,5 4.5,4.5" fill="currentColor"/></svg> Teacher Prompt</span>`;
+
+function isTeacherAnnotation(anno) {
+  return anno && (anno.is_teacher_prompt === true || anno.is_teacher_prompt === 'true');
+}
+
+function teacherBadgeHtml() { return TEACHER_BADGE_HTML; }
+
+// Inject badge into popup if annotation is a teacher prompt
+function injectTeacherBadgeIntoPopup(anno) {
+  const popup = document.getElementById('anno-popup');
+  if (!popup || !isTeacherAnnotation(anno)) return;
+  if (popup.querySelector('.teacher-prompt-badge')) return;
+  popup.classList.add('teacher-prompt');
+  const badge = document.createElement('div');
+  badge.innerHTML = TEACHER_BADGE_HTML;
+  popup.insertBefore(badge.firstChild, popup.firstChild);
+}
+
+// Apply teacher highlight style to spans
+function applyTeacherHighlightStyle(span, anno) {
+  if (!isTeacherAnnotation(anno)) return;
+  span.classList.add('teacher-prompt');
+}
+
+// ═══════════════════════════════════════════════════════════
+// PANEL MUTUAL EXCLUSION
+// ═══════════════════════════════════════════════════════════
+const PANEL_IDS = ['feed','floats','notebook','dict','vocab','map','fallacy'];
+
+function setActivePanel(panelId) {
+  PANEL_IDS.forEach(id => {
+    if (id === panelId) return;
+    const btn = document.getElementById('toggle-' + id);
+    if (!btn || !btn.classList.contains('active')) return;
+    btn.classList.remove('active');
+    switch(id) {
+      case 'feed':    document.getElementById('feed-panel')?.classList.remove('visible'); break;
+      case 'floats':  floatiesVisible = false; renderFloaties(); break;
+      case 'notebook': notebookVisible = false; renderNotebook(); break;
+      case 'dict':    dictVisible = false; document.getElementById('dict-panel')?.classList.remove('visible'); break;
+      case 'vocab':   vocabVisible = false; renderVocabPanel(); break;
+      case 'map':     mapVisible = false; renderMapPanel(); break;
+      case 'fallacy': fallacyVisible = false; renderFallacyPanel(); break;
+    }
   });
 }
 
@@ -3867,6 +4157,7 @@ document.getElementById('toggle-feed').addEventListener('click', () => {
 document.getElementById('toggle-floats').addEventListener('click', () => {
   floatiesVisible = !floatiesVisible;
   document.getElementById('toggle-floats').classList.toggle('active', floatiesVisible);
+  if (floatiesVisible) setActivePanel('floats');
   if (!floatiesVisible && floatieAnimFrame) { cancelAnimationFrame(floatieAnimFrame); floatieAnimFrame = null; }
   renderFloaties();
 });
@@ -4271,6 +4562,7 @@ function renderNotebook() {
 document.getElementById('toggle-notebook').addEventListener('click', () => {
   notebookVisible = !notebookVisible;
   document.getElementById('toggle-notebook').classList.toggle('active', notebookVisible);
+  if (notebookVisible) setActivePanel('notebook');
   if (notebookVisible) notebookSong = currentSong;
   renderNotebook();
 });
@@ -4286,30 +4578,25 @@ function initTagListeners() {
 }
 let aiTagTimer = null;
 function scheduleAiTag() { clearTimeout(aiTagTimer); aiTagTimer = setTimeout(runAiTag, 1200); }
+function autoClassifyTag(subject, body) {
+  const text = (subject + ' ' + body).toLowerCase();
+  if (/\?/.test(subject) || /^(why|how|what|who|when|where|could|would|does|is|are|did|do)\b/.test(text) || /i wonder|question|curious|why does|what does|how does/.test(text)) return 'Question';
+  if (/reminds? me|connects? to|similar to|like (in|the)|parallel|compare|contrast|relates? to|connection|think of|makes me think|this (is like|reminds)|allusion|echo(es)?|intertextual/.test(text)) return 'Connection';
+  if (/argues?|critic|according to|scholar|literary|theory|theorize|postcolonial|marxist|feminist|psychoanalytic|new historicism|close read|critics|essay|article/.test(text)) return 'Analysis/Criticism';
+  if (/metaphor|simile|symbol|imagery|tone|theme|structure|syntax|diction|foreshadow|irony|paradox|juxtapose|motif|pattern|repetition|represents?|suggest|convey|effect|technique|device|author|melville|berryman|narrator|speaker/.test(text)) return 'Analysis';
+  if (/i feel|i think|i love|i hate|beautiful|stunning|moving|wow|amazing|interesting|cool|weird|strange|personal|my|me |myself|honestly|actually|kind of|sort of/.test(text)) return 'Free Write';
+  if (body.trim().endsWith('?')) return 'Question';
+  return 'Analysis';
+}
 async function runAiTag() {
   const subject = document.getElementById('inp-subject')?.value.trim();
   const body = document.getElementById('editor')?.innerText.trim();
   if (!subject && !body) return;
   const spinner = document.getElementById('tag-ai-spinner');
   if (spinner) spinner.classList.add('visible');
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514', max_tokens: 20,
-        system: 'You classify literary annotations. Reply with ONLY one of these exact labels: Question, Analysis, Free Write, Analysis/Criticism, Connection. No explanation.',
-        messages: [{ role: 'user', content: `Subject: ${subject}\n\nAnnotation: ${body}` }]
-      })
-    });
-    const data = await res.json();
-    const tag = data?.content?.[0]?.text?.trim();
-    const valid = ['Question','Analysis','Free Write','Analysis/Criticism','Connection'];
-    if (tag && valid.includes(tag)) {
-      selectedTag = tag;
-      document.querySelectorAll('.tag-pill').forEach(p => p.classList.toggle('selected', p.dataset.tag === tag));
-    }
-  } catch(_) {}
+  const tag = autoClassifyTag(subject || '', body || '');
+  selectedTag = tag;
+  document.querySelectorAll('.tag-pill').forEach(p => p.classList.toggle('selected', p.dataset.tag === tag));
   if (spinner) spinner.classList.remove('visible');
 }
 document.addEventListener('click', e => {
@@ -4369,7 +4656,11 @@ async function lookupWord(query) {
   if (dictResult && dictResult[0]) {
     const entry = dictResult[0];
     const phonetic = entry.phonetics?.find(p => p.text)?.text || '';
-    html += `<div class="dict-word">${entry.word}</div>`;
+    const firstDef = entry.meanings?.[0]?.definitions?.[0]?.definition || '';
+    html += `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">`;
+    html += `<div class="dict-word" style="margin-bottom:0">${entry.word}</div>`;
+    html += `<button class="vocab-save-btn" id="vocab-save-btn" data-word="${entry.word}" data-def="${firstDef.replace(/"/g,'&quot;')}">＋ Save to vocab</button>`;
+    html += `</div>`;
     if (phonetic) html += `<div class="dict-phonetic">${phonetic}</div>`;
     entry.meanings?.forEach(m => {
       html += `<div class="dict-pos">${m.partOfSpeech}</div>`;
@@ -4419,6 +4710,13 @@ async function lookupWord(query) {
   target.querySelectorAll('.dict-syn-pill').forEach(pill => {
     pill.addEventListener('click', () => { lastDictQuery = ''; lookupWord(pill.dataset.word); });
   });
+  const vsb = target.querySelector('#vocab-save-btn');
+  if (vsb) {
+    vsb.addEventListener('click', () => {
+      if (vocabSaveWord(vsb.dataset.word, vsb.dataset.def)) { vsb.textContent = '✓ Saved'; vsb.classList.add('saved'); }
+      else { vsb.textContent = 'Already saved'; vsb.classList.add('saved'); }
+    });
+  }
 }
 
 function initDictPanel() {
@@ -4446,25 +4744,31 @@ function initDictPanel() {
 document.getElementById('toggle-dict').addEventListener('click', () => {
   dictVisible = !dictVisible;
   document.getElementById('toggle-dict').classList.toggle('active', dictVisible);
+  if (dictVisible) setActivePanel('dict');
   if (dictVisible) { initDictPanel(); lastDictQuery = ''; }
   document.getElementById('dict-panel').classList.toggle('visible', dictVisible);
 });
 
 // Auto-lookup when user selects text in the poem
-document.getElementById('text-content').addEventListener('mouseup', () => {
-  const sel = window.getSelection();
-  const text = sel && sel.toString().trim();
-  if (!text || text.length > 80) return;
-  if (!dictVisible) {
-    dictVisible = true;
-    document.getElementById('toggle-dict').classList.add('active');
-    document.getElementById('dict-panel').classList.add('visible');
-    initDictPanel();
-  } else if (!document.getElementById('dict-input')) {
-    initDictPanel();
-  }
-  const inp = document.getElementById('dict-input');
-  if (inp) { inp.value = text; lastDictQuery = ''; lookupWord(text); }
+document.addEventListener('mouseup', e => {
+  const tc = document.getElementById('text-content');
+  if (!tc || !tc.contains(e.target)) return;
+  if (e.target.closest('.compose-panel, .anno-popup, .rc-col, #disc-view')) return;
+  setTimeout(() => {
+    const sel = window.getSelection();
+    const text = sel && sel.toString().trim();
+    if (!text || text.length > 120) return;
+    if (!dictVisible) {
+      dictVisible = true;
+      document.getElementById('toggle-dict').classList.add('active');
+      document.getElementById('dict-panel').classList.add('visible');
+      initDictPanel();
+    } else if (!document.getElementById('dict-input')) {
+      initDictPanel();
+    }
+    const inp = document.getElementById('dict-input');
+    if (inp) { inp.value = text; lastDictQuery = ''; lookupWord(text); }
+  }, 150);
 });
 
 // Remove selection-based lookup — replaced by search box above
@@ -4608,6 +4912,11 @@ function processSelection() {
 }
 
 function openComposePanel(segments) {
+  // Show teacher checkbox only for logged-in users
+  const tpRow = document.getElementById('tp-checkbox-row');
+  if (tpRow) tpRow.style.display = currentAuthUser ? 'flex' : 'none';
+  const tpCb = document.getElementById('tp-checkbox');
+  if (tpCb) tpCb.checked = false;
   const allLines = Array.from(document.querySelectorAll('.poem-line'));
   document.getElementById('cp-quote').textContent = `"${pendingSelection}"`;
   popup.classList.remove('visible');
@@ -5140,6 +5449,7 @@ document.getElementById('btn-post').addEventListener('click', async () => {
     allusions:  selectedAllusions.length ? JSON.stringify(selectedAllusions) : null,
     user_id:    currentAuthUser ? currentAuthUser.id : null,
     tag:        selectedTag || null,
+    is_teacher_prompt: document.getElementById('tp-checkbox')?.checked || false,
   };
   try {
     let saved;
@@ -5236,6 +5546,12 @@ const MOBILE_TOOLS = [
   { id: 'toggle-feed',     label: 'Annotations', svg: '<svg width="16" height="16" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="2.5" rx="1" fill="currentColor"/><rect x="1" y="4.75" width="10" height="2.5" rx="1" fill="currentColor"/><rect x="1" y="8.5" width="10" height="2.5" rx="1" fill="currentColor"/></svg>' },
   { id: 'toggle-notebook', label: 'Notebook',    svg: '<svg width="16" height="16" viewBox="0 0 12 12" fill="none"><rect x="1.5" y="1" width="9" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><line x1="3.5" y1="4" x2="8.5" y2="4" stroke="currentColor" stroke-width="1"/><line x1="3.5" y1="6" x2="8.5" y2="6" stroke="currentColor" stroke-width="1"/><line x1="3.5" y1="8" x2="6.5" y2="8" stroke="currentColor" stroke-width="1"/></svg>' },
   { id: 'toggle-dict',     label: 'Dictionary',  svg: '<svg width="16" height="16" viewBox="0 0 12 12" fill="none"><path d="M2 2h8v8H2z" stroke="currentColor" stroke-width="1.2"/><path d="M4 5h4M4 7h2" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><path d="M6 2v8" stroke="currentColor" stroke-width="0.8" stroke-dasharray="1.5 1"/></svg>' },
+  { id: 'toggle-vocab',    label: 'Vocab list',  svg: '<svg width="16" height="16" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="1.5" stroke="currentColor" stroke-width="1.1"/><path d="M3 4h6M3 6h6M3 8h3" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>' },
+  { id: 'toggle-map',      label: 'Map',         svg: '<svg width="16" height="16" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.07 1 2.5 2.57 2.5 4.5c0 2.72 3.5 6.5 3.5 6.5s3.5-3.78 3.5-6.5C9.5 2.57 7.93 1 6 1z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><circle cx="6" cy="4.5" r="1.2" fill="currentColor"/></svg>' },
+  { id: 'toggle-diag',     label: 'Diagram',     svg: '<svg width="16" height="16" viewBox="0 0 12 12" fill="none"><line x1="1" y1="8" x2="11" y2="8" stroke="currentColor" stroke-width="1.2"/><line x1="6" y1="8" x2="6" y2="2" stroke="currentColor" stroke-width="1" stroke-dasharray="1.5 1"/><line x1="6" y1="2" x2="10" y2="6" stroke="currentColor" stroke-width="1"/></svg>' },
+  { id: 'toggle-rhet',     label: 'Rhet. Mode',  svg: '<svg width="16" height="16" viewBox="0 0 12 12" fill="none"><rect x="1" y="3" width="10" height="2" rx="1" fill="currentColor" opacity=".4"/><rect x="1" y="6" width="10" height="2" rx="1" fill="currentColor" opacity=".6"/><rect x="1" y="9" width="6" height="2" rx="1" fill="currentColor" opacity=".8"/></svg>' },
+  { id: 'toggle-argmap',   label: 'Arg. Map',    svg: '<svg width="16" height="16" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="2.5" r="1.5" stroke="currentColor" stroke-width="1.1"/><circle cx="2" cy="9" r="1.5" stroke="currentColor" stroke-width="1.1"/><circle cx="10" cy="9" r="1.5" stroke="currentColor" stroke-width="1.1"/><line x1="6" y1="4" x2="2" y2="7.5" stroke="currentColor" stroke-width="1"/><line x1="6" y1="4" x2="10" y2="7.5" stroke="currentColor" stroke-width="1"/></svg>' },
+  { id: 'toggle-fallacy',  label: 'Fallacies',   svg: '<svg width="16" height="16" viewBox="0 0 12 12" fill="none"><path d="M6 1l1.5 3.5H11L8.5 6.5l1 3.5L6 8 2.5 10l1-3.5L1 4.5h3.5z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></svg>' },
   { id: 'toggle-floats',   label: 'Floaties',    svg: '<svg width="16" height="16" viewBox="0 0 12 12" fill="none"><rect x="1" y="2" width="10" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2"/><circle cx="4" cy="5" r="1.2" fill="currentColor"/><path d="M1 9l2.5-2.5 2 2 2-2.5 3 3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
   { id: 'toggle-graffiti', label: 'Graffiti',    svg: '<svg width="16" height="16" viewBox="0 0 12 12" fill="none"><path d="M2 9.5l1-3L9 1l2 2-6 6.5z" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 9.5c-.5.5-.5 1 0 1s1-.5 1-1" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>' },
 ];
@@ -5440,6 +5756,7 @@ document.addEventListener('mousedown', e => {
 
 // ── DISCUSSION ───────────────────────────────────────────
 async function openDiscussion(annoId) {
+  // Teacher prompt banner injected below
   popup.classList.remove('visible');
   discFromSong = currentSong;
   const anno = allAnnotations.find(a => a.id === annoId) ||
@@ -5456,6 +5773,7 @@ async function openDiscussion(annoId) {
 
   dv.innerHTML = `
     <button class="back-btn" id="disc-back">← Dream Song #${discFromSong}</button>
+    ${isTeacherAnnotation(anno) ? `<div class="disc-teacher-banner"><svg width="14" height="14" viewBox="0 0 12 12" fill="none"><polygon points="6,1 7.5,4.5 11,5 8.5,7.5 9.2,11 6,9.2 2.8,11 3.5,7.5 1,5 4.5,4.5" fill="#7C3AED"/></svg> <strong>Teacher Prompt</strong> — your teacher is asking students to respond to this.</div>` : ''}
     ${anno.is_global ? `<div class="disc-global-pill">Cross-song annotation</div>
     <div class="disc-song-links">Songs: ${anno.song_nums.map(n=>`<span class="disc-song-link" data-num="${n}">#${n}</span>`).join('')}</div>` : ''}
     <div class="disc-quote-block" style="border-left-color:${border}"><div class="disc-quote-text">"${anno.quote}"</div></div>
@@ -7976,6 +8294,876 @@ function fcAnswer(result) {
   fcIdx++;
   fcRender();
 }
+
+// ═══════════════════════════════════════════════════════════
+// MAP — drop pins on places, yellow string route, day/night
+// ═══════════════════════════════════════════════════════════
+let mapVisible = false;
+let leafletMap = null;
+let mapPins = [];
+let mapMarkers = [];
+let mapPolyline = null;
+let mapDayNightTimer = null;
+const TILE_DAY   = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+const TILE_NIGHT = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const ATTR_OSM   = '© <a href="https://openstreetmap.org">OpenStreetMap</a>';
+const ATTR_CARTO = '© <a href="https://carto.com">CARTO</a>';
+let mapTileLayer = null;
+
+function isDaytime() { const h = new Date().getHours(); return h >= 6 && h < 20; }
+
+function applyMapDayNight(map) {
+  if (!map) return;
+  const day = isDaytime();
+  if (mapTileLayer) map.removeLayer(mapTileLayer);
+  mapTileLayer = L.tileLayer(day ? TILE_DAY : TILE_NIGHT, { attribution: day ? ATTR_OSM : ATTR_CARTO, maxZoom: 19 }).addTo(map);
+}
+
+function startDayNightCycle(map) {
+  if (mapDayNightTimer) clearInterval(mapDayNightTimer);
+  mapDayNightTimer = setInterval(() => applyMapDayNight(map), 60000);
+}
+
+function stopDayNightCycle() { if (mapDayNightTimer) { clearInterval(mapDayNightTimer); mapDayNightTimer = null; } }
+
+function updateMapPolyline() {
+  if (!leafletMap) return;
+  if (mapPolyline) { leafletMap.removeLayer(mapPolyline); mapPolyline = null; }
+  if (mapPins.length < 2) return;
+  mapPolyline = L.polyline(mapPins.map(p => [p.lat, p.lng]), { color: '#F59E0B', weight: 2.5, opacity: 0.85, dashArray: '6 4' }).addTo(leafletMap);
+}
+
+function mapPinIcon(label) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="background:#F59E0B;border:2px solid #D97706;border-radius:50% 50% 50% 0;width:22px;height:22px;transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:9px;color:#fff;font-weight:700;font-family:sans-serif;line-height:1;">${(label||'').slice(0,2).toUpperCase()}</span></div>`,
+    iconSize: [22, 22], iconAnchor: [11, 22], popupAnchor: [0, -24],
+  });
+}
+
+function renderMapMarkers() {
+  if (!leafletMap) return;
+  mapMarkers.forEach(m => leafletMap.removeLayer(m)); mapMarkers = [];
+  mapPins.forEach(pin => {
+    const marker = L.marker([pin.lat, pin.lng], { icon: mapPinIcon(pin.place_name) }).addTo(leafletMap)
+      .bindPopup(`<div style="font-family:sans-serif;min-width:140px;">
+        <div style="font-weight:600;font-size:13px;margin-bottom:3px;">${pin.place_name}</div>
+        <div style="font-size:11px;font-style:italic;color:#888;margin-bottom:4px;">"${pin.quote}"</div>
+        <div style="font-size:10px;color:#aaa;">pinned by ${pin.username||'anonymous'}</div>
+        <button onclick="deleteMapPin(${pin.id})" style="margin-top:6px;font-size:11px;color:#DC2626;border:0.5px solid #FCA5A5;background:transparent;border-radius:20px;padding:2px 8px;cursor:pointer;font-family:sans-serif;">Remove</button>
+      </div>`);
+    mapMarkers.push(marker);
+  });
+  updateMapPolyline();
+}
+
+function renderMapPinsList() {
+  const listEl = document.querySelector('#map-panel .map-pins-list');
+  if (!listEl) return;
+  if (!mapPins.length) { listEl.innerHTML = '<div style="font-size:12px;color:#aaa;padding:4px 0;">No pins yet.</div>'; return; }
+  listEl.innerHTML = mapPins.map(p => `<div class="map-pin-item">
+    <div class="map-pin-dot"></div>
+    <div class="map-pin-text">
+      <div class="map-pin-place">${p.place_name}</div>
+      <div class="map-pin-quote">"${p.quote}"</div>
+      <div class="map-pin-user">— ${p.username||'anonymous'}</div>
+    </div>
+  </div>`).join('');
+}
+
+async function loadMapPins() {
+  if (!currentSong) return;
+  try {
+    const rows = await sbFetch(`map_pins?song_num=eq.${currentSong}&order=created_at.asc`) || [];
+    mapPins = rows; renderMapMarkers(); renderMapPinsList();
+    if (mapPins.length && leafletMap) leafletMap.fitBounds(L.latLngBounds(mapPins.map(p=>[p.lat,p.lng])), { padding:[30,30], maxZoom:8 });
+  } catch(_) {}
+}
+
+async function geocodePlace(name) {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(name)}&format=json&limit=5`, { headers:{'Accept-Language':'en','User-Agent':'LitGloss/1.0'} });
+    const data = await res.json();
+    return data.slice(0,5).map(r => ({ name: r.display_name.split(',').slice(0,2).join(','), lat: parseFloat(r.lat), lng: parseFloat(r.lon) }));
+  } catch(_) { return []; }
+}
+
+window.deleteMapPin = async function(id) {
+  try {
+    await sbFetch(`map_pins?id=eq.${id}`, { method:'DELETE', prefer:'return=minimal' });
+    mapPins = mapPins.filter(p => p.id !== id);
+    renderMapMarkers(); renderMapPinsList(); leafletMap?.closePopup();
+  } catch(_) {}
+};
+
+function showMapDropDialog(quote) {
+  const overlay = document.createElement('div');
+  overlay.className = 'map-drop-overlay';
+  overlay.innerHTML = `<div class="map-drop-box">
+    <div class="map-drop-title">📍 Drop a map pin</div>
+    <div class="map-drop-quote">"${quote}"</div>
+    <input class="map-drop-input" id="map-place-input" placeholder="Place name…" value="${quote.length<40?quote:quote.slice(0,35)+'…'}" autocomplete="off"/>
+    <div class="map-drop-suggest" id="map-geo-suggest"></div>
+    <div class="map-drop-status" id="map-drop-status"></div>
+    <div class="map-drop-btns">
+      <button class="map-drop-btn" id="map-drop-cancel">Cancel</button>
+      <button class="map-drop-btn primary" id="map-drop-search">Search & Pin</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  const inp = overlay.querySelector('#map-place-input'), status = overlay.querySelector('#map-drop-status'), suggest = overlay.querySelector('#map-geo-suggest');
+  overlay.querySelector('#map-drop-cancel').addEventListener('click', () => overlay.remove());
+  async function doSearch() {
+    const name = inp.value.trim(); if (!name) return;
+    status.textContent = 'Searching…'; suggest.innerHTML = '';
+    const results = await geocodePlace(name);
+    if (!results.length) { status.textContent = 'No results. Try a different name.'; return; }
+    status.textContent = 'Pick location:';
+    results.forEach(r => {
+      const pill = document.createElement('button'); pill.className = 'map-drop-pill'; pill.textContent = r.name;
+      pill.addEventListener('click', async () => {
+        status.textContent = 'Pinning…';
+        const username = document.getElementById('inp-user')?.value.trim() || currentProfile?.username || 'anonymous';
+        const pin = { song_num: currentSong, quote, place_name: name, lat: r.lat, lng: r.lng, username };
+        try {
+          const saved = await sbFetch('map_pins', { method:'POST', body: pin });
+          if (saved?.[0]) pin.id = saved[0].id;
+        } catch(_) {}
+        mapPins.push(pin); renderMapMarkers(); renderMapPinsList();
+        if (!mapVisible) { mapVisible = true; document.getElementById('toggle-map')?.classList.add('active'); renderMapPanel(); }
+        overlay.remove();
+        if (leafletMap) leafletMap.flyTo([r.lat, r.lng], 7, { duration: 1.2 });
+      });
+      suggest.appendChild(pill);
+    });
+  }
+  overlay.querySelector('#map-drop-search').addEventListener('click', doSearch);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+  setTimeout(doSearch, 300);
+}
+
+function injectMapPinIntoPopup(quote) {
+  setTimeout(() => {
+    const popup = document.querySelector('.anno-popup.visible, #anno-popup.visible');
+    if (!popup) return;
+    if (popup.querySelector('.map-pin-inject')) return;
+    const btn = document.createElement('button');
+    btn.className = 'map-pin-inject';
+    btn.style.cssText = 'display:block;width:100%;text-align:left;font-size:12px;padding:6px 0 2px;border:none;background:none;color:#F59E0B;cursor:pointer;font-family:sans-serif;';
+    btn.innerHTML = '📍 Drop map pin for this place';
+    btn.addEventListener('click', () => { popup.classList.remove('visible'); showMapDropDialog(quote); });
+    popup.appendChild(btn);
+  }, 100);
+}
+
+document.addEventListener('mouseup', e => {
+  const tc = document.getElementById('text-content');
+  if (!tc || !tc.contains(e.target)) return;
+  setTimeout(() => {
+    const sel = window.getSelection(), text = sel && sel.toString().trim();
+    if (text && text.length > 1 && text.length < 60) injectMapPinIntoPopup(text);
+  }, 220);
+});
+
+function renderMapPanel() {
+  const panel = document.getElementById('map-panel');
+  if (!panel) return;
+  if (!mapVisible) { panel.classList.remove('visible'); stopDayNightCycle(); return; }
+  panel.classList.add('visible');
+  panel.innerHTML = `<div class="map-header"><span class="map-title">Places & Map</span></div>
+    <div class="map-hint">Highlight any <b>place name</b> in the poem, then click <b>"Drop map pin"</b> in the popup.</div>
+    <div id="map-container"></div>
+    <div class="map-pins-list"></div>`;
+  if (!leafletMap) {
+    leafletMap = L.map('map-container', { zoomControl:true }).setView([30, 0], 2);
+    applyMapDayNight(leafletMap); startDayNightCycle(leafletMap);
+  } else {
+    document.getElementById('map-container').appendChild(leafletMap.getContainer());
+    leafletMap.invalidateSize();
+  }
+  loadMapPins();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const tmb = document.getElementById('toggle-map');
+  if (tmb) {
+    tmb.addEventListener('click', () => {
+      mapVisible = !mapVisible;
+      tmb.classList.toggle('active', mapVisible);
+      if (mapVisible) setActivePanel('map');
+      if (mapVisible) {
+        vocabVisible = false; document.getElementById('toggle-vocab')?.classList.remove('active'); renderVocabPanel();
+      }
+      renderMapPanel();
+    });
+  }
+});
+
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE GLOBALS
+// ═══════════════════════════════════════════════════════════
+// These features share a `_featureSelectedText` var and hook
+// into the text selection flow via a shared postSelection fn.
+let _featureSelectedText = '';
+let _featureSelectedRange = null;
+
+// ═══════════════════════════════════════════════════════════
+// 1. SENTENCE DIAGRAMMER — Reed-Kellogg
+// ═══════════════════════════════════════════════════════════
+function parseSentenceRK(sentence) {
+  // Rule-based NLP: extract subject, verb, object, modifiers, prepositional phrases
+  const words = sentence.replace(/[,;:]/g,' ').split(/\s+/).filter(Boolean);
+  const VERBS = /^(is|are|was|were|be|been|being|have|has|had|do|does|did|will|would|shall|should|may|might|must|can|could|sail|see|thought|find|account|take|get|throws|cherish|go|visit|travel|come|make|feel|think|know|want|need|look|seem|appear|call|thought|drove|drives|brings|brings|prevent|stepping|knocking|requires)$/i;
+  const ART = /^(a|an|the)$/i;
+  const PREP = /^(about|above|across|after|against|along|among|around|at|before|behind|below|beneath|beside|between|beyond|by|down|during|except|for|from|in|inside|into|like|near|of|off|on|onto|out|outside|over|past|since|through|throughout|till|to|toward|under|underneath|until|up|upon|with|within|without)$/i;
+  const CONJ = /^(and|but|or|nor|for|yet|so|although|because|since|while|if|unless|until|when|where|after|before|though)$/i;
+  const ADJ = /^(little|great|watery|damp|drizzily|grim|strong|moral|high|philosophical|nearly|almost|every|robust|healthy|mystical|poor|first)$/i;
+  const ADV = /^(quietly|deliberately|methodically|involuntarily|suddenly|nearly|almost|very|quite|rather|just|only|also|always|never|often|sometimes|well|badly|quickly|slowly)$/i;
+
+  let subject = [], verb = [], obj = [], modifiers = [], preps = [], conjs = [];
+  let state = 'pre-subj';
+  let i = 0;
+
+  // Simple left-to-right parse
+  while (i < words.length) {
+    const w = words[i], wl = w.toLowerCase().replace(/[^a-z]/g,'');
+    if (CONJ.test(wl)) { conjs.push({ word: w, pos: i }); i++; continue; }
+    if (PREP.test(wl)) {
+      const prep = { prep: w, obj: [] };
+      i++;
+      while (i < words.length && !PREP.test(words[i].toLowerCase()) && !CONJ.test(words[i].toLowerCase()) && !VERBS.test(words[i].toLowerCase())) {
+        prep.obj.push(words[i]); i++;
+      }
+      preps.push(prep); continue;
+    }
+    if (VERBS.test(wl) && state !== 'post-verb') {
+      verb.push(w); state = 'post-verb'; i++; continue;
+    }
+    if (state === 'pre-subj' || (state === 'pre-subj' && ART.test(wl))) {
+      subject.push(w); i++; if (!ART.test(wl) && !ADJ.test(wl) && subject.length > 1) state = 'pre-verb'; continue;
+    }
+    if (state === 'post-verb') {
+      if (ADV.test(wl)) { modifiers.push({ word: w, modifies: 'verb' }); }
+      else { obj.push(w); }
+      i++; continue;
+    }
+    modifiers.push({ word: w, modifies: 'misc' }); i++;
+  }
+
+  // Fallback: split on first verb-like word
+  if (!verb.length) {
+    for (let j = 1; j < words.length - 1; j++) {
+      const wl = words[j].toLowerCase();
+      if (/ed$|ing$|s$/.test(wl) && !/^(the|a|an|this|that|these|those)$/i.test(wl)) {
+        verb = [words[j]]; subject = words.slice(0, j); obj = words.slice(j+1); break;
+      }
+    }
+  }
+  if (!subject.length && words.length) { subject = [words[0]]; }
+  if (!verb.length && words.length > 1) { verb = [words[1]]; }
+
+  return { subject, verb, obj, modifiers, preps, conjs };
+}
+
+function renderReedKellogg(parts, sentence) {
+  const { subject, verb, obj, modifiers, preps } = parts;
+  const SVG_W = 700, SVG_H = 220;
+  const BASE_Y = 120;
+  const SUBJ_X = 80, VERB_X = 260, OBJ_X = 430;
+  const FONT = 13;
+  const textW = t => t.length * 7.5 + 10;
+
+  let svgParts = [];
+
+  // Main horizontal baseline
+  const lineEnd = obj.length ? OBJ_X + textW(obj.join(' ')) + 20 : VERB_X + textW(verb.join(' ')) + 20;
+  svgParts.push(`<line class="rk-line" x1="40" y1="${BASE_Y}" x2="${lineEnd}" y2="${BASE_Y}"/>`);
+
+  // Subject | verb divider
+  const svX = VERB_X - 20;
+  svgParts.push(`<line class="rk-line" x1="${svX}" y1="${BASE_Y-28}" x2="${svX}" y2="${BASE_Y+8}"/>`);
+
+  // Verb | obj divider (diagonal)
+  if (obj.length) {
+    const voX = OBJ_X - 20;
+    svgParts.push(`<line class="rk-line" x1="${voX-6}" y1="${BASE_Y-24}" x2="${voX+6}" y2="${BASE_Y+4}"/>`);
+  }
+
+  // Subject text
+  const subjText = subject.join(' ');
+  svgParts.push(`<text class="rk-text subj" x="${SUBJ_X}" y="${BASE_Y - 8}">${escHtml(subjText)}</text>`);
+
+  // Verb text
+  svgParts.push(`<text class="rk-text verb" x="${VERB_X}" y="${BASE_Y - 8}">${escHtml(verb.join(' '))}</text>`);
+
+  // Object text
+  if (obj.length) {
+    svgParts.push(`<text class="rk-text obj" x="${OBJ_X}" y="${BASE_Y - 8}">${escHtml(obj.slice(0,4).join(' '))}</text>`);
+  }
+
+  // Modifiers on diagonal lines below
+  let modY = BASE_Y + 18;
+  modifiers.slice(0, 4).forEach((m, i) => {
+    const modX = i % 2 === 0 ? SUBJ_X + 30 : VERB_X + 20;
+    const mY = modY + Math.floor(i / 2) * 36;
+    svgParts.push(`<line class="rk-diag" x1="${modX}" y1="${BASE_Y}" x2="${modX - 16}" y2="${mY}"/>`);
+    svgParts.push(`<line class="rk-diag" x1="${modX-16}" y1="${mY}" x2="${modX + 50}" y2="${mY}"/>`);
+    svgParts.push(`<text class="rk-text mod" x="${modX - 14}" y="${mY - 3}">${escHtml(m.word)}</text>`);
+  });
+
+  // Prepositional phrases below verb
+  preps.slice(0, 3).forEach((pp, i) => {
+    const ppX = VERB_X + 20 + i * 110;
+    const ppY = BASE_Y + 55 + Math.floor(i / 3) * 45;
+    svgParts.push(`<line class="rk-diag" x1="${VERB_X + 10}" y1="${BASE_Y}" x2="${ppX - 10}" y2="${ppY - 14}"/>`);
+    svgParts.push(`<line class="rk-diag" x1="${ppX - 10}" y1="${ppY - 14}" x2="${ppX + 10}" y2="${ppY - 14}"/>`);
+    svgParts.push(`<text class="rk-text prep" x="${ppX - 10}" y="${ppY - 18}">${escHtml(pp.prep)}</text>`);
+    svgParts.push(`<line class="rk-diag" x1="${ppX}" y1="${ppY - 14}" x2="${ppX}" y2="${ppY}"/>`);
+    svgParts.push(`<line class="rk-diag" x1="${ppX}" y1="${ppY}" x2="${ppX + 80}" y2="${ppY}"/>`);
+    svgParts.push(`<text class="rk-text" x="${ppX + 2}" y="${ppY - 3}">${escHtml(pp.obj.join(' ').slice(0, 20))}</text>`);
+  });
+
+  return `<svg class="diag-svg" viewBox="0 0 ${SVG_W} ${SVG_H}" xmlns="http://www.w3.org/2000/svg">
+    ${svgParts.join('\n    ')}
+  </svg>`;
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function showSentenceDiagram(sentence) {
+  let overlay = document.getElementById('diag-overlay');
+  if (!overlay) { overlay = document.createElement('div'); overlay.id = 'diag-overlay'; overlay.className = 'diag-overlay hidden'; document.body.appendChild(overlay); }
+  const parts = parseSentenceRK(sentence);
+  const svgHtml = renderReedKellogg(parts, sentence);
+  overlay.innerHTML = `<div class="diag-box">
+    <div class="diag-header">
+      <div>
+        <div class="diag-title">Reed-Kellogg Sentence Diagram</div>
+        <div class="diag-sentence">"${escHtml(sentence.slice(0,80))}${sentence.length>80?'…':''}"</div>
+      </div>
+      <button class="diag-close" id="diag-close">×</button>
+    </div>
+    <div class="diag-body">${svgHtml}</div>
+    <div class="diag-legend">
+      <span class="diag-leg-item"><span class="diag-leg-color" style="background:#2563EB"></span>Subject</span>
+      <span class="diag-leg-item"><span class="diag-leg-color" style="background:#16A34A"></span>Verb</span>
+      <span class="diag-leg-item"><span class="diag-leg-color" style="background:#DC2626"></span>Object</span>
+      <span class="diag-leg-item"><span class="diag-leg-color" style="background:#CA8A04"></span>Modifier</span>
+      <span class="diag-leg-item"><span class="diag-leg-color" style="background:#7C3AED"></span>Prepositional phrase</span>
+    </div>
+  </div>`;
+  overlay.classList.remove('hidden');
+  overlay.querySelector('#diag-close').addEventListener('click', () => overlay.classList.add('hidden'));
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.add('hidden'); });
+}
+
+// ═══════════════════════════════════════════════════════════
+// 2. RHETORICAL MODE IDENTIFIER
+// ═══════════════════════════════════════════════════════════
+const RHET_MODES = [
+  { name: 'Argumentation', keywords: /\b(argue|claim|assert|because|therefore|thus|hence|consequently|proof|evidence|should|must|ought|believe|maintain|contend|refute|counter|however|although|despite|nevertheless|furthermore|moreover|indeed)\b/i },
+  { name: 'Narration',     keywords: /\b(then|when|suddenly|next|after|before|later|finally|first|last|began|started|went|came|saw|heard|felt|remembered|told|said|asked|replied|thought|i |we |he |she |they )\b/i },
+  { name: 'Description',   keywords: /\b(like|as if|appears|seems|dark|light|bright|dim|cold|warm|silent|loud|smooth|rough|beautiful|ugly|vast|narrow|tall|short|wide|deep|hollow|tranced|shadiest|dreamiest|enchanting|romantic)\b/i },
+  { name: 'Cause and Effect', keywords: /\b(because|since|as a result|therefore|thus|consequently|leads to|causes|effect|reason|due to|owing to|results in|produces|creates|brings about|hence)\b/i },
+  { name: 'Classification', keywords: /\b(type|kind|category|group|class|sort|variety|divided|classified|fall into|belong|includes|consists of|composed of|such as|namely|specifically|either|both|all|every|each)\b/i },
+  { name: 'Example',       keywords: /\b(for example|for instance|such as|like|consider|take|imagine|suppose|as in|in particular|specifically|to illustrate|to demonstrate|namely|including|e\.g)\b/i },
+  { name: 'Analogy',       keywords: /\b(like|as|just as|similar|same|resembles|parallel|compared to|comparison|in the same way|likewise|similarly|in contrast|on the other hand|whereas|while)\b/i },
+  { name: 'Process',       keywords: /\b(first|second|third|then|next|after|before|finally|step|stage|phase|begin|start|proceed|continue|follow|complete|in order to|so that|until|once|when)\b/i },
+];
+
+const RHET_COLORS = {
+  'Argumentation': '#FDE68A', 'Narration': '#BFDBFE', 'Description': '#BBF7D0',
+  'Cause and Effect': '#FECACA', 'Classification': '#DDD6FE',
+  'Example': '#FED7AA', 'Analogy': '#CFFAFE', 'Process': '#FCE7F3',
+};
+
+function detectRhetMode(text) {
+  let best = null, bestScore = 0;
+  RHET_MODES.forEach(m => {
+    const matches = (text.match(m.keywords) || []).length;
+    if (matches > bestScore) { bestScore = matches; best = m.name; }
+  });
+  return best || 'Description';
+}
+
+let rhetModeActive = false;
+let rhetTaggedSpans = []; // {range, mode, el}
+
+function showRhetModeBar(text, range) {
+  let bar = document.getElementById('rhet-mode-bar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'rhet-mode-bar';
+    bar.className = 'rhet-mode-bar';
+    bar.innerHTML = `<span class="rhet-mode-label">Mode:</span>` +
+      RHET_MODES.map(m => `<button class="rhet-btn" data-mode="${m.name}">${m.name}</button>`).join('') +
+      `<button class="rhet-dismiss" id="rhet-dismiss">×</button>`;
+    document.body.appendChild(bar);
+    bar.querySelectorAll('.rhet-btn').forEach(btn => {
+      btn.addEventListener('click', () => applyRhetMode(btn.dataset.mode, range));
+    });
+    bar.querySelector('#rhet-dismiss').addEventListener('click', () => {
+      bar.classList.remove('visible');
+      window.getSelection()?.removeAllRanges();
+    });
+  }
+  const suggested = detectRhetMode(text);
+  bar.querySelectorAll('.rhet-btn').forEach(b => {
+    b.classList.toggle('suggested', b.dataset.mode === suggested);
+  });
+  bar.classList.add('visible');
+}
+
+function applyRhetMode(mode, range) {
+  if (!range) return;
+  try {
+    const span = document.createElement('span');
+    span.className = 'rhet-span';
+    span.dataset.mode = mode;
+    span.style.background = RHET_COLORS[mode] + '88';
+    span.title = mode;
+    range.surroundContents(span);
+    rhetTaggedSpans.push({ mode, el: span });
+    span.addEventListener('click', () => {
+      const newMode = prompt(`Current mode: ${mode}\nChange to (or leave blank to remove):`, mode);
+      if (newMode === null) return;
+      if (newMode === '') { span.replaceWith(document.createTextNode(span.textContent)); }
+      else { span.dataset.mode = newMode; span.style.background = (RHET_COLORS[newMode]||'#eee') + '88'; span.title = newMode; }
+    });
+  } catch(_) {}
+  document.getElementById('rhet-mode-bar')?.classList.remove('visible');
+  window.getSelection()?.removeAllRanges();
+}
+
+// ═══════════════════════════════════════════════════════════
+// 3. ARGUMENT MAP — Arcade Style
+// ═══════════════════════════════════════════════════════════
+let argMapVisible = false;
+let argMapActiveSlot = null;
+const ARG_SLOTS = ['claim','evidence','reasoning','counter','audience'];
+const ARG_LABELS = { claim:'Claim', evidence:'Evidence', reasoning:'Reasoning', counter:'Counterargument', audience:'Audience Appeal' };
+let argMapData = { claim:[], evidence:[], reasoning:[], counter:[], audience:[] };
+const ARG_SAVE_KEY = 'argmaps_saved';
+
+function argMapsLoad() { try { return JSON.parse(localStorage.getItem(ARG_SAVE_KEY)||'[]'); } catch(_) { return []; } }
+function argMapsSave(maps) { try { localStorage.setItem(ARG_SAVE_KEY, JSON.stringify(maps)); } catch(_) {} }
+
+function renderArgMap() {
+  let panel = document.getElementById('argmap-panel');
+  if (!panel) return;
+  const body = panel.querySelector('.argmap-body');
+  if (!body) return;
+  body.innerHTML = ARG_SLOTS.map(slot => {
+    const entries = argMapData[slot];
+    const entriesHtml = entries.length
+      ? entries.map((e,i) => `<div class="argmap-entry"><span class="argmap-entry-text">${escHtml(e)}</span><button class="argmap-entry-del" data-slot="${slot}" data-i="${i}">×</button></div>`).join('')
+      : `<div class="argmap-empty">Highlight text then click slot above…</div>`;
+    return `<div class="argmap-section">
+      <div class="argmap-section-label" data-slot="${slot}">${ARG_LABELS[slot]}</div>
+      <div class="argmap-entries" data-slot="${slot}">${entriesHtml}</div>
+    </div>`;
+  }).join('');
+  body.querySelectorAll('.argmap-entry-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      argMapData[btn.dataset.slot].splice(parseInt(btn.dataset.i), 1);
+      renderArgMap();
+    });
+  });
+  // Saved maps
+  const saved = argMapsLoad();
+  const savedEl = panel.querySelector('.argmap-saved-maps');
+  if (savedEl) {
+    savedEl.innerHTML = saved.length
+      ? `<div class="argmap-saved-label">Saved maps</div>` + saved.map((m,i) => `<div class="argmap-saved-item" data-i="${i}">▶ ${escHtml(m.name || 'Map '+(i+1))} <span style="float:right;color:#8B0000;cursor:pointer" data-del="${i}">✕</span></div>`).join('')
+      : '';
+    savedEl.querySelectorAll('.argmap-saved-item').forEach(item => {
+      item.addEventListener('click', e => {
+        if (e.target.dataset.del !== undefined) {
+          const maps = argMapsLoad(); maps.splice(parseInt(e.target.dataset.del),1); argMapsSave(maps); renderArgMap();
+        } else {
+          const maps = argMapsLoad(); argMapData = maps[parseInt(item.dataset.i)]?.data || argMapData; renderArgMap();
+        }
+      });
+    });
+  }
+}
+
+function openArgMap() {
+  let overlay = document.getElementById('argmap-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'argmap-overlay';
+    overlay.className = 'argmap-overlay hidden';
+    overlay.innerHTML = `<div class="argmap-panel" id="argmap-panel">
+      <div class="argmap-header">
+        <div>
+          <div class="argmap-title">⚔ Argument Map</div>
+          <div class="argmap-subtitle">Highlight text → select slot</div>
+        </div>
+        <button class="argmap-close" id="argmap-close">×</button>
+      </div>
+      <div class="argmap-mode-bar">
+        ${ARG_SLOTS.map(s => `<button class="argmap-slot-btn" data-slot="${s}">${ARG_LABELS[s]}</button>`).join('')}
+      </div>
+      <div class="argmap-body"></div>
+      <div class="argmap-saved-maps"></div>
+      <div class="argmap-footer">
+        <button class="argmap-save-btn" id="argmap-save">Save map</button>
+        <button class="argmap-clear-btn" id="argmap-clear">Clear</button>
+      </div>
+    </div>`;
+    document.body.appendChild(overlay);
+
+    overlay.querySelector('#argmap-close').addEventListener('click', closeArgMap);
+    overlay.querySelectorAll('.argmap-slot-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        argMapActiveSlot = argMapActiveSlot === btn.dataset.slot ? null : btn.dataset.slot;
+        overlay.querySelectorAll('.argmap-slot-btn').forEach(b => b.classList.toggle('active', b.dataset.slot === argMapActiveSlot));
+        updateArgHint();
+      });
+    });
+    overlay.querySelector('#argmap-save').addEventListener('click', () => {
+      const name = prompt('Name this argument map:', 'Map ' + (argMapsLoad().length + 1));
+      if (!name) return;
+      const maps = argMapsLoad();
+      maps.push({ name, data: JSON.parse(JSON.stringify(argMapData)), saved: Date.now() });
+      argMapsSave(maps); renderArgMap();
+      overlay.querySelector('#argmap-save').textContent = '✓ Saved!';
+      setTimeout(() => { overlay.querySelector('#argmap-save').textContent = 'Save map'; }, 2000);
+    });
+    overlay.querySelector('#argmap-clear').addEventListener('click', () => {
+      if (!confirm('Clear this argument map?')) return;
+      ARG_SLOTS.forEach(s => { argMapData[s] = []; }); renderArgMap();
+    });
+  }
+  overlay.classList.remove('hidden'); overlay.classList.add('visible');
+  argMapVisible = true;
+  renderArgMap();
+}
+
+function closeArgMap() {
+  const overlay = document.getElementById('argmap-overlay');
+  if (overlay) { overlay.classList.add('hidden'); overlay.classList.remove('visible'); }
+  argMapVisible = false; argMapActiveSlot = null; updateArgHint();
+}
+
+function updateArgHint() {
+  let hint = document.getElementById('argmap-hint');
+  if (!hint) { hint = document.createElement('div'); hint.id = 'argmap-hint'; hint.className = 'argmap-active-hint'; document.body.appendChild(hint); }
+  if (argMapActiveSlot && argMapVisible) {
+    hint.textContent = `Highlight text → adds to ${ARG_LABELS[argMapActiveSlot]}`;
+    hint.classList.add('visible');
+  } else {
+    hint.classList.remove('visible');
+  }
+}
+
+function tryAddToArgMap(text) {
+  if (!argMapVisible || !argMapActiveSlot || !text.trim()) return false;
+  argMapData[argMapActiveSlot].push(text.trim());
+  renderArgMap();
+  // Flash the slot
+  const slot = document.querySelector(`.argmap-entries[data-slot="${argMapActiveSlot}"]`);
+  if (slot) { slot.style.background='#700000'; setTimeout(()=>slot.style.background='',300); }
+  return true;
+}
+
+// ═══════════════════════════════════════════════════════════
+// 4. FALLACY TRACKER
+// ═══════════════════════════════════════════════════════════
+const FALLACIES = [
+  { name: 'Ad Hominem', desc: 'Attacking the person making the argument rather than the argument itself.' },
+  { name: 'Straw Man', desc: 'Misrepresenting someone\'s argument to make it easier to attack.' },
+  { name: 'False Dilemma', desc: 'Presenting only two options when more exist.' },
+  { name: 'Slippery Slope', desc: 'Claiming one event will lead to extreme consequences without evidence.' },
+  { name: 'Appeal to Authority', desc: 'Using an authority figure\'s opinion as evidence without proper justification.' },
+  { name: 'Appeal to Emotion', desc: 'Manipulating emotions rather than using logic to support a claim.' },
+  { name: 'Hasty Generalization', desc: 'Drawing broad conclusions from too few examples.' },
+  { name: 'Circular Reasoning', desc: 'The conclusion is used as a premise (begging the question).' },
+  { name: 'Red Herring', desc: 'Introducing irrelevant information to distract from the real issue.' },
+  { name: 'Bandwagon', desc: 'Claiming something is true or right because many people believe it.' },
+  { name: 'Post Hoc', desc: 'Assuming causation from correlation: A happened before B, so A caused B.' },
+  { name: 'False Analogy', desc: 'Comparing two things that are not alike in relevant ways.' },
+  { name: 'Appeal to Nature', desc: 'Claiming something is good because it is natural, or bad because it is unnatural.' },
+  { name: 'Loaded Question', desc: 'Asking a question with a built-in assumption that cannot be denied.' },
+];
+
+let fallacyVisible = false;
+let fallacyActiveTag = null;
+let fallacyTagged = []; // {quote, fallacy, span}
+
+function detectFallacy(text) {
+  const t = text.toLowerCase();
+  if (/you|he is|she is|they are|stupid|idiot|wrong person|character/.test(t)) return 'Ad Hominem';
+  if (/either|only two|you must choose|there is no other/.test(t)) return 'False Dilemma';
+  if (/leads to|will lead|next thing|soon we will|slippery/.test(t)) return 'Slippery Slope';
+  if (/everyone|everybody|most people|all people|popular|bandwagon/.test(t)) return 'Bandwagon';
+  if (/natural|nature|naturally|unnatural/.test(t)) return 'Appeal to Nature';
+  if (/expert says|according to|authority|scientist|doctor|studies show/.test(t)) return 'Appeal to Authority';
+  if (/feel|fear|hope|proud|shame|guilt|worry|terrible|wonderful/.test(t)) return 'Appeal to Emotion';
+  if (/because it is|it is true because/.test(t)) return 'Circular Reasoning';
+  if (/for example one|in one case|once i|this one time/.test(t)) return 'Hasty Generalization';
+  if (/after|before|since then|following/.test(t)) return 'Post Hoc';
+  return null;
+}
+
+function renderFallacyPanel() {
+  const fp = document.getElementById('fallacy-panel');
+  if (!fp) return;
+  if (!fallacyVisible) { fp.classList.remove('visible'); return; }
+  fp.classList.add('visible');
+
+  let activeTagHtml = fallacyActiveTag
+    ? `<div style="font-size:11px;color:#DC2626;margin-bottom:8px;padding:4px 8px;background:#FFF5F5;border-radius:6px;">Tagging as: <strong>${fallacyActiveTag}</strong> — now highlight text in the poem</div>`
+    : '';
+
+  let taggedHtml = fallacyTagged.length
+    ? `<div class="fallacy-tagged-section">
+        <div class="fallacy-tagged-label">Tagged in text</div>
+        ${fallacyTagged.map((t,i) => `<div class="fallacy-tagged-item">
+          <button class="fallacy-tagged-del" data-i="${i}">×</button>
+          <div class="fallacy-tagged-name">${escHtml(t.fallacy)}</div>
+          <div class="fallacy-tagged-quote">"${escHtml(t.quote)}"</div>
+        </div>`).join('')}
+      </div>` : '';
+
+  fp.innerHTML = `<div class="fallacy-panel-header">
+    <span class="fallacy-panel-title">Fallacy Tracker</span>
+    ${fallacyActiveTag ? `<button id="fallacy-cancel-tag" style="font-size:11px;padding:2px 8px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;font-family:sans-serif;">Cancel</button>` : ''}
+  </div>
+  ${activeTagHtml}
+  <div class="fallacy-list-section">
+    <div class="fallacy-list-label">Click to tag a fallacy:</div>
+    ${FALLACIES.map(f => `<div class="fallacy-def-card${fallacyActiveTag===f.name?' active-tag':''}" data-fallacy="${escHtml(f.name)}">
+      <div class="fallacy-def-name">${escHtml(f.name)} <span style="font-size:10px;color:#aaa;float:right;">Tag ›</span></div>
+      <div class="fallacy-def-desc">${escHtml(f.desc)}</div>
+    </div>`).join('')}
+  </div>
+  ${taggedHtml}`;
+
+  fp.querySelectorAll('.fallacy-def-card').forEach(card => {
+    card.addEventListener('click', () => {
+      fallacyActiveTag = fallacyActiveTag === card.dataset.fallacy ? null : card.dataset.fallacy;
+      renderFallacyPanel();
+    });
+  });
+  fp.querySelector('#fallacy-cancel-tag')?.addEventListener('click', () => { fallacyActiveTag = null; renderFallacyPanel(); });
+  fp.querySelectorAll('.fallacy-tagged-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = fallacyTagged[parseInt(btn.dataset.i)];
+      if (item?.span) { item.span.replaceWith(document.createTextNode(item.span.textContent)); }
+      fallacyTagged.splice(parseInt(btn.dataset.i), 1);
+      renderFallacyPanel();
+    });
+  });
+}
+
+function tryTagFallacy(text, range) {
+  if (!fallacyVisible || !fallacyActiveTag) return false;
+  try {
+    const span = document.createElement('span');
+    span.className = 'fallacy-span';
+    span.title = fallacyActiveTag;
+    range.surroundContents(span);
+    fallacyTagged.push({ quote: text, fallacy: fallacyActiveTag, span });
+    span.addEventListener('click', () => {
+      fallacyTagged = fallacyTagged.filter(f => f.span !== span);
+      span.replaceWith(document.createTextNode(span.textContent));
+      renderFallacyPanel();
+    });
+    renderFallacyPanel();
+  } catch(_) {}
+  return true;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SHARED SELECTION HOOK
+// ═══════════════════════════════════════════════════════════
+function initFeatureSelectionHook(getTextContentEl) {
+  document.addEventListener('mouseup', e => {
+    const tc = getTextContentEl();
+    if (!tc || !tc.contains(e.target)) return;
+    if (e.target.closest('.compose-panel, .anno-popup, .rc-col, #disc-view, .argmap-panel')) return;
+    setTimeout(() => {
+      const sel = window.getSelection();
+      const text = sel && sel.toString().trim();
+      if (!text || text.length < 2) return;
+      const range = sel.rangeCount > 0 ? sel.getRangeAt(0).cloneRange() : null;
+      _featureSelectedText = text;
+      _featureSelectedRange = range;
+      // Arg map takes priority if active
+      if (tryAddToArgMap(text)) { sel.removeAllRanges(); return; }
+      // Fallacy tagging
+      if (tryTagFallacy(text, range)) { sel.removeAllRanges(); renderFallacyPanel(); return; }
+      // Rhetorical mode bar
+      if (rhetModeActive) { showRhetModeBar(text, range); }
+    }, 180);
+  });
+}
+
+
+const VOCAB_KEY = 'dreamsongs_vocab';
+let vocabVisible = false;
+
+function vocabLoad() { try { return JSON.parse(localStorage.getItem(VOCAB_KEY) || '[]'); } catch(_) { return []; } }
+function vocabSave(list) { try { localStorage.setItem(VOCAB_KEY, JSON.stringify(list)); } catch(_) {} }
+
+function vocabSaveWord(word, def) {
+  const list = vocabLoad();
+  if (list.find(v => v.word.toLowerCase() === word.toLowerCase())) return false;
+  list.push({ word, def, added: Date.now() });
+  vocabSave(list);
+  renderVocabPanel();
+  return true;
+}
+
+function renderVocabPanel() {
+  const vp = document.getElementById('vocab-panel');
+  if (!vp) return;
+  if (!vocabVisible) { vp.classList.remove('visible'); return; }
+  vp.classList.add('visible');
+  const list = vocabLoad();
+  let html = `<div class="vocab-header">
+    <span class="vocab-title">Vocabulary (${list.length})</span>
+    <div class="vocab-actions">
+      ${list.length ? `<button class="vocab-action-btn" id="vocab-export">Export</button>
+      <button class="vocab-action-btn primary" id="vocab-flashcards">✦ Flashcards</button>` : ''}
+    </div>
+  </div>`;
+  if (!list.length) {
+    html += `<div class="vocab-empty">No words saved yet.<br><span style="font-size:11px;">Look up a word in Dictionary,<br>then click "Save to vocab".</span></div>`;
+  } else {
+    html += list.map((v, i) => `<div class="vocab-item">
+      <span class="vocab-word">${v.word}</span>
+      <span class="vocab-def">${v.def || '<em style="color:#bbb">No definition</em>'}</span>
+      <button class="vocab-del" data-i="${i}" title="Remove">×</button>
+    </div>`).join('');
+  }
+  vp.innerHTML = html;
+  vp.querySelectorAll('.vocab-del').forEach(btn => {
+    btn.addEventListener('click', () => { const l=vocabLoad(); l.splice(parseInt(btn.dataset.i),1); vocabSave(l); renderVocabPanel(); });
+  });
+  vp.querySelector('#vocab-export')?.addEventListener('click', () => {
+    const l=vocabLoad(); const text=l.map(v=>`${v.word}: ${v.def}`).join('\n');
+    const a=document.createElement('a'); a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(text);
+    a.download='vocabulary-dreamsongs.txt'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  });
+  vp.querySelector('#vocab-flashcards')?.addEventListener('click', startFlashcardsVocab);
+}
+
+function startFlashcardsVocab() {
+  const list = vocabLoad();
+  if (!list.length) return;
+  const shuffled = [...list].sort(() => Math.random() - 0.5);
+  let idx = 0; let shown = false;
+  const overlay = document.getElementById('flashcard-overlay');
+  if (!overlay) return;
+  function render() {
+    shown = false;
+    const v = shuffled[idx];
+    overlay.innerHTML = `<div class="flashcard-box">
+      <button class="fc-close" id="fc-close">×</button>
+      <div class="fc-progress">${idx+1} / ${shuffled.length}</div>
+      <div class="fc-card" id="fc-card">
+        <div class="fc-word">${v.word}</div>
+        <div class="fc-hint">Tap to reveal definition</div>
+        <div class="fc-def" id="fc-def">${v.def||'No definition saved.'}</div>
+      </div>
+      <div class="fc-btns" id="fc-btns" style="display:none;">
+        <button class="fc-btn hard" id="fc-hard">✗ Hard</button>
+        <button class="fc-btn good" id="fc-good">✓ Got it</button>
+      </div>
+    </div>`;
+    overlay.classList.remove('hidden');
+    overlay.querySelector('#fc-card').addEventListener('click', () => {
+      if (shown) return; shown=true;
+      overlay.querySelector('#fc-def').classList.add('visible');
+      overlay.querySelector('.fc-hint').style.display='none';
+      overlay.querySelector('#fc-btns').style.display='flex';
+    });
+    overlay.querySelector('#fc-good').addEventListener('click', () => { idx++; idx>=shuffled.length?endFC():render(); });
+    overlay.querySelector('#fc-hard').addEventListener('click', () => { shuffled.push(v); idx++; idx>=shuffled.length?endFC():render(); });
+    overlay.querySelector('#fc-close').addEventListener('click', () => overlay.classList.add('hidden'));
+  }
+  function endFC() {
+    overlay.innerHTML = `<div class="flashcard-box">
+      <button class="fc-close" id="fc-close">×</button>
+      <div style="text-align:center;padding:1rem 0;">
+        <div style="font-size:40px;margin-bottom:12px;">🎉</div>
+        <div style="font-size:18px;font-weight:500;margin-bottom:8px;">All done!</div>
+        <div style="font-size:13px;color:#888;margin-bottom:1.5rem;">You reviewed ${list.length} word${list.length!==1?'s':''}.</div>
+        <button class="fc-btn good" id="fc-again">Study again</button>
+      </div>
+    </div>`;
+    overlay.querySelector('#fc-close').addEventListener('click', ()=>overlay.classList.add('hidden'));
+    overlay.querySelector('#fc-again').addEventListener('click', ()=>startFlashcardsVocab());
+  }
+  render();
+}
+
+// ── NEW FEATURE TOGGLES (Diagram, Rhet Mode, Arg Map, Fallacy) ──
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('toggle-diag')?.addEventListener('click', () => {
+    const text = window.getSelection()?.toString().trim();
+    if (text && text.length > 3) { showSentenceDiagram(text); }
+    else {
+      let t = document.getElementById('diag-toast');
+      if (!t) { t=document.createElement('div'); t.id='diag-toast'; t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;z-index:700;font-family:sans-serif;pointer-events:none;opacity:0;transition:opacity .3s;'; document.body.appendChild(t); }
+      t.textContent='Highlight a sentence first, then click Diagram'; t.style.opacity='1'; setTimeout(()=>t.style.opacity='0',2500);
+    }
+  });
+  document.getElementById('toggle-rhet')?.addEventListener('click', function() {
+    rhetModeActive = !rhetModeActive; this.classList.toggle('active', rhetModeActive);
+    if (!rhetModeActive) document.getElementById('rhet-mode-bar')?.classList.remove('visible');
+  });
+  document.getElementById('toggle-argmap')?.addEventListener('click', function() {
+    if (argMapVisible) { closeArgMap(); this.classList.remove('active'); }
+    else { openArgMap(); this.classList.add('active'); }
+  });
+  document.getElementById('toggle-fallacy')?.addEventListener('click', function() {
+    fallacyVisible = !fallacyVisible; this.classList.toggle('active', fallacyVisible); renderFallacyPanel();
+  });
+  // Inject diagram button into popup
+  document.addEventListener('mouseup', e => {
+    const tc = document.getElementById('text-content');
+    if (!tc || !tc.contains(e.target)) return;
+    setTimeout(() => {
+      const text = window.getSelection()?.toString().trim();
+      if (text && text.split(' ').length >= 3) {
+        setTimeout(() => {
+          const popup = document.querySelector('.anno-popup.visible');
+          if (!popup || popup.querySelector('.diag-inject')) return;
+          const btn = document.createElement('button'); btn.className='diag-inject';
+          btn.style.cssText='display:block;width:100%;text-align:left;font-size:12px;padding:4px 0;border:none;background:none;color:#2563EB;cursor:pointer;font-family:sans-serif;';
+          btn.innerHTML='⊞ Diagram this sentence';
+          btn.addEventListener('click', () => { popup.classList.remove('visible'); showSentenceDiagram(text); });
+          popup.appendChild(btn);
+        }, 100);
+      }
+    }, 180);
+  });
+  initFeatureSelectionHook(() => document.getElementById('text-content'));
+});
+
+// Wire up toggle-vocab button
+document.addEventListener('DOMContentLoaded', () => {
+  const tvb = document.getElementById('toggle-vocab');
+  if (tvb) {
+    tvb.addEventListener('click', () => {
+      vocabVisible = !vocabVisible;
+      tvb.classList.toggle('active', vocabVisible);
+      if (vocabVisible) setActivePanel('vocab');
+      renderVocabPanel();
+    });
+  }
+  // Ensure flashcard overlay exists
+  if (!document.getElementById('flashcard-overlay')) {
+    const fo = document.createElement('div');
+    fo.className = 'flashcard-overlay hidden'; fo.id = 'flashcard-overlay';
+    document.body.appendChild(fo);
+  }
+});
 
 </script>
 </body>
