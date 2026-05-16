@@ -224,8 +224,6 @@ body{font-family:Georgia,serif;background:#fafaf8;color:#111;overscroll-behavior
 .placeholder-notice{font-size:13px;color:#bbb;font-style:italic;margin-top:2rem;line-height:1.7;}
 .poem-subheading{display:block;font-size:13px;color:#888;font-style:italic;margin-bottom:0.4em;letter-spacing:.02em;}
 .highlight{border-radius:2px;cursor:pointer;transition:filter .15s;}
-.highlight.has-device{position:relative;}
-.highlight.has-device::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:2.5px;background:linear-gradient(90deg,#7C3AED,#2563EB,#16A34A,#CA8A04,#EA580C,#DC2626,#7C3AED);border-radius:2px;}
 .highlight:hover{filter:brightness(.88);}
 .highlight-overlap{border-radius:2px;cursor:pointer;transition:filter .15s;position:relative;}
 .highlight-overlap::after{content:'';position:absolute;inset:0;border-radius:2px;mix-blend-mode:multiply;pointer-events:none;}
@@ -556,39 +554,6 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
 .ftf-btn[data-tag="Analysis/Criticism"].active{background:#DC2626;}
 .ftf-btn[data-tag="Connection"].active{background:#7C3AED;}
 .ftf-btn[data-tag="all"].active{background:#111;}
-
-/* ── MAP PANEL ── */
-.map-panel{display:none;flex-direction:column;font-family:sans-serif;}
-.map-panel.visible{display:flex;}
-.map-header{padding:10px 10px 6px;border-bottom:0.5px solid #eee;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.map-title{font-size:13px;font-weight:500;color:#555;}
-.map-hint{font-size:11px;color:#aaa;padding:8px 10px;line-height:1.5;border-bottom:0.5px solid #eee;flex-shrink:0;}
-.map-hint b{color:#7C3AED;}
-#map-container{flex:1;min-height:320px;position:relative;overflow:hidden;}
-.map-pins-list{padding:8px 10px;border-top:0.5px solid #eee;flex-shrink:0;max-height:130px;overflow-y:auto;}
-.map-pin-item{display:flex;align-items:flex-start;gap:6px;padding:4px 0;border-bottom:0.5px solid #f0f0f0;font-size:12px;}
-.map-pin-item:last-child{border-bottom:none;}
-.map-pin-dot{width:10px;height:10px;border-radius:50%;background:#F59E0B;flex-shrink:0;margin-top:2px;border:1.5px solid #D97706;}
-.map-pin-text{flex:1;}
-.map-pin-place{font-weight:500;color:#111;}
-.map-pin-quote{color:#888;font-style:italic;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;}
-.map-pin-user{font-size:10px;color:#aaa;}
-.map-drop-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:400;display:flex;align-items:center;justify-content:center;}
-.map-drop-overlay.hidden{display:none;}
-.map-drop-box{background:#fff;border-radius:14px;padding:1.4rem;width:min(340px,90vw);font-family:sans-serif;}
-.map-drop-title{font-size:14px;font-weight:500;margin-bottom:10px;color:#111;}
-.map-drop-quote{font-size:12px;font-style:italic;color:#888;margin-bottom:12px;padding:4px 8px;background:#f5f5f5;border-radius:6px;}
-.map-drop-input{display:block;width:100%;font-size:13px;padding:7px 10px;border:0.5px solid #ccc;border-radius:8px;background:#f9f9f9;color:#111;font-family:sans-serif;outline:none;margin-bottom:8px;box-sizing:border-box;}
-.map-drop-input:focus{border-color:#7C3AED;background:#fff;}
-.map-drop-suggest{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
-.map-drop-pill{font-size:11px;padding:2px 9px;border-radius:20px;border:0.5px solid #ddd;background:#f5f5f5;color:#555;cursor:pointer;font-family:sans-serif;}
-.map-drop-pill:hover{border-color:#7C3AED;color:#7C3AED;background:#F3E8FF;}
-.map-drop-btns{display:flex;gap:8px;justify-content:flex-end;}
-.map-drop-btn{font-size:12px;padding:6px 14px;border-radius:8px;border:0.5px solid #ddd;background:transparent;cursor:pointer;font-family:sans-serif;}
-.map-drop-btn.primary{background:#7C3AED;color:#fff;border-color:#7C3AED;}
-.map-drop-btn.primary:hover{background:#6D28D9;}
-.map-drop-btn:hover:not(.primary){background:#f0f0f0;}
-.map-drop-status{font-size:12px;color:#aaa;margin-top:6px;min-height:16px;}
 .device-section{margin-top:8px;padding-top:8px;border-top:0.5px solid #eee;}
 .device-section-label{font-size:11px;color:#aaa;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;}
 .device-toggle-btn{font-size:11px;color:#7C3AED;cursor:pointer;border:none;background:none;padding:0;font-family:sans-serif;}
@@ -623,42 +588,6 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
 .allusion-text-input:focus{border-color:#2563EB;}
 .allusion-add-btn{font-size:12px;padding:5px 10px;border-radius:8px;border:0.5px solid #2563EB;background:transparent;color:#2563EB;cursor:pointer;font-family:sans-serif;white-space:nowrap;}
 .allusion-add-btn:hover{background:#DBEAFE;}
-.vocab-save-btn{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 10px;border-radius:20px;border:0.5px solid #16A34A;color:#16A34A;background:transparent;cursor:pointer;font-family:sans-serif;margin-top:8px;}
-.vocab-save-btn:hover{background:#DCFCE7;}
-.vocab-save-btn.saved{background:#16A34A;color:#fff;border-color:#16A34A;}
-.vocab-panel{padding:10px;font-family:sans-serif;display:none;overflow-y:auto;max-height:calc(100vh - 120px);}
-.vocab-panel.visible{display:block;}
-.vocab-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.vocab-title{font-size:13px;font-weight:500;color:#555;}
-.vocab-actions{display:flex;gap:6px;}
-.vocab-action-btn{font-size:11px;padding:3px 10px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;font-family:sans-serif;}
-.vocab-action-btn:hover{background:#f0f0f0;}
-.vocab-action-btn.primary{border-color:#7C3AED;color:#7C3AED;}
-.vocab-action-btn.primary:hover{background:#F3E8FF;}
-.vocab-empty{font-size:13px;color:#aaa;text-align:center;padding:2rem 0;line-height:1.6;}
-.vocab-item{padding:8px 0;border-bottom:0.5px solid #eee;display:flex;align-items:flex-start;gap:8px;}
-.vocab-item:last-child{border-bottom:none;}
-.vocab-word{font-size:14px;font-weight:500;color:#111;font-family:Georgia,serif;min-width:90px;}
-.vocab-def{font-size:12px;color:#555;line-height:1.5;flex:1;}
-.vocab-del{font-size:14px;color:#ddd;cursor:pointer;border:none;background:none;padding:0 2px;line-height:1;flex-shrink:0;}
-.vocab-del:hover{color:#DC2626;}
-.flashcard-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:flex;align-items:center;justify-content:center;}
-.flashcard-overlay.hidden{display:none;}
-.flashcard-box{background:#fff;border-radius:16px;padding:2rem;width:min(480px,90vw);font-family:sans-serif;text-align:center;position:relative;}
-.fc-progress{font-size:11px;color:#aaa;margin-bottom:1rem;}
-.fc-card{min-height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;user-select:none;}
-.fc-word{font-size:28px;font-weight:500;font-family:Georgia,serif;color:#111;margin-bottom:12px;}
-.fc-hint{font-size:12px;color:#aaa;}
-.fc-def{font-size:15px;color:#444;line-height:1.6;margin-top:10px;display:none;}
-.fc-def.visible{display:block;}
-.fc-btns{display:flex;gap:10px;justify-content:center;margin-top:1.5rem;}
-.fc-btn{font-size:13px;padding:8px 20px;border-radius:8px;border:0.5px solid #ddd;background:transparent;cursor:pointer;font-family:sans-serif;}
-.fc-btn.good{border-color:#16A34A;color:#16A34A;}
-.fc-btn.good:hover{background:#DCFCE7;}
-.fc-btn.hard{border-color:#DC2626;color:#DC2626;}
-.fc-btn.hard:hover{background:#FEE2E2;}
-.fc-close{position:absolute;top:12px;right:16px;font-size:20px;color:#aaa;cursor:pointer;border:none;background:none;}
-
 .allusion-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;min-height:0;}
 .allusion-tag{font-size:11px;padding:2px 8px;border-radius:20px;background:#DBEAFE;color:#1E3A8A;display:flex;align-items:center;gap:4px;font-family:sans-serif;}
 .allusion-tag-x{cursor:pointer;font-size:13px;line-height:1;opacity:.7;}
@@ -1081,8 +1010,6 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
 .flashcard-open-btn{font-size:11px;padding:3px 9px;border-radius:20px;border:0.5px solid #ccc;background:#fff;color:#555;cursor:pointer;white-space:nowrap;font-family:sans-serif;}
 .flashcard-open-btn:hover{background:#f0f0f0;}
 </style>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -1359,9 +1286,6 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
         <div class="feed-panel" id="feed-panel"></div>
         <div class="notebook-panel" id="notebook-panel"></div>
         <div class="dict-panel" id="dict-panel"></div>
-        <div class="vocab-panel" id="vocab-panel"></div>
-        <div class="map-panel" id="map-panel"></div>
-        <div class="flashcard-overlay hidden" id="flashcard-overlay"></div>
         <div class="anno-popup" id="anno-popup"></div>
         <div class="line-panel" id="line-panel"></div>
         <div class="compose-panel" id="compose-panel">
@@ -1406,7 +1330,6 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
               <button class="allusion-pill" data-cat="literary">Literary</button>
               <button class="allusion-pill" data-cat="religious">Religious</button>
               <button class="allusion-pill" data-cat="pop cultural">Pop Cultural</button>
-              <button class="allusion-pill" data-cat="personal">Personal / Private</button>
             </div>
             <div class="allusion-input-row">
               <input class="allusion-text-input" type="text" id="allusion-text" placeholder="Describe the allusion…" maxlength="120" />
@@ -4363,25 +4286,30 @@ function initTagListeners() {
 }
 let aiTagTimer = null;
 function scheduleAiTag() { clearTimeout(aiTagTimer); aiTagTimer = setTimeout(runAiTag, 1200); }
-function autoClassifyTag(subject, body) {
-  const text = (subject + ' ' + body).toLowerCase();
-  if (/\?/.test(subject) || /^(why|how|what|who|when|where|could|would|does|is|are|did|do)\b/.test(text) || /i wonder|question|curious|why does|what does|how does/.test(text)) return 'Question';
-  if (/reminds? me|connects? to|similar to|like (in|the)|parallel|compare|contrast|relates? to|connection|think of|makes me think|this (is like|reminds)|allusion|echo(es)?|intertextual/.test(text)) return 'Connection';
-  if (/argues?|critic|according to|scholar|literary|theory|theorize|postcolonial|marxist|feminist|psychoanalytic|new historicism|close read|critics|essay|article/.test(text)) return 'Analysis/Criticism';
-  if (/metaphor|simile|symbol|imagery|tone|theme|structure|syntax|diction|foreshadow|irony|paradox|juxtapose|motif|pattern|repetition|represents?|suggest|convey|effect|technique|device|author|melville|berryman|narrator|speaker/.test(text)) return 'Analysis';
-  if (/i feel|i think|i love|i hate|beautiful|stunning|moving|wow|amazing|interesting|cool|weird|strange|personal|my|me |myself|honestly|actually|kind of|sort of/.test(text)) return 'Free Write';
-  if (body.trim().endsWith('?')) return 'Question';
-  return 'Analysis';
-}
 async function runAiTag() {
   const subject = document.getElementById('inp-subject')?.value.trim();
   const body = document.getElementById('editor')?.innerText.trim();
   if (!subject && !body) return;
   const spinner = document.getElementById('tag-ai-spinner');
   if (spinner) spinner.classList.add('visible');
-  const tag = autoClassifyTag(subject || '', body || '');
-  selectedTag = tag;
-  document.querySelectorAll('.tag-pill').forEach(p => p.classList.toggle('selected', p.dataset.tag === tag));
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514', max_tokens: 20,
+        system: 'You classify literary annotations. Reply with ONLY one of these exact labels: Question, Analysis, Free Write, Analysis/Criticism, Connection. No explanation.',
+        messages: [{ role: 'user', content: `Subject: ${subject}\n\nAnnotation: ${body}` }]
+      })
+    });
+    const data = await res.json();
+    const tag = data?.content?.[0]?.text?.trim();
+    const valid = ['Question','Analysis','Free Write','Analysis/Criticism','Connection'];
+    if (tag && valid.includes(tag)) {
+      selectedTag = tag;
+      document.querySelectorAll('.tag-pill').forEach(p => p.classList.toggle('selected', p.dataset.tag === tag));
+    }
+  } catch(_) {}
   if (spinner) spinner.classList.remove('visible');
 }
 document.addEventListener('click', e => {
@@ -4441,11 +4369,7 @@ async function lookupWord(query) {
   if (dictResult && dictResult[0]) {
     const entry = dictResult[0];
     const phonetic = entry.phonetics?.find(p => p.text)?.text || '';
-    const firstDef = entry.meanings?.[0]?.definitions?.[0]?.definition || '';
-    html += `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">`;
-    html += `<div class="dict-word" style="margin-bottom:0">${entry.word}</div>`;
-    html += `<button class="vocab-save-btn" id="vocab-save-btn" data-word="${entry.word}" data-def="${firstDef.replace(/"/g,'&quot;')}">＋ Save to vocab</button>`;
-    html += `</div>`;
+    html += `<div class="dict-word">${entry.word}</div>`;
     if (phonetic) html += `<div class="dict-phonetic">${phonetic}</div>`;
     entry.meanings?.forEach(m => {
       html += `<div class="dict-pos">${m.partOfSpeech}</div>`;
@@ -4495,13 +4419,6 @@ async function lookupWord(query) {
   target.querySelectorAll('.dict-syn-pill').forEach(pill => {
     pill.addEventListener('click', () => { lastDictQuery = ''; lookupWord(pill.dataset.word); });
   });
-  const vsb = target.querySelector('#vocab-save-btn');
-  if (vsb) {
-    vsb.addEventListener('click', () => {
-      if (vocabSaveWord(vsb.dataset.word, vsb.dataset.def)) { vsb.textContent = '✓ Saved'; vsb.classList.add('saved'); }
-      else { vsb.textContent = 'Already saved'; vsb.classList.add('saved'); }
-    });
-  }
 }
 
 function initDictPanel() {
@@ -4534,26 +4451,20 @@ document.getElementById('toggle-dict').addEventListener('click', () => {
 });
 
 // Auto-lookup when user selects text in the poem
-document.addEventListener('mouseup', e => {
-  const tc = document.getElementById('text-content');
-  if (!tc || !tc.contains(e.target)) return;
-  if (e.target.closest('.compose-panel, .anno-popup, .rc-col, #disc-view')) return;
-  setTimeout(() => {
-    // Use pendingSelection (captured by handleSel before removeAllRanges fires)
-    const text = (pendingSelection && pendingSelection.trim()) ||
-                 (window.getSelection() && window.getSelection().toString().trim());
-    if (!text || text.length > 120) return;
-    if (!dictVisible) {
-      dictVisible = true;
-      document.getElementById('toggle-dict').classList.add('active');
-      document.getElementById('dict-panel').classList.add('visible');
-      initDictPanel();
-    } else if (!document.getElementById('dict-input')) {
-      initDictPanel();
-    }
-    const inp = document.getElementById('dict-input');
-    if (inp) { inp.value = text; lastDictQuery = ''; lookupWord(text); }
-  }, 150);
+document.getElementById('text-content').addEventListener('mouseup', () => {
+  const sel = window.getSelection();
+  const text = sel && sel.toString().trim();
+  if (!text || text.length > 80) return;
+  if (!dictVisible) {
+    dictVisible = true;
+    document.getElementById('toggle-dict').classList.add('active');
+    document.getElementById('dict-panel').classList.add('visible');
+    initDictPanel();
+  } else if (!document.getElementById('dict-input')) {
+    initDictPanel();
+  }
+  const inp = document.getElementById('dict-input');
+  if (inp) { inp.value = text; lastDictQuery = ''; lookupWord(text); }
 });
 
 // Remove selection-based lookup — replaced by search box above
@@ -4994,18 +4905,6 @@ const DEVICES = {
     {name:'Elegy', def:'A poem or prose work that laments or meditates upon the death of a person or persons.'},
     {name:'Satire', def:'A literary work that holds up human failings to ridicule and censure.'},
   ],
-  'Irony': [
-    {name:'Verbal Irony', def:'A speaker says one thing but means something different—often the opposite—creating a gap between literal and intended meaning.'},
-    {name:'Situational Irony', def:'What actually happens is the opposite of what was expected or intended by a character or the reader.'},
-    {name:'Dramatic Irony', def:'The audience knows something significant that one or more characters do not, creating tension or dark humor.'},
-  ],
-  'Sensory Imagery': [
-    {name:'Visual Imagery', def:'Language that evokes the sense of sight—color, light, shape, movement, and spatial relationships.'},
-    {name:'Auditory Imagery', def:'Language that evokes sound—pitch, volume, rhythm, or quality of noise.'},
-    {name:'Gustatory Imagery', def:'Language that evokes the sense of taste—sweetness, bitterness, sourness, saltiness, or umami.'},
-    {name:'Tactile Imagery', def:'Language that evokes the sense of touch—texture, temperature, pressure, or pain.'},
-    {name:'Olfactory Imagery', def:'Language that evokes the sense of smell—pleasant fragrances or foul odors.'},
-  ],
 };
 
 // Flatten for search
@@ -5304,9 +5203,7 @@ document.getElementById('btn-cancel').addEventListener('click', () => {
   selectedDevices  = [];
   document.getElementById('inp-user').value    = currentProfile ? currentProfile.username : '';
   document.getElementById('inp-subject').value = '';
-  editor.innerHTML = '';
-  cpanel.querySelectorAll('.map-pin-inject').forEach(b => b.remove());
-  cpanel.style.display = 'none';
+  editor.innerHTML = ''; cpanel.style.display = 'none';
   document.getElementById('cp-status').textContent = '';
   document.getElementById('device-selected-tags').innerHTML = '';
   document.getElementById('device-picker').classList.remove('open');
@@ -5339,8 +5236,6 @@ const MOBILE_TOOLS = [
   { id: 'toggle-feed',     label: 'Annotations', svg: '<svg width="16" height="16" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="2.5" rx="1" fill="currentColor"/><rect x="1" y="4.75" width="10" height="2.5" rx="1" fill="currentColor"/><rect x="1" y="8.5" width="10" height="2.5" rx="1" fill="currentColor"/></svg>' },
   { id: 'toggle-notebook', label: 'Notebook',    svg: '<svg width="16" height="16" viewBox="0 0 12 12" fill="none"><rect x="1.5" y="1" width="9" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><line x1="3.5" y1="4" x2="8.5" y2="4" stroke="currentColor" stroke-width="1"/><line x1="3.5" y1="6" x2="8.5" y2="6" stroke="currentColor" stroke-width="1"/><line x1="3.5" y1="8" x2="6.5" y2="8" stroke="currentColor" stroke-width="1"/></svg>' },
   { id: 'toggle-dict',     label: 'Dictionary',  svg: '<svg width="16" height="16" viewBox="0 0 12 12" fill="none"><path d="M2 2h8v8H2z" stroke="currentColor" stroke-width="1.2"/><path d="M4 5h4M4 7h2" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><path d="M6 2v8" stroke="currentColor" stroke-width="0.8" stroke-dasharray="1.5 1"/></svg>' },
-  { id: 'toggle-vocab',    label: 'Vocab list',  svg: '<svg width="16" height="16" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="1.5" stroke="currentColor" stroke-width="1.1"/><path d="M3 4h6M3 6h6M3 8h3" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>' },
-  { id: 'toggle-map',      label: 'Map',         svg: '<svg width="16" height="16" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.07 1 2.5 2.57 2.5 4.5c0 2.72 3.5 6.5 3.5 6.5s3.5-3.78 3.5-6.5C9.5 2.57 7.93 1 6 1z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><circle cx="6" cy="4.5" r="1.2" fill="currentColor"/></svg>' },
   { id: 'toggle-floats',   label: 'Floaties',    svg: '<svg width="16" height="16" viewBox="0 0 12 12" fill="none"><rect x="1" y="2" width="10" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2"/><circle cx="4" cy="5" r="1.2" fill="currentColor"/><path d="M1 9l2.5-2.5 2 2 2-2.5 3 3" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
   { id: 'toggle-graffiti', label: 'Graffiti',    svg: '<svg width="16" height="16" viewBox="0 0 12 12" fill="none"><path d="M2 9.5l1-3L9 1l2 2-6 6.5z" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 9.5c-.5.5-.5 1 0 1s1-.5 1-1" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>' },
 ];
@@ -8081,331 +7976,6 @@ function fcAnswer(result) {
   fcIdx++;
   fcRender();
 }
-
-// ═══════════════════════════════════════════════════════════
-// MAP — drop pins on places, yellow string route, day/night
-// ═══════════════════════════════════════════════════════════
-let mapVisible = false;
-let leafletMap = null;
-let mapPins = [];
-let mapMarkers = [];
-let mapPolyline = null;
-let mapDayNightTimer = null;
-const TILE_DAY   = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-const TILE_NIGHT = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-const ATTR_OSM   = '© <a href="https://openstreetmap.org">OpenStreetMap</a>';
-const ATTR_CARTO = '© <a href="https://carto.com">CARTO</a>';
-let mapTileLayer = null;
-
-function isDaytime() { const h = new Date().getHours(); return h >= 6 && h < 20; }
-
-function applyMapDayNight(map) {
-  if (!map) return;
-  const day = isDaytime();
-  if (mapTileLayer) map.removeLayer(mapTileLayer);
-  mapTileLayer = L.tileLayer(day ? TILE_DAY : TILE_NIGHT, { attribution: day ? ATTR_OSM : ATTR_CARTO, maxZoom: 19 }).addTo(map);
-}
-
-function startDayNightCycle(map) {
-  if (mapDayNightTimer) clearInterval(mapDayNightTimer);
-  mapDayNightTimer = setInterval(() => applyMapDayNight(map), 60000);
-}
-
-function stopDayNightCycle() { if (mapDayNightTimer) { clearInterval(mapDayNightTimer); mapDayNightTimer = null; } }
-
-function updateMapPolyline() {
-  if (!leafletMap) return;
-  if (mapPolyline) { leafletMap.removeLayer(mapPolyline); mapPolyline = null; }
-  if (mapPins.length < 2) return;
-  mapPolyline = L.polyline(mapPins.map(p => [p.lat, p.lng]), { color: '#F59E0B', weight: 2.5, opacity: 0.85, dashArray: '6 4' }).addTo(leafletMap);
-}
-
-function mapPinIcon(label) {
-  return L.divIcon({
-    className: '',
-    html: `<div style="background:#F59E0B;border:2px solid #D97706;border-radius:50% 50% 50% 0;width:22px;height:22px;transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:9px;color:#fff;font-weight:700;font-family:sans-serif;line-height:1;">${(label||'').slice(0,2).toUpperCase()}</span></div>`,
-    iconSize: [22, 22], iconAnchor: [11, 22], popupAnchor: [0, -24],
-  });
-}
-
-function renderMapMarkers() {
-  if (!leafletMap) return;
-  mapMarkers.forEach(m => leafletMap.removeLayer(m)); mapMarkers = [];
-  mapPins.forEach(pin => {
-    const marker = L.marker([pin.lat, pin.lng], { icon: mapPinIcon(pin.place_name) }).addTo(leafletMap)
-      .bindPopup(`<div style="font-family:sans-serif;min-width:140px;">
-        <div style="font-weight:600;font-size:13px;margin-bottom:3px;">${pin.place_name}</div>
-        <div style="font-size:11px;font-style:italic;color:#888;margin-bottom:4px;">"${pin.quote}"</div>
-        <div style="font-size:10px;color:#aaa;">pinned by ${pin.username||'anonymous'}</div>
-        <button onclick="deleteMapPin(${pin.id})" style="margin-top:6px;font-size:11px;color:#DC2626;border:0.5px solid #FCA5A5;background:transparent;border-radius:20px;padding:2px 8px;cursor:pointer;font-family:sans-serif;">Remove</button>
-      </div>`);
-    mapMarkers.push(marker);
-  });
-  updateMapPolyline();
-}
-
-function renderMapPinsList() {
-  const listEl = document.querySelector('#map-panel .map-pins-list');
-  if (!listEl) return;
-  if (!mapPins.length) { listEl.innerHTML = '<div style="font-size:12px;color:#aaa;padding:4px 0;">No pins yet.</div>'; return; }
-  listEl.innerHTML = mapPins.map(p => `<div class="map-pin-item">
-    <div class="map-pin-dot"></div>
-    <div class="map-pin-text">
-      <div class="map-pin-place">${p.place_name}</div>
-      <div class="map-pin-quote">"${p.quote}"</div>
-      <div class="map-pin-user">— ${p.username||'anonymous'}</div>
-    </div>
-  </div>`).join('');
-}
-
-async function loadMapPins() {
-  if (!currentSong) return;
-  try {
-    const rows = await sbFetch(`map_pins?song_num=eq.${currentSong}&order=created_at.asc`) || [];
-    mapPins = rows; renderMapMarkers(); renderMapPinsList();
-    if (mapPins.length && leafletMap) leafletMap.fitBounds(L.latLngBounds(mapPins.map(p=>[p.lat,p.lng])), { padding:[30,30], maxZoom:8 });
-  } catch(_) {}
-}
-
-async function geocodePlace(name) {
-  try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(name)}&format=json&limit=5`, { headers:{'Accept-Language':'en','User-Agent':'LitGloss/1.0'} });
-    const data = await res.json();
-    return data.slice(0,5).map(r => ({ name: r.display_name.split(',').slice(0,2).join(','), lat: parseFloat(r.lat), lng: parseFloat(r.lon) }));
-  } catch(_) { return []; }
-}
-
-window.deleteMapPin = async function(id) {
-  try {
-    await sbFetch(`map_pins?id=eq.${id}`, { method:'DELETE', prefer:'return=minimal' });
-    mapPins = mapPins.filter(p => p.id !== id);
-    renderMapMarkers(); renderMapPinsList(); leafletMap?.closePopup();
-  } catch(_) {}
-};
-
-function showMapDropDialog(quote) {
-  const overlay = document.createElement('div');
-  overlay.className = 'map-drop-overlay';
-  overlay.innerHTML = `<div class="map-drop-box">
-    <div class="map-drop-title">📍 Drop a map pin</div>
-    <div class="map-drop-quote">"${quote}"</div>
-    <input class="map-drop-input" id="map-place-input" placeholder="Place name…" value="${quote.length<40?quote:quote.slice(0,35)+'…'}" autocomplete="off"/>
-    <div class="map-drop-suggest" id="map-geo-suggest"></div>
-    <div class="map-drop-status" id="map-drop-status"></div>
-    <div class="map-drop-btns">
-      <button class="map-drop-btn" id="map-drop-cancel">Cancel</button>
-      <button class="map-drop-btn primary" id="map-drop-search">Search & Pin</button>
-    </div>
-  </div>`;
-  document.body.appendChild(overlay);
-  const inp = overlay.querySelector('#map-place-input'), status = overlay.querySelector('#map-drop-status'), suggest = overlay.querySelector('#map-geo-suggest');
-  overlay.querySelector('#map-drop-cancel').addEventListener('click', () => overlay.remove());
-  async function doSearch() {
-    const name = inp.value.trim(); if (!name) return;
-    status.textContent = 'Searching…'; suggest.innerHTML = '';
-    const results = await geocodePlace(name);
-    if (!results.length) { status.textContent = 'No results. Try a different name.'; return; }
-    status.textContent = 'Pick location:';
-    results.forEach(r => {
-      const pill = document.createElement('button'); pill.className = 'map-drop-pill'; pill.textContent = r.name;
-      pill.addEventListener('click', async () => {
-        status.textContent = 'Pinning…';
-        const username = document.getElementById('inp-user')?.value.trim() || currentProfile?.username || 'anonymous';
-        const pin = { song_num: currentSong, quote, place_name: name, lat: r.lat, lng: r.lng, username };
-        try {
-          const saved = await sbFetch('map_pins', { method:'POST', body: pin });
-          if (saved?.[0]) pin.id = saved[0].id;
-        } catch(_) {}
-        mapPins.push(pin); renderMapMarkers(); renderMapPinsList();
-        if (!mapVisible) { mapVisible = true; document.getElementById('toggle-map')?.classList.add('active'); renderMapPanel(); }
-        overlay.remove();
-        if (leafletMap) leafletMap.flyTo([r.lat, r.lng], 7, { duration: 1.2 });
-      });
-      suggest.appendChild(pill);
-    });
-  }
-  overlay.querySelector('#map-drop-search').addEventListener('click', doSearch);
-  inp.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
-  setTimeout(doSearch, 300);
-}
-
-function injectMapPinIntoPopup(quote) {
-  setTimeout(() => {
-    // After selection, handleSel shows compose-panel, not anno-popup
-    const panel = document.getElementById('compose-panel');
-    if (!panel || panel.style.display === 'none') return;
-    if (panel.querySelector('.map-pin-inject')) return;
-    const btn = document.createElement('button');
-    btn.className = 'map-pin-inject';
-    btn.style.cssText = 'display:block;width:100%;text-align:left;font-size:12px;padding:6px 0 2px;border:none;background:none;color:#F59E0B;cursor:pointer;font-family:sans-serif;';
-    btn.innerHTML = '📍 Drop map pin for this place';
-    btn.addEventListener('click', () => { panel.style.display = 'none'; showMapDropDialog(quote); });
-    const btnRow = panel.querySelector('.btn-row');
-    if (btnRow) { panel.insertBefore(btn, btnRow); } else { panel.appendChild(btn); }
-  }, 100);
-}
-
-document.addEventListener('mouseup', e => {
-  const tc = document.getElementById('text-content');
-  if (!tc || !tc.contains(e.target)) return;
-  setTimeout(() => {
-    // Use pendingSelection — captured before removeAllRanges clears it
-    const text = (pendingSelection && pendingSelection.trim()) ||
-                 (window.getSelection() && window.getSelection().toString().trim());
-    if (text && text.length > 1 && text.length < 60) injectMapPinIntoPopup(text);
-  }, 220);
-});
-
-function renderMapPanel() {
-  const panel = document.getElementById('map-panel');
-  if (!panel) return;
-  if (!mapVisible) { panel.classList.remove('visible'); stopDayNightCycle(); return; }
-  panel.classList.add('visible');
-  panel.innerHTML = `<div class="map-header"><span class="map-title">Places & Map</span></div>
-    <div class="map-hint">Highlight any <b>place name</b> in the poem, then click <b>"Drop map pin"</b> in the popup.</div>
-    <div id="map-container"></div>
-    <div class="map-pins-list"></div>`;
-  if (!leafletMap) {
-    leafletMap = L.map('map-container', { zoomControl:true }).setView([30, 0], 2);
-    applyMapDayNight(leafletMap); startDayNightCycle(leafletMap);
-  } else {
-    document.getElementById('map-container').appendChild(leafletMap.getContainer());
-    leafletMap.invalidateSize();
-  }
-  loadMapPins();
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  const tmb = document.getElementById('toggle-map');
-  if (tmb) {
-    tmb.addEventListener('click', () => {
-      mapVisible = !mapVisible;
-      tmb.classList.toggle('active', mapVisible);
-      if (mapVisible) {
-        vocabVisible = false; document.getElementById('toggle-vocab')?.classList.remove('active'); renderVocabPanel();
-      }
-      renderMapPanel();
-    });
-  }
-});
-
-
-const VOCAB_KEY = 'dreamsongs_vocab';
-let vocabVisible = false;
-
-function vocabLoad() { try { return JSON.parse(localStorage.getItem(VOCAB_KEY) || '[]'); } catch(_) { return []; } }
-function vocabSave(list) { try { localStorage.setItem(VOCAB_KEY, JSON.stringify(list)); } catch(_) {} }
-
-function vocabSaveWord(word, def) {
-  const list = vocabLoad();
-  if (list.find(v => v.word.toLowerCase() === word.toLowerCase())) return false;
-  list.push({ word, def, added: Date.now() });
-  vocabSave(list);
-  renderVocabPanel();
-  return true;
-}
-
-function renderVocabPanel() {
-  const vp = document.getElementById('vocab-panel');
-  if (!vp) return;
-  if (!vocabVisible) { vp.classList.remove('visible'); return; }
-  vp.classList.add('visible');
-  const list = vocabLoad();
-  let html = `<div class="vocab-header">
-    <span class="vocab-title">Vocabulary (${list.length})</span>
-    <div class="vocab-actions">
-      ${list.length ? `<button class="vocab-action-btn" id="vocab-export">Export</button>
-      <button class="vocab-action-btn primary" id="vocab-flashcards">✦ Flashcards</button>` : ''}
-    </div>
-  </div>`;
-  if (!list.length) {
-    html += `<div class="vocab-empty">No words saved yet.<br><span style="font-size:11px;">Look up a word in Dictionary,<br>then click "Save to vocab".</span></div>`;
-  } else {
-    html += list.map((v, i) => `<div class="vocab-item">
-      <span class="vocab-word">${v.word}</span>
-      <span class="vocab-def">${v.def || '<em style="color:#bbb">No definition</em>'}</span>
-      <button class="vocab-del" data-i="${i}" title="Remove">×</button>
-    </div>`).join('');
-  }
-  vp.innerHTML = html;
-  vp.querySelectorAll('.vocab-del').forEach(btn => {
-    btn.addEventListener('click', () => { const l=vocabLoad(); l.splice(parseInt(btn.dataset.i),1); vocabSave(l); renderVocabPanel(); });
-  });
-  vp.querySelector('#vocab-export')?.addEventListener('click', () => {
-    const l=vocabLoad(); const text=l.map(v=>`${v.word}: ${v.def}`).join('\n');
-    const a=document.createElement('a'); a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(text);
-    a.download='vocabulary-dreamsongs.txt'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  });
-  vp.querySelector('#vocab-flashcards')?.addEventListener('click', startFlashcardsVocab);
-}
-
-function startFlashcardsVocab() {
-  const list = vocabLoad();
-  if (!list.length) return;
-  const shuffled = [...list].sort(() => Math.random() - 0.5);
-  let idx = 0; let shown = false;
-  const overlay = document.getElementById('flashcard-overlay');
-  if (!overlay) return;
-  function render() {
-    shown = false;
-    const v = shuffled[idx];
-    overlay.innerHTML = `<div class="flashcard-box">
-      <button class="fc-close" id="fc-close">×</button>
-      <div class="fc-progress">${idx+1} / ${shuffled.length}</div>
-      <div class="fc-card" id="fc-card">
-        <div class="fc-word">${v.word}</div>
-        <div class="fc-hint">Tap to reveal definition</div>
-        <div class="fc-def" id="fc-def">${v.def||'No definition saved.'}</div>
-      </div>
-      <div class="fc-btns" id="fc-btns" style="display:none;">
-        <button class="fc-btn hard" id="fc-hard">✗ Hard</button>
-        <button class="fc-btn good" id="fc-good">✓ Got it</button>
-      </div>
-    </div>`;
-    overlay.classList.remove('hidden');
-    overlay.querySelector('#fc-card').addEventListener('click', () => {
-      if (shown) return; shown=true;
-      overlay.querySelector('#fc-def').classList.add('visible');
-      overlay.querySelector('.fc-hint').style.display='none';
-      overlay.querySelector('#fc-btns').style.display='flex';
-    });
-    overlay.querySelector('#fc-good').addEventListener('click', () => { idx++; idx>=shuffled.length?endFC():render(); });
-    overlay.querySelector('#fc-hard').addEventListener('click', () => { shuffled.push(v); idx++; idx>=shuffled.length?endFC():render(); });
-    overlay.querySelector('#fc-close').addEventListener('click', () => overlay.classList.add('hidden'));
-  }
-  function endFC() {
-    overlay.innerHTML = `<div class="flashcard-box">
-      <button class="fc-close" id="fc-close">×</button>
-      <div style="text-align:center;padding:1rem 0;">
-        <div style="font-size:40px;margin-bottom:12px;">🎉</div>
-        <div style="font-size:18px;font-weight:500;margin-bottom:8px;">All done!</div>
-        <div style="font-size:13px;color:#888;margin-bottom:1.5rem;">You reviewed ${list.length} word${list.length!==1?'s':''}.</div>
-        <button class="fc-btn good" id="fc-again">Study again</button>
-      </div>
-    </div>`;
-    overlay.querySelector('#fc-close').addEventListener('click', ()=>overlay.classList.add('hidden'));
-    overlay.querySelector('#fc-again').addEventListener('click', ()=>startFlashcardsVocab());
-  }
-  render();
-}
-
-// Wire up toggle-vocab button
-document.addEventListener('DOMContentLoaded', () => {
-  const tvb = document.getElementById('toggle-vocab');
-  if (tvb) {
-    tvb.addEventListener('click', () => {
-      vocabVisible = !vocabVisible;
-      tvb.classList.toggle('active', vocabVisible);
-      renderVocabPanel();
-    });
-  }
-  // Ensure flashcard overlay exists
-  if (!document.getElementById('flashcard-overlay')) {
-    const fo = document.createElement('div');
-    fo.className = 'flashcard-overlay hidden'; fo.id = 'flashcard-overlay';
-    document.body.appendChild(fo);
-  }
-});
 
 </script>
 </body>
