@@ -1233,6 +1233,34 @@ function handleSel(e, paraIdx) {
   const range = sel.getRangeAt(0);
   if (!para.contains(range.commonAncestorContainer)) return;
 
+  // ── Capture for feature hooks BEFORE clearing selection ──
+  _featureSelectedText = text;
+  _featureSelectedRange = range.cloneRange();
+
+  // ── Feature hooks take priority if active ──
+  // Arg map: swallows the selection entirely
+  if (argMapVisible && argMapActiveSlot) {
+    tryAddToArgMap(text);
+    sel.removeAllRanges();
+    return; // don't open compose panel
+  }
+  // Fallacy tagging
+  if (fallacyVisible && fallacyActiveTag) {
+    tryTagFallacy(text, range.cloneRange());
+    sel.removeAllRanges();
+    renderFallacyPanel();
+    return;
+  }
+  // Rhetorical mode: open bar but ALSO allow compose to open
+  if (rhetModeActive) {
+    showRhetModeBar(text, range.cloneRange());
+  }
+  // Dictionary: auto-populate if open
+  if (dictVisible) {
+    const inp = document.getElementById('dict-input');
+    if (inp) { inp.value = text; lastDictQuery = ''; lookupWord(text); }
+  }
+
   pendingSelection = text;
   pendingParaIndex = paraIdx;
   pendingSegments = null;
@@ -1255,6 +1283,20 @@ function handleSel(e, paraIdx) {
   selectedTag = null;
   document.querySelectorAll('.tag-pill').forEach(p => p.classList.remove('selected'));
   initTagListeners();
+  // Inject diagram button into compose quote area
+  if (text.split(' ').length >= 4) {
+    setTimeout(() => {
+      if (!document.getElementById('diag-inject-compose')) {
+        const btn = document.createElement('button');
+        btn.id = 'diag-inject-compose';
+        btn.style.cssText = 'display:block;font-size:11px;padding:3px 0;border:none;background:none;color:#2563EB;cursor:pointer;font-family:sans-serif;margin-top:2px;';
+        btn.textContent = '⊞ Diagram this sentence';
+        btn.addEventListener('click', () => showSentenceDiagram(text));
+        const q = document.getElementById('cp-quote');
+        if (q && q.parentNode) q.parentNode.insertBefore(btn, q.nextSibling);
+      }
+    }, 50);
+  }
 
   // On mobile, show mobile annotate btn first
   if (window.innerWidth <= 700) {
@@ -1926,29 +1968,7 @@ document.getElementById('toggle-dict').addEventListener('click', () => {
 
 // Auto-lookup when user selects text in the poem
 // Dict auto-lookup: listen on document with delay so annotation handler doesn't steal selection
-document.addEventListener('mouseup', e => {
-  // Only trigger inside text-content, not inside compose/popup/panels
-  const tc = document.getElementById('text-content');
-  if (!tc || !tc.contains(e.target)) return;
-  if (e.target.closest('.compose-panel, .anno-popup, .rc-col, #disc-view')) return;
-  setTimeout(() => {
-    const sel = window.getSelection();
-    const text = sel && sel.toString().trim();
-    if (!text || text.length > 120) return;
-    // Open dict panel if not already open
-    if (!dictVisible) {
-      dictVisible = true;
-      document.getElementById('toggle-dict').classList.add('active');
-      document.getElementById('dict-panel').classList.add('visible');
-      notebookVisible = false; document.getElementById('toggle-notebook').classList.remove('active'); renderNotebook();
-      initDictPanel();
-    } else if (!document.getElementById('dict-input')) {
-      initDictPanel();
-    }
-    const inp = document.getElementById('dict-input');
-    if (inp) { inp.value = text; lastDictQuery = ''; lookupWord(text); }
-  }, 150);
-});
+// Dict auto-lookup on selection is handled inside handleSel.
 
 // ── LINE PANEL (double-click para) ───────────────────────
 let linePanelSort = 'recent';
@@ -2481,9 +2501,11 @@ function injectMapPinIntoPopup(quote) {
 document.addEventListener('mouseup', e => {
   const tc = document.getElementById('text-content');
   if (!tc || !tc.contains(e.target)) return;
+  // Don't inject map pin if arg map or fallacy tagger is active
+  if (argMapVisible && argMapActiveSlot) return;
+  if (fallacyVisible && fallacyActiveTag) return;
   setTimeout(() => {
-    const sel = window.getSelection();
-    const text = sel && sel.toString().trim();
+    const text = _featureSelectedText || window.getSelection()?.toString().trim();
     if (text && text.length > 1 && text.length < 60) {
       injectMapPinIntoPopup(text);
     }
@@ -2579,14 +2601,7 @@ function injectDiagIntoPopup(text) {
 
 // Hook into popup
 const _mobyOrigMouseup = document.onmouseup;
-document.addEventListener('mouseup', e => {
-  const tc = document.getElementById('text-content');
-  if (!tc || !tc.contains(e.target)) return;
-  setTimeout(() => {
-    const text = window.getSelection()?.toString().trim();
-    if (text && text.length > 10) injectDiagIntoPopup(text);
-  }, 200);
-});
+// Diagram inject is now handled inside handleSel directly.
 
 // ═══════════════════════════════════════════════════════════
 // VOCABULARY LIST + FLASHCARDS
@@ -3187,25 +3202,9 @@ function tryTagFallacy(text, range) {
 // SHARED SELECTION HOOK
 // ═══════════════════════════════════════════════════════════
 function initFeatureSelectionHook(getTextContentEl) {
-  document.addEventListener('mouseup', e => {
-    const tc = getTextContentEl();
-    if (!tc || !tc.contains(e.target)) return;
-    if (e.target.closest('.compose-panel, .anno-popup, .rc-col, #disc-view, .argmap-panel')) return;
-    setTimeout(() => {
-      const sel = window.getSelection();
-      const text = sel && sel.toString().trim();
-      if (!text || text.length < 2) return;
-      const range = sel.rangeCount > 0 ? sel.getRangeAt(0).cloneRange() : null;
-      _featureSelectedText = text;
-      _featureSelectedRange = range;
-      // Arg map takes priority if active
-      if (tryAddToArgMap(text)) { sel.removeAllRanges(); return; }
-      // Fallacy tagging
-      if (tryTagFallacy(text, range)) { sel.removeAllRanges(); renderFallacyPanel(); return; }
-      // Rhetorical mode bar
-      if (rhetModeActive) { showRhetModeBar(text, range); }
-    }, 180);
-  });
+  // Selection handling is now done inside handleSel() for immediate access
+  // before removeAllRanges() clears the selection.
+  // This function is kept as a no-op for compatibility.
 }
 
 // Close popup on outside click
