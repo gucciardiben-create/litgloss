@@ -16,9 +16,9 @@ body{font-family:Georgia,serif;background:#fafaf8;color:#111;margin:0;overscroll
 .topbar-badge{font-size:11px;padding:2px 8px;border-radius:20px;background:#FEF9C3;color:#713F12;border:0.5px solid #CA8A04;}
 
 /* ── LAYOUT ── */
-.reader-body{display:flex;min-height:calc(100vh - 52px);}
-.text-col{flex:0 0 auto;width:520px;max-width:100%;padding:2.5rem 2rem 4rem;border-right:0.5px solid #e0e0e0;position:relative;}
-.right-col{flex:1;position:relative;min-width:0;overflow-y:auto;height:calc(100vh - 49px);}
+.reader-body{display:flex;height:calc(100vh - 52px);overflow:hidden;}
+.text-col{flex:0 0 auto;width:520px;max-width:100%;padding:2.5rem 2rem 4rem;border-right:0.5px solid #e0e0e0;position:relative;overflow-y:auto;height:100%;}
+.right-col{flex:1;position:relative;min-width:0;display:flex;flex-direction:column;height:100%;overflow:hidden;}
 
 @media(max-width:700px){
   .reader-body{flex-direction:column;}
@@ -49,13 +49,14 @@ body{font-family:Georgia,serif;background:#fafaf8;color:#111;margin:0;overscroll
 .heat-ends{display:flex;justify-content:space-between;font-size:10px;color:#ccc;font-family:sans-serif;}
 
 /* ── RC TOOLBAR ── */
-.rc-toolbar{display:flex;gap:6px;padding:10px 10px 6px;border-bottom:0.5px solid #eee;flex-wrap:wrap;position:sticky;top:0;z-index:40;background:#fff;}
+.rc-scroll-area{flex:1;overflow-y:auto;min-height:0;}
+.rc-toolbar{display:flex;gap:6px;padding:10px 10px 6px;border-bottom:0.5px solid #eee;flex-wrap:wrap;background:#fff;flex-shrink:0;z-index:40;}
 .rc-toggle{font-size:11px;padding:3px 10px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#666;cursor:pointer;font-family:sans-serif;display:flex;align-items:center;gap:4px;}
 .rc-toggle:hover{background:#f5f5f5;}
 .rc-toggle.active{background:#111;color:#fff;border-color:#111;}
 
 /* ── FEED PANEL ── */
-.feed-panel{padding:10px;overflow-y:auto;max-height:calc(100vh - 130px);font-family:sans-serif;display:none;}
+.feed-panel{padding:10px;overflow-y:auto;font-family:sans-serif;display:none;flex:1;}
 .feed-panel.visible{display:block;}
 .feed-sort{display:flex;gap:4px;margin-bottom:10px;}
 .feed-sort-btn{font-size:11px;padding:3px 8px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;font-family:sans-serif;}
@@ -328,9 +329,8 @@ button.cancel:hover{background:#f0f0f0;}
 ═══════════════════════════════════════════════ */
 .argmap-overlay{position:fixed;inset:0;z-index:600;display:flex;align-items:stretch;justify-content:flex-end;pointer-events:none;}
 .argmap-overlay.hidden{display:none;}
-.argmap-overlay.hidden *{pointer-events:none;}
-.argmap-overlay.visible{pointer-events:all;}
-.argmap-panel{width:min(480px,100vw);background:#6B0000;border-left:3px solid #DC2626;display:flex;flex-direction:column;box-shadow:-8px 0 40px rgba(0,0,0,.5);font-family:'Courier New',Courier,monospace;}
+.argmap-overlay.visible{pointer-events:none;}
+.argmap-panel{pointer-events:all;width:min(480px,100vw);background:#6B0000;border-left:3px solid #DC2626;display:flex;flex-direction:column;box-shadow:-8px 0 40px rgba(0,0,0,.5);font-family:'Courier New',Courier,monospace;}
 .argmap-header{padding:16px 18px 10px;border-bottom:2px solid #DC2626;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .argmap-title{font-size:18px;font-weight:700;color:#fff;letter-spacing:.08em;text-transform:uppercase;text-shadow:0 0 12px #FF6B6B;}
 .argmap-subtitle{font-size:10px;color:#FF6B6B;letter-spacing:.15em;text-transform:uppercase;margin-top:2px;}
@@ -427,7 +427,7 @@ button.cancel:hover{background:#f0f0f0;}
 .float-img{position:absolute;opacity:0.07;filter:blur(1px) saturate(0.6);max-width:160px;max-height:160px;border-radius:6px;pointer-events:none;transition:opacity 0.3s;}
 
 /* ── NOTEBOOK ── */
-.notebook-panel{padding:10px;overflow-y:auto;max-height:calc(100vh - 120px);font-family:sans-serif;display:none;}
+.notebook-panel{padding:10px;overflow-y:auto;font-family:sans-serif;display:none;}
 .notebook-panel.visible{display:block;}
 .nb-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
 .nb-title{font-size:13px;font-weight:500;color:#555;}
@@ -448,7 +448,7 @@ button.cancel:hover{background:#f0f0f0;}
 .nb-cite-btn:hover{background:#F3E8FF;}
 
 /* ── DICTIONARY ── */
-.dict-panel{padding:10px;overflow-y:auto;max-height:calc(100vh - 120px);font-family:sans-serif;display:none;}
+.dict-panel{padding:10px;overflow-y:auto;font-family:sans-serif;display:none;}
 .dict-panel.visible{display:block;}
 .dict-hint{font-size:12px;color:#aaa;text-align:center;padding:1rem 0;line-height:1.6;}
 .dict-word{font-size:18px;font-weight:500;color:#111;margin-bottom:2px;font-family:Georgia,serif;}
@@ -542,7 +542,7 @@ button.cancel:hover{background:#f0f0f0;}
 /* ── GRAFFITI ── */
 .graffiti-canvas{position:absolute;inset:0;z-index:2;cursor:crosshair;touch-action:none;}
 .graffiti-canvas.hidden{display:none;pointer-events:none;}
-.graffiti-toolbar{display:none;padding:8px 10px;background:#fafaf8;border-bottom:0.5px solid #eee;font-family:sans-serif;flex-wrap:wrap;gap:6px;align-items:center;}
+.graffiti-toolbar{display:none;padding:8px 10px;background:#fafaf8;border-bottom:0.5px solid #eee;font-family:sans-serif;flex-wrap:wrap;gap:6px;align-items:center;flex-shrink:0;}
 .graffiti-toolbar.visible{display:flex;}
 .gt-label{font-size:10px;color:#aaa;letter-spacing:.06em;text-transform:uppercase;margin-right:2px;}
 .gt-tool{width:28px;height:26px;border:0.5px solid #ddd;border-radius:5px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;font-family:sans-serif;color:#555;}
@@ -676,6 +676,7 @@ button.cancel:hover{background:#f0f0f0;}
         Devices only
       </button>
     </div>
+    <div class="rc-scroll-area">
     <div class="graffiti-toolbar" id="graffiti-toolbar">
       <span class="gt-label">Tool</span>
       <button class="gt-tool active" id="gt-pen" title="Pen">✏</button>
@@ -724,6 +725,7 @@ button.cancel:hover{background:#f0f0f0;}
     <div class="map-panel" id="map-panel"></div>
     <div class="anno-popup" id="anno-popup"></div>
     <div class="line-panel" id="line-panel"></div>
+    </div><!-- end rc-scroll-area -->
     <div class="compose-panel" id="compose-panel">
       <div class="cp-quote" id="cp-quote"></div>
       <div class="guest-notice">
@@ -1067,8 +1069,11 @@ function applyHighlights() {
         });
         sp.addEventListener('mouseleave', () => { popupTimeout = setTimeout(() => hidePopup(), 300); });
         sp.addEventListener('click', e => {
-          e.stopPropagation();
-          if (document.getElementById('compose-panel').style.display !== 'block') {
+          // Don't stopPropagation — allow mouseup to bubble to para for new selections
+          const sel = window.getSelection();
+          const selText = sel && sel.toString().trim();
+          // Only show popup if user is NOT making a new selection
+          if (!selText && document.getElementById('compose-panel').style.display !== 'block') {
             const matchedAnnos = annotations.filter(a => quotes.includes(a.quote) && a.line_index === parseInt(piStr));
             if (matchedAnnos.length) showPopup(matchedAnnos, sp, parseInt(piStr));
           }
@@ -1231,7 +1236,10 @@ function handleSel(e, paraIdx) {
   const para = document.querySelectorAll('.para')[paraIdx];
   if (!para) return;
   const range = sel.getRangeAt(0);
-  if (!para.contains(range.commonAncestorContainer)) return;
+  // Walk up from commonAncestorContainer — it may be a highlight span child
+  let ancestor = range.commonAncestorContainer;
+  if (ancestor.nodeType === 3) ancestor = ancestor.parentNode; // text node → element
+  if (!para.contains(ancestor) && ancestor !== para) return;
 
   // ── Capture for feature hooks BEFORE clearing selection ──
   _featureSelectedText = text;
@@ -1560,25 +1568,36 @@ function applyTeacherHighlightStyle(span, anno) {
 // ═══════════════════════════════════════════════════════════
 // PANEL MUTUAL EXCLUSION
 // ═══════════════════════════════════════════════════════════
+// All panels that live in the right column — only one open at a time
 const PANEL_IDS = ['feed','floats','notebook','dict','vocab','map','fallacy'];
 
-function setActivePanel(panelId) {
+function closeAllPanels(except) {
   PANEL_IDS.forEach(id => {
-    if (id === panelId) return;
+    if (id === except) return;
     const btn = document.getElementById('toggle-' + id);
-    if (!btn || !btn.classList.contains('active')) return;
+    if (!btn) return;
     btn.classList.remove('active');
     switch(id) {
-      case 'feed':    document.getElementById('feed-panel')?.classList.remove('visible'); break;
-      case 'floats':  floatiesVisible = false; renderFloaties(); break;
-      case 'notebook': notebookVisible = false; renderNotebook(); break;
-      case 'dict':    dictVisible = false; document.getElementById('dict-panel')?.classList.remove('visible'); break;
-      case 'vocab':   vocabVisible = false; renderVocabPanel(); break;
-      case 'map':     mapVisible = false; renderMapPanel(); break;
-      case 'fallacy': fallacyVisible = false; renderFallacyPanel(); break;
+      case 'feed':
+        document.getElementById('feed-panel')?.classList.remove('visible'); break;
+      case 'floats':
+        if (floatiesVisible) { floatiesVisible = false; if (floatieAnimFrame) { cancelAnimationFrame(floatieAnimFrame); floatieAnimFrame = null; } document.getElementById('float-img-layer')?.classList.add('hidden'); }
+        break;
+      case 'notebook':
+        notebookVisible = false; document.getElementById('notebook-panel') && (document.getElementById('notebook-panel').classList.remove('visible')); break;
+      case 'dict':
+        dictVisible = false; document.getElementById('dict-panel')?.classList.remove('visible'); break;
+      case 'vocab':
+        vocabVisible = false; document.getElementById('vocab-panel')?.classList.remove('visible'); break;
+      case 'map':
+        mapVisible = false; document.getElementById('map-panel')?.classList.remove('visible'); stopDayNightCycle(); break;
+      case 'fallacy':
+        fallacyVisible = false; document.getElementById('fallacy-panel')?.classList.remove('visible'); break;
     }
   });
 }
+
+function setActivePanel(panelId) { closeAllPanels(panelId); }
 
 // ── FLOATING IMAGES ──────────────────────────────────────
 let floatiesVisible = false;
@@ -2552,6 +2571,8 @@ document.getElementById('toggle-rhet').addEventListener('click', function() {
   this.classList.toggle('active', rhetModeActive);
   if (!rhetModeActive) { document.getElementById('rhet-mode-bar')?.classList.remove('visible'); }
   else {
+    // Close argmap if open
+    if (argMapVisible) { closeArgMap(); document.getElementById('toggle-argmap')?.classList.remove('active'); }
     let toast = document.getElementById('diag-toast');
     if (!toast) { toast = document.createElement('div'); toast.id='diag-toast'; toast.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;z-index:700;font-family:sans-serif;pointer-events:none;opacity:0;transition:opacity .3s;'; document.body.appendChild(toast); }
     toast.textContent = 'Highlight any passage to tag its rhetorical mode';
@@ -2561,8 +2582,17 @@ document.getElementById('toggle-rhet').addEventListener('click', function() {
 
 // Argument Map
 document.getElementById('toggle-argmap').addEventListener('click', function() {
-  if (argMapVisible) { closeArgMap(); this.classList.remove('active'); }
-  else { openArgMap(); this.classList.add('active'); }
+  if (argMapVisible) {
+    closeArgMap();
+    this.classList.remove('active');
+  } else {
+    // Close other overlays/modes
+    rhetModeActive = false;
+    document.getElementById('toggle-rhet')?.classList.remove('active');
+    document.getElementById('rhet-mode-bar')?.classList.remove('visible');
+    openArgMap();
+    this.classList.add('active');
+  }
 });
 
 // Fallacy Tracker
