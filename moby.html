@@ -857,10 +857,15 @@ function loadChapter(num) {
   document.getElementById('chapter-header').innerHTML =
     `<div class="chapter-title">Chapter ${num}</div><span class="chapter-subtitle">${ch.title}</span>`;
 
-  // Render paragraphs
+  // Render paragraphs safely
   const tc = document.getElementById('text-content');
-  tc.innerHTML = ch.paras.map(p => `<p class="para">${p.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}</p>`).join('
-');
+  tc.innerHTML = '';
+  ch.paras.forEach(p => {
+    const el = document.createElement('p');
+    el.className = 'para';
+    el.textContent = p;
+    tc.appendChild(el);
+  });
 
   // Scroll text-col to top
   document.getElementById('text-col').scrollTop = 0;
@@ -871,31 +876,40 @@ function loadChapter(num) {
   // Reset state
   annotations = [];
   pendingSelection = null; pendingParaIndex = -1;
-  cpanel.style.display = 'none';
+  if (cpanel) cpanel.style.display = 'none';
   hidePopup();
 
   // Reset graffiti if active
-  if (graffitiMode) {
+  if (typeof graffitiMode !== 'undefined' && graffitiMode) {
     graffitiStrokes = [];
     redrawGraffiti();
     loadGraffitiStrokes();
   }
 
   // Reset map if active
-  if (mapVisible) {
+  if (typeof mapVisible !== 'undefined' && mapVisible) {
     mapPins = [];
     loadMapPins();
   }
 
   // Reset floaties
-  if (floatiesVisible) renderFloaties();
+  if (typeof floatiesVisible !== 'undefined' && floatiesVisible) renderFloaties();
 
   updateChapterNav();
 
-  // Init chapter nav — loadChapter(1) handles annotation loading
-  initChapterNav();
-  loadChapter(1);
-
+  // Load annotations for this chapter
+  if (typeof db !== 'undefined') {
+    db.getAnnotations().then(rows => {
+      annotations = (rows || []).map(a => ({ ...a, _replyCount: 0 }));
+      applyHighlights();
+      const badge = document.getElementById('anno-count-badge');
+      if (badge) {
+        badge.textContent = annotations.length + ' annotation' + (annotations.length !== 1 ? 's' : '');
+        badge.style.display = annotations.length ? '' : 'none';
+      }
+      if (document.getElementById('feed-panel')?.classList.contains('visible')) renderFeed();
+    }).catch(() => { annotations = []; applyHighlights(); });
+  }
 }
 
 
@@ -1030,9 +1044,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   initAllusionPicker();
   initComposeButtons();
   initFeedToggles();
-  await loadAnnotations();
-  applyHighlights();
-  renderFeed();
+  initChapterNav();
+  loadChapter(1); // loads text + annotations for chapter 1
 });
 
 async function loadAnnotations() {
