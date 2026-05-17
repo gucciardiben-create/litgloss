@@ -5507,12 +5507,18 @@ document.getElementById('btn-post').addEventListener('click', async () => {
     try {
       saved = await db.insertAnnotation(row);
     } catch(e) {
-      // If the error mentions 'allusions' column doesn't exist, retry without it
-      if (e.message && (e.message.includes('allusions') || e.message.includes('column'))) {
+      // Retry stripping columns that may not exist in older DB schemas
+      if (e.message && (e.message.includes('column') || e.message.includes('allusions') || e.message.includes('tag') || e.message.includes('teacher'))) {
         const rowFallback = { ...row };
         delete rowFallback.allusions;
-        saved = await db.insertAnnotation(rowFallback);
-        console.warn('Allusions column not found in Supabase — add it to save allusions. Run: ALTER TABLE annotations ADD COLUMN allusions jsonb;');
+        delete rowFallback.tag;
+        delete rowFallback.is_teacher_prompt;
+        try {
+          saved = await db.insertAnnotation(rowFallback);
+        } catch(e2) {
+          const rowMin = { song_nums: row.song_nums, quote: row.quote, line_index: row.line_index, subject: row.subject, username: row.username, body: row.body, date: row.date, upvotes: 0, is_global: false, user_id: null };
+          saved = await db.insertAnnotation(rowMin);
+        }
       } else {
         throw e;
       }

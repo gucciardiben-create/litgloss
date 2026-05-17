@@ -1396,9 +1396,19 @@ function initComposeButtons() {
       try {
         saved = await db.insertAnnotation(row);
       } catch(e) {
-        if (e.message && (e.message.includes('allusions') || e.message.includes('column'))) {
-          const rowFallback = { ...row }; delete rowFallback.allusions;
-          saved = await db.insertAnnotation(rowFallback);
+        // Retry stripping columns that may not exist in older DB schemas
+        if (e.message && (e.message.includes('column') || e.message.includes('allusions') || e.message.includes('tag') || e.message.includes('teacher'))) {
+          const rowFallback = { ...row };
+          delete rowFallback.allusions;
+          delete rowFallback.tag;
+          delete rowFallback.is_teacher_prompt;
+          try {
+            saved = await db.insertAnnotation(rowFallback);
+          } catch(e2) {
+            // Last resort: minimal row
+            const rowMin = { song_nums: row.song_nums, quote: row.quote, line_index: row.line_index, subject: row.subject, username: row.username, body: row.body, date: row.date, upvotes: 0, is_global: false, user_id: null };
+            saved = await db.insertAnnotation(rowMin);
+          }
         } else throw e;
       }
       const newAnno = Array.isArray(saved) ? saved[0] : saved;
