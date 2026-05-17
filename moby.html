@@ -17,7 +17,7 @@ body{font-family:Georgia,serif;background:#fafaf8;color:#111;margin:0;overscroll
 
 /* ── LAYOUT ── */
 .reader-body{display:flex;flex:1;overflow:hidden;min-height:0;}
-.text-col{flex:0 0 auto;width:520px;max-width:100%;padding:2.5rem 2rem 4rem;border-right:0.5px solid #e0e0e0;position:relative;overflow-y:auto;height:100%;}
+.text-col{flex:0 0 auto;width:520px;max-width:100%;padding:2.5rem 2rem 4rem;border-right:0.5px solid #e0e0e0;position:relative;overflow-y:auto;height:100%;min-width:0;}
 .right-col{flex:1;position:relative;min-width:0;display:flex;flex-direction:column;height:100%;overflow:hidden;}
 
 @media(max-width:700px){
@@ -439,7 +439,6 @@ button.cancel:hover{background:#f0f0f0;}
 .loading-msg{font-size:13px;color:#aaa;padding:1rem 10px;font-family:sans-serif;}
 
 /* ── FLOATING IMAGES ── */
-.text-col{position:relative;}
 .float-img-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;}
 .float-img-layer.hidden{display:none;}
 #text-content{position:relative;z-index:1;}
@@ -607,9 +606,6 @@ button.cancel:hover{background:#f0f0f0;}
     <canvas class="graffiti-canvas hidden" id="graffiti-canvas"></canvas>
     <div id="chapter-header"></div>
     <div id="text-content"></div>
-
-
-    </div>
 
     <div id="heat-legend-wrap" style="margin-top:2.5rem;padding-top:1rem;border-top:0.5px solid #eee;font-family:sans-serif;">
       <div style="font-size:11px;color:#bbb;margin-bottom:5px;">Color = engagement · Opacity = annotation density</div>
