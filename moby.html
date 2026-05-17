@@ -94,7 +94,7 @@ body{font-family:Georgia,serif;background:#fafaf8;color:#111;margin:0;overscroll
 .pu-lookup-result{background:#F0F7FF;border:0.5px solid #BFDBFE;border-radius:8px;padding:8px 10px;font-family:sans-serif;font-size:12px;margin-top:8px;}
 
 /* ── COMPOSE PANEL ── */
-.compose-panel{position:absolute;left:10px;width:280px;background:#fff;border:0.5px solid #ccc;border-radius:12px;padding:.9rem 1rem;display:none;z-index:99;font-family:sans-serif;}
+.compose-panel{position:fixed;right:20px;top:60px !important;width:300px;background:#fff;border:0.5px solid #ccc;border-radius:12px;padding:.9rem 1rem;display:none;z-index:99;font-family:sans-serif;box-shadow:0 4px 24px rgba(0,0,0,.12);height:calc(100vh - 80px);overflow-y:auto;}
 .cp-quote{font-size:11px;font-style:italic;color:#555;padding:4px 7px;background:#f5f5f0;border-radius:4px;margin-bottom:8px;line-height:1.4;}
 .compose-panel input[type=text]{display:block;width:100%;margin-bottom:7px;font-size:13px;padding:6px 9px;border:0.5px solid #ccc;border-radius:8px;background:#f9f9f9;color:#111;font-family:sans-serif;outline:none;}
 .compose-panel input[type=text]:focus{border-color:#999;background:#fff;}
@@ -131,6 +131,9 @@ button.cancel:hover{background:#f0f0f0;}
 .tag-pill[data-tag="Free Write"].selected{background:#CA8A04;}
 .tag-pill[data-tag="Analysis/Criticism"].selected{background:#DC2626;}
 .tag-pill[data-tag="Connection"].selected{background:#7C3AED;}
+.tag-pill[data-tag="Summary"].selected{background:#0891B2;}
+.tag-pill[data-tag="Footnote"].selected{background:#475569;}
+.tag-pill[data-tag="Clarification"].selected{background:#059669;}
 .tag-ai-spinner{font-size:10px;color:#aaa;margin-left:4px;display:none;}
 .tag-ai-spinner.visible{display:inline;}
 /* Tag badges on cards */
@@ -140,6 +143,9 @@ button.cancel:hover{background:#f0f0f0;}
 .anno-type-tag.Free-Write{background:#CA8A04;}
 .anno-type-tag.Analysis-Criticism{background:#DC2626;}
 .anno-type-tag.Connection{background:#7C3AED;}
+.anno-type-tag.Summary{background:#0891B2;}
+.anno-type-tag.Footnote{background:#475569;}
+.anno-type-tag.Clarification{background:#059669;}
 /* Feed filter */
 .feed-tag-filter{display:flex;gap:4px;flex-wrap:wrap;padding:6px 10px;border-bottom:0.5px solid #eee;}
 .ftf-btn{font-size:11px;padding:2px 9px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;font-family:sans-serif;}
@@ -150,6 +156,9 @@ button.cancel:hover{background:#f0f0f0;}
 .ftf-btn[data-tag="Free Write"].active{background:#CA8A04;}
 .ftf-btn[data-tag="Analysis/Criticism"].active{background:#DC2626;}
 .ftf-btn[data-tag="Connection"].active{background:#7C3AED;}
+.ftf-btn[data-tag="Summary"].active{background:#0891B2;}
+.ftf-btn[data-tag="Footnote"].active{background:#475569;}
+.ftf-btn[data-tag="Clarification"].active{background:#059669;}
 .ftf-btn[data-tag="all"].active{background:#111;}
 
 /* Device tagger in compose */
@@ -715,6 +724,9 @@ button.cancel:hover{background:#f0f0f0;}
         <button class="ftf-btn" data-tag="Free Write">✍️</button>
         <button class="ftf-btn" data-tag="Analysis/Criticism">📚</button>
         <button class="ftf-btn" data-tag="Connection">🔗</button>
+        <button class="ftf-btn" data-tag="Summary">📝</button>
+        <button class="ftf-btn" data-tag="Footnote">🔖</button>
+        <button class="ftf-btn" data-tag="Clarification">💡</button>
       </div>
       <div id="feed-list"><div class="loading-msg">Loading annotations…</div></div>
     </div>
@@ -759,6 +771,7 @@ button.cancel:hover{background:#f0f0f0;}
           <button class="allusion-pill" data-cat="literary">Literary</button>
           <button class="allusion-pill" data-cat="religious">Religious</button>
           <button class="allusion-pill" data-cat="pop cultural">Pop Cultural</button>
+          <button class="allusion-pill" data-cat="personal">Personal</button>
         </div>
         <div class="allusion-input-row">
           <input class="allusion-text-input" type="text" id="allusion-text" placeholder="Describe the allusion…" maxlength="120" />
@@ -777,6 +790,9 @@ button.cancel:hover{background:#f0f0f0;}
           <button class="tag-pill" data-tag="Free Write">✍️ Free Write</button>
           <button class="tag-pill" data-tag="Analysis/Criticism">📚 Criticism</button>
           <button class="tag-pill" data-tag="Connection">🔗 Connection</button>
+          <button class="tag-pill" data-tag="Summary">📝 Summary</button>
+          <button class="tag-pill" data-tag="Footnote">🔖 Footnote</button>
+          <button class="tag-pill" data-tag="Clarification">💡 Clarification</button>
         </div>
       </div>
       <div class="btn-row" style="margin-top:8px;">
@@ -871,6 +887,7 @@ const DEVICES = {
     {name:'Personification', def:'Treating a nonhuman object as if it were a person.'},
     {name:'Hyperbole', def:'Overstatement characterized by exaggerated language.'},
     {name:'Conceit', def:'An extended metaphor drawing out an unlikely comparison.'},
+    {name:'Analogy', def:'A comparison between two things to explain or clarify an idea.'},
     {name:'Synecdoche', def:'A figure of speech in which a part signifies the whole.'},
     {name:'Metonymy', def:'Using an attribute or associated feature to name something.'},
   ],
@@ -1276,13 +1293,7 @@ function handleSel(e, paraIdx) {
 
   document.getElementById('cp-quote').textContent = '"' + text.slice(0, 80) + (text.length > 80 ? '…' : '') + '"';
 
-  // Position compose panel
-  const pR = para.getBoundingClientRect();
-  const rR = document.getElementById('right-col').getBoundingClientRect();
-  if (window.innerWidth > 700) {
-    cpanel.style.top = Math.max(0, pR.top - rR.top) + 'px';
-    cpanel.style.position = 'absolute';
-  }
+  // Compose panel is fixed at top:60px via CSS — no dynamic positioning needed
   cpanel.style.display = 'block';
   hidePopup();
   document.getElementById('mobile-annotate-btn').style.display = 'none';
@@ -1460,6 +1471,9 @@ function autoClassifyTag(subject, body) {
   if (/i feel|i think|i love|i hate|beautiful|stunning|moving|wow|amazing|interesting|cool|weird|strange|personal|my|me |myself|honestly|actually|kind of|sort of/.test(text)) return 'Free Write';
   // Default: if it looks like a question in body
   if (body.trim().endsWith('?')) return 'Question';
+  if (/in (other|simple|plain) words|to (clarify|summarize|explain)|that is|i\.e\.|in short|in brief|basically|simply put|to put it/.test(text)) return 'Clarification';
+  if (/in summary|to sum up|overall|in conclusion|in total|the main point|the key (idea|point|theme)|this (chapter|passage|section|paragraph) (is about|describes|explores)/.test(text)) return 'Summary';
+  if (/footnote|note that|worth noting|it (is|should be) noted|background|context|historically|by the way|fyi|also note/.test(text)) return 'Footnote';
   return 'Analysis'; // smart default
 }
 
@@ -3238,11 +3252,19 @@ function initFeatureSelectionHook(getTextContentEl) {
   // This function is kept as a no-op for compatibility.
 }
 
-// Close popup on outside click
+// Close popup and compose panel on outside click
 document.addEventListener('click', e => {
   if (!popup.contains(e.target) && !e.target.closest('.highlight')) hidePopup();
-  if (!cpanel.contains(e.target) && !e.target.closest('.para') && cpanel.style.display === 'block') {
-    // Don't close if clicking inside text col
+  if (cpanel.style.display === 'block'
+      && !cpanel.contains(e.target)
+      && !e.target.closest('.para')
+      && !e.target.closest('.highlight')
+      && !e.target.closest('.mobile-annotate-btn')) {
+    cpanel.style.display = 'none';
+    pendingSelection = null;
+    pendingParaIndex = -1;
+    document.getElementById('mobile-annotate-btn').style.display = 'none';
+    document.getElementById('mobile-overlay').classList.remove('visible');
   }
 });
 </script>

@@ -435,7 +435,7 @@ body{font-family:Georgia,serif;background:#fafaf8;color:#111;overscroll-behavior
 .pnav-btn:not(:disabled):hover{background:#f0f0f0;}
 
 /* ── COMPOSE ── */
-.compose-panel{position:absolute;left:10px;width:272px;background:#fff;border:0.5px solid #ccc;border-radius:12px;padding:.9rem 1rem;display:none;z-index:99;font-family:sans-serif;}
+.compose-panel{position:fixed;right:20px;top:60px !important;width:300px;background:#fff;border:0.5px solid #ccc;border-radius:12px;padding:.9rem 1rem;display:none;z-index:99;font-family:sans-serif;box-shadow:0 4px 24px rgba(0,0,0,.12);height:calc(100vh - 80px);overflow-y:auto;}
 .cp-quote{font-size:11px;font-family:Georgia,serif;padding:2px 6px;border-radius:3px;margin-bottom:8px;display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#6B21A8;background:#F3E8FF;}
 .compose-panel input[type=text]{display:block;width:100%;margin-bottom:7px;font-size:13px;padding:6px 9px;border:0.5px solid #ccc;border-radius:8px;background:#f9f9f9;color:#111;font-family:sans-serif;}
 .global-toggle{display:flex;align-items:center;gap:7px;margin-bottom:8px;font-size:12px;color:#555;cursor:pointer;}
@@ -550,6 +550,9 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
 .tag-pill[data-tag="Free Write"].selected{background:#CA8A04;}
 .tag-pill[data-tag="Analysis/Criticism"].selected{background:#DC2626;}
 .tag-pill[data-tag="Connection"].selected{background:#7C3AED;}
+.tag-pill[data-tag="Summary"].selected{background:#0891B2;}
+.tag-pill[data-tag="Footnote"].selected{background:#475569;}
+.tag-pill[data-tag="Clarification"].selected{background:#059669;}
 .tag-ai-spinner{font-size:10px;color:#aaa;margin-left:4px;display:none;}
 .tag-ai-spinner.visible{display:inline;}
 .anno-type-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:20px;font-weight:500;margin-bottom:4px;color:#fff;}
@@ -558,6 +561,9 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
 .anno-type-tag.Free-Write{background:#CA8A04;}
 .anno-type-tag.Analysis-Criticism{background:#DC2626;}
 .anno-type-tag.Connection{background:#7C3AED;}
+.anno-type-tag.Summary{background:#0891B2;}
+.anno-type-tag.Footnote{background:#475569;}
+.anno-type-tag.Clarification{background:#059669;}
 .feed-tag-filter{display:flex;gap:4px;flex-wrap:wrap;padding:6px 10px;border-bottom:0.5px solid #eee;}
 .ftf-btn{font-size:11px;padding:2px 9px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;font-family:sans-serif;}
 .ftf-btn:hover{background:#f0f0f0;}
@@ -567,6 +573,12 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
 .ftf-btn[data-tag="Free Write"].active{background:#CA8A04;}
 .ftf-btn[data-tag="Analysis/Criticism"].active{background:#DC2626;}
 .ftf-btn[data-tag="Connection"].active{background:#7C3AED;}
+.ftf-btn[data-tag="Summary"].active{background:#0891B2;}
+.ftf-btn[data-tag="Footnote"].active{background:#475569;}
+.ftf-btn[data-tag="Clarification"].active{background:#059669;}
+.ftf-btn[data-tag="Summary"].active{background:#0891B2;}
+.ftf-btn[data-tag="Footnote"].active{background:#475569;}
+.ftf-btn[data-tag="Clarification"].active{background:#059669;}
 .ftf-btn[data-tag="all"].active{background:#111;}
 
 /* ── MAP PANEL ── */
@@ -1559,6 +1571,7 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
               <button class="allusion-pill" data-cat="literary">Literary</button>
               <button class="allusion-pill" data-cat="religious">Religious</button>
               <button class="allusion-pill" data-cat="pop cultural">Pop Cultural</button>
+              <button class="allusion-pill" data-cat="personal">Personal</button>
             </div>
             <div class="allusion-input-row">
               <input class="allusion-text-input" type="text" id="allusion-text" placeholder="Describe the allusion…" maxlength="120" />
@@ -1583,6 +1596,9 @@ button.cancel{font-size:13px;padding:5px 13px;border-radius:8px;border:0.5px sol
               <button class="tag-pill" data-tag="Free Write">✍️ Free Write</button>
               <button class="tag-pill" data-tag="Analysis/Criticism">📚 Criticism</button>
               <button class="tag-pill" data-tag="Connection">🔗 Connection</button>
+          <button class="tag-pill" data-tag="Summary">📝 Summary</button>
+          <button class="tag-pill" data-tag="Footnote">🔖 Footnote</button>
+          <button class="tag-pill" data-tag="Clarification">💡 Clarification</button>
             </div>
           </div>
           <div class="btn-row" style="margin-top:8px;">
@@ -3710,10 +3726,7 @@ const popup  = document.getElementById('anno-popup');
 const cpanel = document.getElementById('compose-panel');
 
 function posRC(el, target) {
-  const isMobile = window.innerWidth <= 600;
-  if (isMobile) return; // mobile uses fixed positioning via CSS
-  const aR = el.getBoundingClientRect(), rR = document.getElementById('right-col').getBoundingClientRect();
-  target.style.top = Math.max(0, aR.top - rR.top - 8) + 'px';
+  // Compose panel fixed at top:60px via CSS
 }
 
 function showMobileOverlay(show) {
@@ -3937,6 +3950,9 @@ function renderFeed() {
     <button class="ftf-btn${feedTagFilter==='Free Write'?' active':''}" data-tag="Free Write">✍️</button>
     <button class="ftf-btn${feedTagFilter==='Analysis/Criticism'?' active':''}" data-tag="Analysis/Criticism">📚</button>
     <button class="ftf-btn${feedTagFilter==='Connection'?' active':''}" data-tag="Connection">🔗</button>
+    <button class="ftf-btn${feedTagFilter==='Summary'?' active':''}" data-tag="Summary">📝</button>
+    <button class="ftf-btn${feedTagFilter==='Footnote'?' active':''}" data-tag="Footnote">🔖</button>
+    <button class="ftf-btn${feedTagFilter==='Clarification'?' active':''}" data-tag="Clarification">💡</button>
   </div>
   <div class="feed-sort">
     <button class="feed-sort-btn${feedSort==='hottest'?' active':''}" data-sort="hottest">Hottest</button>
@@ -4590,6 +4606,9 @@ function autoClassifyTag(subject, body) {
   if (/metaphor|simile|symbol|imagery|tone|theme|structure|syntax|diction|foreshadow|irony|paradox|juxtapose|motif|pattern|repetition|represents?|suggest|convey|effect|technique|device|author|melville|berryman|narrator|speaker/.test(text)) return 'Analysis';
   if (/i feel|i think|i love|i hate|beautiful|stunning|moving|wow|amazing|interesting|cool|weird|strange|personal|my|me |myself|honestly|actually|kind of|sort of/.test(text)) return 'Free Write';
   if (body.trim().endsWith('?')) return 'Question';
+  if (/in (other|simple|plain) words|to (clarify|summarize|explain)|that is|i\.e\.|in short|in brief|basically|simply put|to put it/.test(text)) return 'Clarification';
+  if (/in summary|to sum up|overall|in conclusion|in total|the main point|the key (idea|point|theme)|this (chapter|passage|section|paragraph) (is about|describes|explores)/.test(text)) return 'Summary';
+  if (/footnote|note that|worth noting|it (is|should be) noted|background|context|historically|by the way|fyi|also note/.test(text)) return 'Footnote';
   return 'Analysis';
 }
 async function runAiTag() {
@@ -5175,6 +5194,7 @@ const DEVICES = {
   ],
   'Figurative Language': [
     {name:'Conceit', def:'A comparison of two unlikely things drawn out within a piece of literature; an extended metaphor within a poem.'},
+    {name:'Analogy', def:'A comparison between two things to explain or clarify an idea.'},
     {name:'Extended Metaphor', def:'A series of comparisons sustained across a piece of writing.'},
     {name:'Juxtaposition', def:'The placement of one thing adjacent to another to create an effect, reveal an attitude, or accomplish a purpose.'},
     {name:'Metaphor', def:'One thing pictured as if it were something else, suggesting a likeness or analogy without using "like" or "as."'},
