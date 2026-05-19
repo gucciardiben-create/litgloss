@@ -2196,7 +2196,7 @@ async function openDiscussion(id) {
   hidePopup();
 
   let replies = [];
-  try { replies = await db.getReplies(id) || []; } catch(_) {}
+  try { replies = (await db.getReplies(id) || []).filter(Boolean); } catch(_) {}
 
   function renderDisc(editMode = false) {
     const isOwner = !anno.user_id; // any guest can edit their own for now (no ownership check on public)
@@ -2226,7 +2226,7 @@ async function openDiscussion(id) {
       `}
       <div class="disc-replies-label">${replies.length} ${replies.length===1?'reply':'replies'}</div>
       <div id="disc-replies-list">
-        ${replies.map(r => `
+        ${replies.filter(Boolean).map(r => `
           <div class="disc-reply" data-reply-id="${r.id}">
             <div class="disc-reply-body">${r.body}</div>
             <div class="disc-reply-meta">by ${r.username||'anonymous'} · ${r.date||''}</div>
@@ -2295,7 +2295,7 @@ async function openDiscussion(id) {
           replies.push(newReply);
         } else {
           // Supabase returned empty body (e.g. RLS with return=minimal) — re-fetch to stay in sync
-          try { replies = await db.getReplies(id) || []; } catch(_) {}
+          try { replies = (await db.getReplies(id) || []).filter(Boolean); } catch(_) {}
         }
         anno._replyCount = (anno._replyCount||0) + 1;
         status.textContent = '';
