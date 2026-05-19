@@ -2290,8 +2290,13 @@ async function openDiscussion(id) {
       try {
         const dateStr = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
         const saved = await db.insertReply({ annotation_id: id, body, username, date: dateStr });
-        const newReply = Array.isArray(saved)?saved[0]:saved;
-        replies.push(newReply);
+        const newReply = Array.isArray(saved) ? saved[0] : saved;
+        if (newReply) {
+          replies.push(newReply);
+        } else {
+          // Supabase returned empty body (e.g. RLS with return=minimal) — re-fetch to stay in sync
+          try { replies = await db.getReplies(id) || []; } catch(_) {}
+        }
         anno._replyCount = (anno._replyCount||0) + 1;
         status.textContent = '';
         renderDisc(false);
