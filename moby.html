@@ -1266,9 +1266,13 @@ function showPopup(annos, anchor, paraIdx) {
       const anno = annotations.find(a => a.id === id);
       if (!anno) return;
       anno.upvotes++;
+      // Update button count inline — avoids re-rendering popup with a stale/detached anchor
+      btn.innerHTML = `<svg width="10" height="10" viewBox="0 0 12 12"><path d="M6 2L10 9H2L6 2Z" fill="currentColor"/></svg>${anno.upvotes}`;
+      btn.dataset.upvotes = anno.upvotes;
+      btn.disabled = true;
       try { await db.upvoteAnnotation(id, anno.upvotes); } catch(_) {}
+      // Re-render highlights to update spectrum color (engScore changed)
       applyHighlights();
-      showPopup(annotations.filter(a => annos.some(x => x.id === a.id)), anchor, paraIdx);
     });
   });
   popup.querySelectorAll('.pu-re-btn').forEach(btn => {
@@ -2224,8 +2228,8 @@ async function openDiscussion(id) {
       <div id="disc-replies-list">
         ${replies.map(r => `
           <div class="disc-reply" data-reply-id="${r.id}">
-            <div class="disc-reply-body">${r.text||r.body}</div>
-            <div class="disc-reply-meta">by ${r.author||r.username||'anonymous'} · ${r.date||''}</div>
+            <div class="disc-reply-body">${r.body}</div>
+            <div class="disc-reply-meta">by ${r.username||'anonymous'} · ${r.date||''}</div>
           </div>
         `).join('')}
       </div>
@@ -2277,15 +2281,16 @@ async function openDiscussion(id) {
 
     document.getElementById('disc-reply-btn').addEventListener('click', async () => {
       const body = document.getElementById('disc-reply-editor').innerHTML.trim();
+      const replyEl = document.getElementById('disc-reply-editor');
+      const plainBody = replyEl.innerText ? replyEl.innerText.trim() : replyEl.textContent.trim();
       const username = document.getElementById('disc-reply-user').value.trim() || 'anonymous';
       const status = document.getElementById('disc-reply-status');
-      if (!body) { status.textContent = 'Please write a reply.'; return; }
+      if (!body || !plainBody) { status.textContent = 'Please write a reply.'; return; }
       status.textContent = 'Posting…';
       try {
         const dateStr = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
-        const saved = await db.insertReply({ annotation_id: id, text: body, author: username, date: dateStr });
-        const newReply = (saved && (Array.isArray(saved) ? saved[0] : saved))
-          || { annotation_id: id, text: body, author: username, date: dateStr };
+        const saved = await db.insertReply({ annotation_id: id, body, username, date: dateStr });
+        const newReply = Array.isArray(saved)?saved[0]:saved;
         replies.push(newReply);
         anno._replyCount = (anno._replyCount||0) + 1;
         status.textContent = '';

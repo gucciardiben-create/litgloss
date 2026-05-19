@@ -3787,6 +3787,10 @@ function showPopupMulti(quotes, anchor) {
       const anno = allAnnotations.find(a => a.id === id) || currentSongAnnotations.find(a => a.id === id);
       if (!anno) return;
       anno.upvotes++;
+      // Update button text immediately without re-rendering entire popup
+      btn.innerHTML = `<svg width="10" height="10" viewBox="0 0 12 12"><path d="M6 2L10 9H2L6 2Z" fill="currentColor"/></svg>${anno.upvotes}`;
+      btn.dataset.upvotes = anno.upvotes;
+      btn.disabled = true;
       try {
         await db.upvoteAnnotation(id, anno.upvotes);
         // Notify annotation owner
@@ -3795,7 +3799,8 @@ function showPopupMulti(quotes, anchor) {
           await sendNotification(anno.user_id, 'upvote', id, fromName, anno.quote);
         }
       } catch(_) {}
-      applyHighlights(); showPopupMulti(quotes, anchor);
+      // Re-render highlights to update spectrum color (engScore changed)
+      applyHighlights();
     });
   });
   popup.querySelectorAll('.pu-re-btn').forEach(btn => {
@@ -3905,7 +3910,7 @@ let floatiesVisible = false;
 function sortAnnotations(annos, sortBy) {
   const copy = [...annos];
   if (sortBy === 'hottest') return copy.sort((a,b) => (b.upvotes+(b._replyCount||0)*2)-(a.upvotes+(a._replyCount||0)*2));
-  if (sortBy === 'upvoted') return copy.sort((a,b) => b.upvotes-a.upvotes);
+  if (sortBy === 'upvoted') return copy.sort((a,b) => (b.upvotes+(b._replyCount||0)*2)-(a.upvotes+(a._replyCount||0)*2));
   if (sortBy === 'recent')  return copy.sort((a,b) => (b.id||0)-(a.id||0));
   return copy;
 }
@@ -6098,9 +6103,11 @@ async function openDiscussion(annoId) {
 
   dv.querySelector('#disc-reply-btn').addEventListener('click', async () => {
     const txt   = de.innerHTML.trim();
+    // Also check plain text content to guard against empty contenteditable with only <br> tags
+    const plainTxt = de.innerText ? de.innerText.trim() : de.textContent.trim();
     const uname = (currentProfile && currentProfile.username) || 'anonymous';
     const ds    = dv.querySelector('#disc-status');
-    if (!txt) return;
+    if (!txt || !plainTxt) return;
     ds.textContent = 'Saving…';
     const dateStr = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric'});
     try {
@@ -7358,6 +7365,17 @@ async function initApp() {
   try {
     allAnnotations = await db.getAllAnnotations() || [];
     allAnnotations.forEach(a => a._replyCount = 0);
+    // Fetch reply counts for all annotations so Top/Hottest sorting works globally
+    if (allAnnotations.length > 0) {
+      try {
+        const ids = allAnnotations.map(a => a.id);
+        const rows = await db.getReplyCountsForAnnotations(ids) || [];
+        rows.forEach(r => {
+          const anno = allAnnotations.find(a => a.id === r.annotation_id);
+          if (anno) anno._replyCount = (anno._replyCount || 0) + 1;
+        });
+      } catch(_) {}
+    }
   } catch(e) {
     allAnnotations = [];
   }
