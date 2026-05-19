@@ -2224,7 +2224,7 @@ async function openDiscussion(id) {
       <div id="disc-replies-list">
         ${replies.map(r => `
           <div class="disc-reply" data-reply-id="${r.id}">
-            <div class="disc-reply-body">${r.body}</div>
+            <div class="disc-reply-body">${r.text||r.body}</div>
             <div class="disc-reply-meta">by ${r.author||r.username||'anonymous'} · ${r.date||''}</div>
           </div>
         `).join('')}
@@ -2283,9 +2283,9 @@ async function openDiscussion(id) {
       status.textContent = 'Posting…';
       try {
         const dateStr = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
-        const saved = await db.insertReply({ annotation_id: id, body, author: username, date: dateStr });
+        const saved = await db.insertReply({ annotation_id: id, text: body, author: username, date: dateStr });
         const newReply = (saved && (Array.isArray(saved) ? saved[0] : saved))
-          || { annotation_id: id, body, username, date: dateStr };
+          || { annotation_id: id, text: body, author: username, date: dateStr };
         replies.push(newReply);
         anno._replyCount = (anno._replyCount||0) + 1;
         status.textContent = '';
