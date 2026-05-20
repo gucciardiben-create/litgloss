@@ -920,8 +920,19 @@ function loadChapter(num) {
 
   // Load annotations for this chapter
   if (typeof db !== 'undefined') {
-    db.getAnnotations().then(rows => {
+    db.getAnnotations().then(async rows => {
       annotations = (rows || []).map(a => ({ ...a, _replyCount: 0 }));
+      // Fetch reply counts so leaderboard and sorting are accurate
+      if (annotations.length > 0) {
+        try {
+          const ids = annotations.map(a => a.id);
+          const replyCounts = await db.getReplyCountsForAnnotations(ids) || [];
+          replyCounts.forEach(r => {
+            const a = annotations.find(x => x.id === r.annotation_id);
+            if (a) a._replyCount = (a._replyCount || 0) + 1;
+          });
+        } catch(_) {}
+      }
       applyHighlights();
       const badge = document.getElementById('anno-count-badge');
       if (badge) {
