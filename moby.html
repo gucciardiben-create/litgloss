@@ -2289,7 +2289,7 @@ async function openDiscussion(id) {
       status.textContent = 'Posting…';
       try {
         const dateStr = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
-        const saved = await db.insertReply({ annotation_id: id, body, username, date: dateStr });
+        const saved = await db.insertReply({ annotation_id: id, body, text: body, username, date: dateStr });
         const newReply = Array.isArray(saved) ? saved[0] : saved;
         if (newReply) {
           replies.push(newReply);
