@@ -216,8 +216,24 @@ button.cancel:hover{background:#f0f0f0;}
 .allusion-tag-x{cursor:pointer;font-size:13px;line-height:1;opacity:.7;}
 .allusion-tag-x:hover{opacity:1;}
 
+/* ── SCOREBOARD ── */
+#scoreboard{position:fixed;top:0;left:0;right:0;z-index:300;background:linear-gradient(90deg,#1a1a2e 0%,#16213e 50%,#1a1a2e 100%);color:#fff;font-family:sans-serif;padding:6px 16px;display:flex;align-items:center;gap:0;border-bottom:2px solid #CA8A04;transform:translateY(-100%);transition:transform .3s ease;}
+#scoreboard.visible{transform:translateY(0);}
+.sb-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#CA8A04;font-weight:700;margin-right:12px;white-space:nowrap;}
+.sb-entries{display:flex;flex:1;gap:0;overflow:hidden;}
+.sb-entry{display:flex;align-items:center;gap:6px;padding:0 14px;border-right:1px solid rgba(255,255,255,.1);font-size:12px;}
+.sb-entry:last-child{border-right:none;}
+.sb-medal{font-size:14px;}
+.sb-name{font-weight:600;color:#fff;max-width:90px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-pts{color:#CA8A04;font-weight:700;font-size:13px;}
+.sb-pts-label{font-size:9px;color:#888;margin-left:1px;}
+.sb-toggle{font-size:10px;background:transparent;border:0.5px solid rgba(255,255,255,.3);color:#aaa;padding:2px 8px;border-radius:20px;cursor:pointer;margin-left:auto;white-space:nowrap;}
+.sb-toggle:hover{background:rgba(255,255,255,.1);}
+/* nudge layout down when scoreboard visible */
+body.sb-open .topbar{margin-top:37px;}
+
 /* ── DISC VIEW ── */
-#disc-view{display:none;max-width:700px;margin:0 auto;padding:2rem 1.5rem;font-family:sans-serif;}
+#disc-view{display:none;position:fixed;inset:0;z-index:200;background:#fafaf8;overflow-y:auto;padding:2rem 1.5rem;font-family:sans-serif;}
 .disc-back{font-size:13px;padding:5px 12px;border-radius:8px;border:0.5px solid #ccc;background:transparent;color:#666;cursor:pointer;font-family:sans-serif;margin-bottom:1.5rem;}
 .disc-back:hover{background:#f0f0f0;}
 .disc-quote-banner{font-family:Georgia,serif;font-size:14px;padding:10px 14px;border-radius:8px;margin-bottom:1rem;display:inline-block;line-height:1.5;}
@@ -226,6 +242,20 @@ button.cancel:hover{background:#f0f0f0;}
 .disc-body{font-size:14px;line-height:1.7;color:#333;margin-bottom:1.5rem;}
 .disc-replies-label{font-size:12px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
 .disc-reply{padding:12px 14px;border:0.5px solid #eee;border-radius:10px;margin-bottom:8px;background:#fff;}
+.disc-reply-actions{display:flex;gap:8px;margin-top:8px;}
+.reply-like-btn{font-size:11px;padding:2px 8px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#666;cursor:pointer;font-family:sans-serif;display:flex;align-items:center;gap:3px;}
+.reply-like-btn:hover{background:#f5f5f5;}
+.reply-like-btn.liked{background:#FEF9C3;border-color:#CA8A04;color:#713F12;}
+.reply-reply-btn{font-size:11px;padding:2px 8px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#666;cursor:pointer;font-family:sans-serif;}
+.reply-reply-btn:hover{background:#f5f5f5;}
+.reply-sub-replies{margin-top:8px;padding-left:14px;border-left:2px solid #eee;}
+.reply-sub-reply{font-size:12px;padding:6px 10px;border-radius:8px;background:#f9f9f7;margin-bottom:4px;}
+.reply-sub-reply-meta{font-size:11px;color:#aaa;margin-top:2px;}
+.reply-sub-form{margin-top:6px;display:none;}
+.reply-sub-form.open{display:block;}
+.reply-sub-input{width:100%;font-size:12px;padding:6px 9px;border:0.5px solid #ccc;border-radius:8px;font-family:sans-serif;outline:none;background:#f9f9f9;resize:none;}
+.reply-sub-row{display:flex;gap:6px;margin-top:4px;align-items:center;}
+.reply-sub-user{font-size:12px;padding:4px 8px;border:0.5px solid #ccc;border-radius:8px;font-family:sans-serif;outline:none;background:#f9f9f9;width:100px;}
 .disc-reply-body{font-size:13px;line-height:1.6;color:#333;margin-bottom:5px;}
 .disc-reply-meta{font-size:11px;color:#bbb;}
 .disc-reply-compose{margin-top:1.5rem;}
@@ -812,6 +842,11 @@ button.cancel:hover{background:#f0f0f0;}
 </div>
 
 <div id="disc-view"></div>
+<div id="scoreboard">
+  <span class="sb-label">🏆 Top 3</span>
+  <div class="sb-entries" id="sb-entries"></div>
+  <button class="sb-toggle" id="sb-close">✕ Hide</button>
+</div>
 <div class="mobile-overlay" id="mobile-overlay"></div>
 <button class="mobile-annotate-btn" id="mobile-annotate-btn">
   <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 13l1.5-4.5L11 1l2.5 2.5L5.5 11.5z" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -941,6 +976,7 @@ function loadChapter(num) {
       }
       if (document.getElementById('feed-panel')?.classList.contains('visible')) renderFeed();
       if (document.getElementById('leaderboard-panel')?.classList.contains('visible')) renderLeaderboard();
+      updateScoreboard();
     }).catch(() => { annotations = []; applyHighlights(); });
   }
 }
@@ -979,6 +1015,9 @@ const db = {
   getReplies: annoId => sbFetch(`replies?annotation_id=eq.${annoId}&order=created_at.asc`),
   insertReply: row => sbFetch('replies', { method: 'POST', body: row }),
   getReplyCountsForAnnotations: ids => sbFetch(`replies?annotation_id=in.(${ids.join(',')})&select=annotation_id`),
+  likeReply: (id, v) => sbFetch(`replies?id=eq.${id}`, { method: 'PATCH', body: { likes: v } }),
+  insertReplyReply: row => sbFetch('reply_replies', { method: 'POST', body: row }),
+  getReplyReplies: replyId => sbFetch(`reply_replies?reply_id=eq.${replyId}&order=created_at.asc`),
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -2129,6 +2168,32 @@ function initDictPanel() {
   inp.focus();
 }
 
+// Scoreboard toggle in toolbar
+const sbToggleBtn = document.getElementById('toggle-leaderboard');
+if (sbToggleBtn) {
+  sbToggleBtn.addEventListener('click', () => {
+    const sb = document.getElementById('scoreboard');
+    const isOpen = sb.classList.contains('visible');
+    sb.classList.toggle('visible', !isOpen);
+    document.body.classList.toggle('sb-open', !isOpen);
+    sbToggleBtn.classList.toggle('active', !isOpen);
+    if (!isOpen) updateScoreboard();
+    // Start auto-refresh
+    if (!isOpen) {
+      clearInterval(window._sbInterval);
+      window._sbInterval = setInterval(updateScoreboard, 15000);
+    } else {
+      clearInterval(window._sbInterval);
+    }
+  });
+}
+document.getElementById('sb-close')?.addEventListener('click', () => {
+  document.getElementById('scoreboard').classList.remove('visible');
+  document.body.classList.remove('sb-open');
+  document.getElementById('toggle-leaderboard')?.classList.remove('active');
+  clearInterval(window._sbInterval);
+});
+
 document.getElementById('toggle-leaderboard').addEventListener('click', () => {
   const panel = document.getElementById('leaderboard-panel');
   const btn = document.getElementById('toggle-leaderboard');
@@ -2206,24 +2271,38 @@ function renderLeaderboard() {
   const panel = document.getElementById('leaderboard-panel');
   if (!panel.classList.contains('visible')) return;
 
-  // Tally upvotes received and replies received per user
+  // Tally upvotes received, replies received, and comments written per user
   const tally = {};
+  const ensure = name => { if (!tally[name]) tally[name] = { upvotes: 0, repliesReceived: 0, commentsWritten: 0 }; };
   annotations.forEach(a => {
     const name = a.username || 'anonymous';
-    if (!tally[name]) tally[name] = { upvotes: 0, replies: 0 };
+    ensure(name);
     tally[name].upvotes += (a.upvotes || 0);
-    tally[name].replies += (a._replyCount || 0);
+    tally[name].repliesReceived += (a._replyCount || 0);
   });
+  // Count comments written (each reply is a comment by its author)
+  if (typeof window._allRepliesCache !== 'undefined') {
+    window._allRepliesCache.forEach(r => {
+      if (!r) return;
+      const name = r.author || r.username || 'anonymous';
+      ensure(name);
+      tally[name].commentsWritten += 1;
+    });
+  }
 
   const lbTab = panel.dataset.tab || 'total';
   const rows = Object.entries(tally).map(([name, s]) => ({
     name,
     upvotes: s.upvotes,
-    replies: s.replies,
-    total: s.upvotes + s.replies
+    replies: s.repliesReceived,
+    comments: s.commentsWritten,
+    total: s.upvotes + s.repliesReceived + s.commentsWritten
   }));
 
-  rows.sort((a, b) => b[lbTab === 'upvotes' ? 'upvotes' : lbTab === 'replies' ? 'replies' : 'total'] - a[lbTab === 'upvotes' ? 'upvotes' : lbTab === 'replies' ? 'replies' : 'total']);
+  rows.sort((a, b) => {
+    const key = lbTab === 'upvotes' ? 'upvotes' : lbTab === 'replies' ? 'replies' : lbTab === 'comments' ? 'comments' : 'total';
+    return b[key] - a[key];
+  });
 
   const rankLabel = (i) => {
     if (i === 0) return '<span class="lb-rank gold">🥇</span>';
@@ -2237,7 +2316,8 @@ function renderLeaderboard() {
     <div class="lb-tabs">
       <button class="lb-tab${lbTab==='total'?' active':''}" data-tab="total">Total</button>
       <button class="lb-tab${lbTab==='upvotes'?' active':''}" data-tab="upvotes">↑ Upvotes</button>
-      <button class="lb-tab${lbTab==='replies'?' active':''}" data-tab="replies">💬 Replies</button>
+      <button class="lb-tab${lbTab==='replies'?' active':''}" data-tab="replies">💬 Replied to</button>
+      <button class="lb-tab${lbTab==='comments'?' active':''}" data-tab="comments">✍ Comments</button>
     </div>
     ${rows.length === 0 ? '<div class="lb-empty">No annotations yet.</div>' : rows.map((r, i) => `
       <div class="lb-row">
@@ -2246,6 +2326,7 @@ function renderLeaderboard() {
         <span class="lb-score">
           <span title="upvotes received">↑${r.upvotes}</span>
           <span title="replies received">💬${r.replies}</span>
+          <span title="comments written">✍${r.comments}</span>
         </span>
       </div>
     `).join('')}
@@ -2257,6 +2338,56 @@ function renderLeaderboard() {
       renderLeaderboard();
     });
   });
+}
+
+// Cache all reply authors for leaderboard comment counting
+async function cacheAllReplies() {
+  if (!annotations.length) return;
+  try {
+    const ids = annotations.map(a => a.id);
+    const rows = await db.getReplyCountsForAnnotations(ids) || [];
+    // We need full reply rows to get authors — fetch them if not already
+    if (!window._allRepliesCache) window._allRepliesCache = [];
+    // Use existing getReplies for first annotation to warm cache on demand
+    // Full cache is built lazily as discussions are opened
+  } catch(_) {}
+}
+
+function getLeaderboardData() {
+  const tally = {};
+  const ensure = name => { if (!tally[name]) tally[name] = { upvotes: 0, repliesReceived: 0, commentsWritten: 0 }; };
+  annotations.forEach(a => {
+    const name = a.username || 'anonymous';
+    ensure(name);
+    tally[name].upvotes += (a.upvotes || 0);
+    tally[name].repliesReceived += (a._replyCount || 0);
+  });
+  if (window._allRepliesCache) {
+    window._allRepliesCache.forEach(r => {
+      if (!r) return;
+      const name = r.author || r.username || 'anonymous';
+      ensure(name);
+      tally[name].commentsWritten += 1;
+    });
+  }
+  return Object.entries(tally).map(([name, s]) => ({
+    name, upvotes: s.upvotes, replies: s.repliesReceived, comments: s.commentsWritten,
+    total: s.upvotes + s.repliesReceived + s.commentsWritten
+  })).sort((a, b) => b.total - a.total);
+}
+
+function updateScoreboard() {
+  const sb = document.getElementById('scoreboard');
+  if (!sb || !sb.classList.contains('visible')) return;
+  const top3 = getLeaderboardData().slice(0, 3);
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('sb-entries').innerHTML = top3.map((r, i) => `
+    <div class="sb-entry">
+      <span class="sb-medal">${medals[i]}</span>
+      <span class="sb-name">${r.name}</span>
+      <span class="sb-pts">${r.total}<span class="sb-pts-label">pts</span></span>
+    </div>
+  `).join('');
 }
 
 function renderFeed() {
@@ -2302,7 +2433,16 @@ async function openDiscussion(id) {
   hidePopup();
 
   let replies = [];
-  try { replies = (await db.getReplies(id) || []).filter(Boolean); } catch(_) {}
+  try {
+    replies = (await db.getReplies(id) || []).filter(Boolean);
+    // Cache for leaderboard comment counting
+    if (!window._allRepliesCache) window._allRepliesCache = [];
+    replies.forEach(r => {
+      if (r && !window._allRepliesCache.find(x => x && x.id === r.id)) {
+        window._allRepliesCache.push(r);
+      }
+    });
+  } catch(_) {}
 
   function renderDisc(editMode = false) {
     const isOwner = !anno.user_id; // any guest can edit their own for now (no ownership check on public)
@@ -2340,6 +2480,20 @@ async function openDiscussion(id) {
           <div class="disc-reply" data-reply-id="${r.id}">
             <div class="disc-reply-body">${r.body}</div>
             <div class="disc-reply-meta">by ${r.author||r.username||'anonymous'} · ${r.date||''}</div>
+            <div class="disc-reply-actions">
+              <button class="reply-like-btn" data-rid="${r.id}" data-likes="${r.likes||0}">
+                ♥ <span class="reply-like-count">${r.likes||0}</span>
+              </button>
+              <button class="reply-reply-btn" data-rid="${r.id}">↩ Reply</button>
+            </div>
+            <div class="reply-sub-replies" id="sub-replies-${r.id}"></div>
+            <div class="reply-sub-form" id="sub-form-${r.id}">
+              <textarea class="reply-sub-input" placeholder="Write a reply…" rows="2"></textarea>
+              <div class="reply-sub-row">
+                <input class="reply-sub-user" placeholder="Your name" />
+                <button class="anno-btn" style="font-size:12px;padding:4px 10px;" data-sub-submit="${r.id}">Reply</button>
+              </div>
+            </div>
           </div>
         `).join('')}
       </div>
@@ -2358,6 +2512,70 @@ async function openDiscussion(id) {
     document.getElementById('disc-back').addEventListener('click', () => {
       discView.style.display = 'none';
       readerBody.style.display = 'flex';
+    });
+
+    // Load and wire sub-replies for each reply card
+    replies.filter(Boolean).forEach(async r => {
+      // Load sub-replies
+      const subContainer = document.getElementById(`sub-replies-${r.id}`);
+      if (subContainer) {
+        try {
+          const subs = await db.getReplyReplies(r.id) || [];
+          subContainer.innerHTML = subs.map(s => `
+            <div class="reply-sub-reply">
+              <span>${s.body}</span>
+              <div class="reply-sub-reply-meta">by ${s.author||'anonymous'} · ${s.date||''}</div>
+            </div>
+          `).join('');
+        } catch(_) {}
+      }
+      // Like button
+      const likeBtn = discView.querySelector(`.reply-like-btn[data-rid="${r.id}"]`);
+      if (likeBtn) {
+        likeBtn.addEventListener('click', async () => {
+          r.likes = (r.likes || 0) + 1;
+          likeBtn.querySelector('.reply-like-count').textContent = r.likes;
+          likeBtn.classList.add('liked');
+          likeBtn.disabled = true;
+          try { await db.likeReply(r.id, r.likes); } catch(_) {}
+          renderLeaderboard(); updateScoreboard();
+        });
+      }
+      // Reply-to-reply toggle
+      const replyBtn = discView.querySelector(`.reply-reply-btn[data-rid="${r.id}"]`);
+      const subForm = document.getElementById(`sub-form-${r.id}`);
+      if (replyBtn && subForm) {
+        replyBtn.addEventListener('click', () => {
+          subForm.classList.toggle('open');
+        });
+        const submitBtn = subForm.querySelector(`[data-sub-submit="${r.id}"]`);
+        if (submitBtn) {
+          submitBtn.addEventListener('click', async () => {
+            const textarea = subForm.querySelector('.reply-sub-input');
+            const userInput = subForm.querySelector('.reply-sub-user');
+            const body = textarea.value.trim();
+            const author = userInput.value.trim() || 'anonymous';
+            if (!body) return;
+            const dateStr = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
+            try {
+              await db.insertReplyReply({ reply_id: r.id, body, author, date: dateStr });
+              const subContainer = document.getElementById(`sub-replies-${r.id}`);
+              if (subContainer) {
+                subContainer.innerHTML += `
+                  <div class="reply-sub-reply">
+                    <span>${body}</span>
+                    <div class="reply-sub-reply-meta">by ${author} · ${dateStr}</div>
+                  </div>`;
+              }
+              textarea.value = '';
+              subForm.classList.remove('open');
+              renderLeaderboard(); updateScoreboard();
+            } catch(e) {
+              alert('Could not post reply: ' + e.message);
+            }
+          });
+        }
+      }
     });
 
     if (!editMode) {
