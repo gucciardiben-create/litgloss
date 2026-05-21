@@ -72,6 +72,36 @@ body{font-family:Georgia,serif;background:#fafaf8;color:#111;min-height:100vh;di
 
 /* DIVIDER */
 .divider{border:none;border-top:0.5px solid #eee;margin:2rem 0;}
+
+/* Text editor */
+#inp-text-editor:empty:before {
+  content: attr(data-placeholder);
+  color: #aaa;
+  pointer-events: none;
+  display: block;
+  white-space: pre-wrap;
+}
+#inp-text-editor:focus {
+  border-color: #7C3AED;
+  background: #fff;
+}
+/* Editor toolbar */
+.editor-toolbar {
+  display: flex; gap: 5px; flex-wrap: wrap;
+  padding: 6px 8px; background: #f5f5f3;
+  border: 0.5px solid #ccc; border-bottom: none;
+  border-radius: 8px 8px 0 0;
+}
+.editor-toolbar + #inp-text-editor {
+  border-radius: 0 0 8px 8px;
+}
+.et-btn {
+  font-size: 11px; padding: 3px 9px; border-radius: 6px;
+  border: 0.5px solid #ddd; background: transparent;
+  color: #555; cursor: pointer; font-family: sans-serif;
+}
+.et-btn:hover { background: #e8e8e8; }
+.et-sep { width: 1px; background: #ddd; margin: 0 2px; }
 </style>
 </head>
 <body>
@@ -135,8 +165,18 @@ body{font-family:Georgia,serif;background:#fafaf8;color:#111;min-height:100vh;di
     </div>
     <div class="field">
       <label>Text</label>
-      <textarea id="inp-text" placeholder="Paste your text here. Leave a blank line between paragraphs — each paragraph becomes a separately annotatable unit."></textarea>
-      <div class="field-hint">Blank lines between paragraphs = separate annotatable units. Section headers can be marked with a line starting with # (e.g. <code># I</code>).</div>
+      <div class="editor-toolbar" id="et-toolbar">
+        <button class="et-btn" id="et-clear">Clear</button>
+        <div class="et-sep"></div>
+        <button class="et-btn" id="et-strip-blank">Remove extra blank lines</button>
+        <button class="et-btn" id="et-strip-spaces">Strip leading spaces</button>
+        <button class="et-btn" id="et-straight-quotes">Straighten quotes</button>
+      </div>
+      <div id="inp-text-editor" contenteditable="true" spellcheck="false"
+        style="width:100%;font-size:13px;line-height:1.9;padding:10px 12px;border:0.5px solid #ccc;border-radius:8px;background:#fafaf8;color:#111;font-family:Georgia,serif;outline:none;min-height:280px;max-height:520px;overflow-y:auto;white-space:pre-wrap;cursor:text;box-sizing:border-box;"
+        data-placeholder="Paste your text here. Blank lines between stanzas/paragraphs = separate annotatable units.&#10;&#10;Section headers: start a line with # (e.g. # I)"></div>
+      <div class="field-hint">Paste directly — line breaks and indentation are preserved. Blank lines = new annotatable unit. <code># Section</code> = header.</div>
+      <textarea id="inp-text" style="display:none"></textarea>
     </div>
 
     <button class="btn-primary" id="create-btn">Generate annotation page →</button>
@@ -236,10 +276,67 @@ function escHtml(s) {
 }
 
 // ── CREATE ──
+// ── TEXT EDITOR ──
+const editorEl = document.getElementById('inp-text-editor');
+
+// On paste: strip HTML, preserve plain-text line structure exactly
+editorEl.addEventListener('paste', e => {
+  e.preventDefault();
+  const raw = (e.clipboardData || window.clipboardData).getData('text/plain');
+  const sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  sel.deleteFromDocument();
+  const range = sel.getRangeAt(0);
+  const lines = raw.split('\n');
+  const frag = document.createDocumentFragment();
+  lines.forEach((line, i) => {
+    frag.appendChild(document.createTextNode(line));
+    if (i < lines.length - 1) frag.appendChild(document.createElement('br'));
+  });
+  range.insertNode(frag);
+  range.collapse(false);
+  sel.removeAllRanges(); sel.addRange(range);
+});
+
+// Get plain text from editor preserving structure
+function getEditorText() {
+  const clone = editorEl.cloneNode(true);
+  clone.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+  clone.querySelectorAll('div,p').forEach(div => {
+    div.prepend('\n');
+    div.replaceWith(...div.childNodes);
+  });
+  return clone.textContent;
+}
+
+function setEditorText(text) {
+  editorEl.innerHTML = '';
+  const lines = text.split('\n');
+  const frag = document.createDocumentFragment();
+  lines.forEach((line, i) => {
+    frag.appendChild(document.createTextNode(line));
+    if (i < lines.length - 1) frag.appendChild(document.createElement('br'));
+  });
+  editorEl.appendChild(frag);
+}
+
+document.getElementById('et-clear').addEventListener('click', () => {
+  if (confirm('Clear all text?')) editorEl.innerHTML = '';
+});
+document.getElementById('et-strip-blank').addEventListener('click', () => {
+  setEditorText(getEditorText().replace(/\n{3,}/g, '\n\n').trim());
+});
+document.getElementById('et-strip-spaces').addEventListener('click', () => {
+  setEditorText(getEditorText().split('\n').map(l => l.replace(/^[ \t]+/, '')).join('\n'));
+});
+document.getElementById('et-straight-quotes').addEventListener('click', () => {
+  setEditorText(getEditorText().replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"'));
+});
+
 document.getElementById('create-btn').addEventListener('click', async () => {
   const title = document.getElementById('inp-title').value.trim();
   const author = document.getElementById('inp-author').value.trim();
-  const text = document.getElementById('inp-text').value.trim();
+  const text = getEditorText().trim();
   const status = document.getElementById('create-status');
   const btn = document.getElementById('create-btn');
 
