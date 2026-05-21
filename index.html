@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LitGloss — Create Annotation Page</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Georgia,serif;background:#fafaf8;color:#111;min-height:100vh;display:flex;flex-direction:column;}
+
+/* NAV */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;border-bottom:0.5px solid #e0e0e0;background:#fff;}
+.nav-logo{font-size:18px;font-weight:600;letter-spacing:-.02em;}
+.nav-logo span{color:#7C3AED;}
+.nav-links{display:flex;gap:16px;font-family:sans-serif;}
+.nav-links a{font-size:13px;color:#666;text-decoration:none;}
+.nav-links a:hover{color:#111;}
+
+/* HERO */
+.hero{text-align:center;padding:4rem 2rem 2rem;}
+.hero h1{font-size:36px;font-weight:500;margin-bottom:12px;line-height:1.2;}
+.hero p{font-size:16px;color:#666;max-width:500px;margin:0 auto 2rem;line-height:1.6;font-family:sans-serif;}
+
+/* LIBRARY */
+.library-section{max-width:900px;margin:0 auto;padding:0 2rem 3rem;width:100%;}
+.section-label{font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;font-family:sans-serif;}
+.text-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:2rem;}
+.text-card{background:#fff;border:0.5px solid #e0e0e0;border-radius:12px;padding:16px;cursor:pointer;transition:border-color .15s,box-shadow .15s;text-decoration:none;display:block;}
+.text-card:hover{border-color:#7C3AED;box-shadow:0 2px 12px rgba(124,58,237,.1);}
+.tc-title{font-size:15px;font-weight:500;margin-bottom:3px;color:#111;}
+.tc-author{font-size:12px;color:#999;font-style:italic;margin-bottom:8px;font-family:sans-serif;}
+.tc-meta{font-size:11px;color:#bbb;font-family:sans-serif;display:flex;gap:10px;}
+.tc-badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:20px;background:#F3E8FF;color:#7C3AED;font-family:sans-serif;margin-bottom:6px;}
+
+/* CREATE FORM */
+.create-section{max-width:700px;margin:0 auto;padding:0 2rem 4rem;width:100%;}
+.create-card{background:#fff;border:0.5px solid #e0e0e0;border-radius:16px;padding:2rem;}
+.create-card h2{font-size:20px;font-weight:500;margin-bottom:4px;}
+.create-card .subtitle{font-size:13px;color:#aaa;margin-bottom:1.5rem;font-family:sans-serif;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;color:#666;margin-bottom:5px;font-family:sans-serif;font-weight:500;}
+.field input[type=text], .field input[type=password]{width:100%;font-size:14px;padding:8px 12px;border:0.5px solid #ccc;border-radius:8px;background:#fafaf8;color:#111;font-family:sans-serif;outline:none;}
+.field input:focus{border-color:#7C3AED;background:#fff;}
+.field textarea{width:100%;font-size:13px;line-height:1.8;padding:10px 12px;border:0.5px solid #ccc;border-radius:8px;background:#fafaf8;color:#111;font-family:Georgia,serif;outline:none;resize:vertical;min-height:260px;}
+.field textarea:focus{border-color:#7C3AED;background:#fff;}
+.field-hint{font-size:11px;color:#bbb;margin-top:4px;font-family:sans-serif;}
+.btn-primary{width:100%;padding:12px;background:#111;color:#fff;border:none;border-radius:10px;font-size:14px;font-family:sans-serif;cursor:pointer;margin-top:6px;}
+.btn-primary:hover{background:#333;}
+.btn-primary:disabled{background:#ccc;cursor:not-allowed;}
+.status-msg{font-size:13px;margin-top:10px;font-family:sans-serif;min-height:18px;}
+.status-msg.err{color:#DC2626;}
+.status-msg.ok{color:#16A34A;}
+
+/* RESULT */
+.result-box{background:#F3E8FF;border:0.5px solid #7C3AED;border-radius:12px;padding:16px;margin-top:16px;display:none;font-family:sans-serif;}
+.result-box h3{font-size:14px;font-weight:600;color:#4C1D95;margin-bottom:8px;}
+.link-row{display:flex;gap:8px;align-items:center;}
+.link-input{flex:1;font-size:13px;padding:7px 10px;border:0.5px solid #C4B5FD;border-radius:8px;background:#fff;color:#111;font-family:sans-serif;outline:none;}
+.copy-btn{font-size:12px;padding:7px 14px;border-radius:8px;border:none;background:#7C3AED;color:#fff;cursor:pointer;white-space:nowrap;font-family:sans-serif;}
+.copy-btn:hover{background:#6D28D9;}
+.open-btn-link{display:block;text-align:center;margin-top:10px;font-size:13px;color:#7C3AED;text-decoration:none;}
+.open-btn-link:hover{text-decoration:underline;}
+
+/* PASSWORD GATE */
+.gate{position:fixed;inset:0;background:#fafaf8;display:flex;align-items:center;justify-content:center;z-index:100;}
+.gate-card{background:#fff;border:0.5px solid #e0e0e0;border-radius:16px;padding:2.5rem;width:340px;text-align:center;}
+.gate-card h2{font-size:22px;font-weight:500;margin-bottom:6px;}
+.gate-card p{font-size:13px;color:#999;margin-bottom:1.5rem;font-family:sans-serif;}
+.gate-card input{width:100%;font-size:14px;padding:9px 12px;border:0.5px solid #ccc;border-radius:8px;font-family:sans-serif;outline:none;margin-bottom:10px;text-align:center;letter-spacing:.1em;}
+.gate-card input:focus{border-color:#7C3AED;}
+.gate-err{font-size:12px;color:#DC2626;margin-top:6px;font-family:sans-serif;min-height:16px;}
+
+/* DIVIDER */
+.divider{border:none;border-top:0.5px solid #eee;margin:2rem 0;}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD GATE -->
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div style="font-size:28px;margin-bottom:12px;">📖</div>
+    <h2>LitGloss</h2>
+    <p>Enter the password to create annotation pages.</p>
+    <input type="password" id="gate-pw" placeholder="Password…" autocomplete="current-password" />
+    <button class="btn-primary" id="gate-btn" style="margin-top:0;">Enter</button>
+    <div class="gate-err" id="gate-err"></div>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-logo">Lit<span>Gloss</span></div>
+  <div class="nav-links">
+    <a href="dreamsongs.html">Dream Songs</a>
+    <a href="moby.html">Moby-Dick</a>
+  </div>
+</nav>
+
+<!-- EXISTING TEXTS LIBRARY -->
+<div class="library-section">
+  <div class="section-label">Published texts</div>
+  <div class="text-grid" id="text-grid">
+    <!-- Built-in texts -->
+    <a class="text-card" href="moby.html">
+      <div class="tc-badge">Built-in</div>
+      <div class="tc-title">Moby-Dick</div>
+      <div class="tc-author">Herman Melville, 1851</div>
+      <div class="tc-meta"><span>135 chapters</span><span>Full annotation suite</span></div>
+    </a>
+    <a class="text-card" href="dreamsongs.html">
+      <div class="tc-badge">Built-in</div>
+      <div class="tc-title">The Dream Songs</div>
+      <div class="tc-author">John Berryman, 1969</div>
+      <div class="tc-meta"><span>77 songs</span><span>Full annotation suite</span></div>
+    </a>
+  </div>
+  <div id="dynamic-cards"></div>
+</div>
+
+<hr class="divider" style="max-width:900px;margin:0 auto 2rem;" />
+
+<!-- CREATE FORM -->
+<div class="create-section">
+  <div class="create-card">
+    <h2>Create a new annotation page</h2>
+    <div class="subtitle">Paste any text — poem, story, essay — and generate a shareable annotation link.</div>
+
+    <div class="field">
+      <label>Title</label>
+      <input type="text" id="inp-title" placeholder="e.g. In Dreams Begin Responsibilities" maxlength="120" />
+    </div>
+    <div class="field">
+      <label>Author & Year <span style="color:#bbb;font-weight:400;">(optional)</span></label>
+      <input type="text" id="inp-author" placeholder="e.g. Delmore Schwartz, 1937" maxlength="120" />
+    </div>
+    <div class="field">
+      <label>Text</label>
+      <textarea id="inp-text" placeholder="Paste your text here. Leave a blank line between paragraphs — each paragraph becomes a separately annotatable unit."></textarea>
+      <div class="field-hint">Blank lines between paragraphs = separate annotatable units. Section headers can be marked with a line starting with # (e.g. <code># I</code>).</div>
+    </div>
+
+    <button class="btn-primary" id="create-btn">Generate annotation page →</button>
+    <div class="status-msg" id="create-status"></div>
+
+    <div class="result-box" id="result-box">
+      <h3>✓ Your annotation page is ready</h3>
+      <div class="link-row">
+        <input class="link-input" id="result-link" readonly />
+        <button class="copy-btn" id="copy-btn">Copy link</button>
+      </div>
+      <a class="open-btn-link" id="open-link" target="_blank">Open page →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://cajrjmroqidjuzqsvzon.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhanJqbXJvcWlkanV6cXN2em9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MzY4NjEsImV4cCI6MjA5MjExMjg2MX0.mk-7_sAGkh9mAFHjTZXImm5WM_WAwzg-ulYgGlQ9oXg';
+const PASSWORD = 'litgloss2024'; // change this to your preferred password
+
+// ── PASSWORD GATE ──
+const gateEl = document.getElementById('gate');
+const gatePw = document.getElementById('gate-pw');
+const gateBtn = document.getElementById('gate-btn');
+const gateErr = document.getElementById('gate-err');
+
+function checkAuth() {
+  if (sessionStorage.getItem('litgloss_auth') === 'ok') {
+    gateEl.style.display = 'none';
+    loadDynamicTexts();
+  }
+}
+checkAuth();
+
+function tryLogin() {
+  if (gatePw.value === PASSWORD) {
+    sessionStorage.setItem('litgloss_auth', 'ok');
+    gateEl.style.display = 'none';
+    loadDynamicTexts();
+  } else {
+    gateErr.textContent = 'Incorrect password.';
+    gatePw.value = '';
+    gatePw.focus();
+  }
+}
+gateBtn.addEventListener('click', tryLogin);
+gatePw.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+
+// ── SUPABASE ──
+async function sbFetch(path, opts = {}) {
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    'Prefer': opts.prefer || (opts.method === 'POST' ? 'return=representation' : 'return=minimal'),
+  };
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method: opts.method || 'GET',
+    headers,
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (!res.ok) {
+    const d = await res.json().catch(() => ({}));
+    throw new Error(d.message || d.error || res.statusText);
+  }
+  if (res.status === 204 || res.headers.get('content-length') === '0') return null;
+  return res.json();
+}
+
+// ── LOAD DYNAMIC TEXTS ──
+async function loadDynamicTexts() {
+  try {
+    const rows = await sbFetch('texts?order=created_at.desc&select=id,title,author,created_at') || [];
+    const container = document.getElementById('dynamic-cards');
+    if (!rows.length) { container.innerHTML = ''; return; }
+    const grid = document.createElement('div');
+    grid.className = 'text-grid';
+    grid.innerHTML = rows.map(t => {
+      const date = new Date(t.created_at).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+      const url = `read.html?id=${t.id}`;
+      return `<a class="text-card" href="${url}">
+        <div class="tc-badge">Custom</div>
+        <div class="tc-title">${escHtml(t.title)}</div>
+        ${t.author ? `<div class="tc-author">${escHtml(t.author)}</div>` : ''}
+        <div class="tc-meta"><span>Added ${date}</span></div>
+      </a>`;
+    }).join('');
+    container.appendChild(grid);
+  } catch(e) {
+    console.error('Could not load texts:', e);
+  }
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── CREATE ──
+document.getElementById('create-btn').addEventListener('click', async () => {
+  const title = document.getElementById('inp-title').value.trim();
+  const author = document.getElementById('inp-author').value.trim();
+  const text = document.getElementById('inp-text').value.trim();
+  const status = document.getElementById('create-status');
+  const btn = document.getElementById('create-btn');
+
+  if (!title) { status.textContent = 'Please enter a title.'; status.className = 'status-msg err'; return; }
+  if (!text) { status.textContent = 'Please paste some text.'; status.className = 'status-msg err'; return; }
+
+  btn.disabled = true;
+  status.textContent = 'Creating page…';
+  status.className = 'status-msg';
+
+  try {
+    const saved = await sbFetch('texts', { method: 'POST', body: { title, author, content: text } });
+    const row = Array.isArray(saved) ? saved[0] : saved;
+    if (!row || !row.id) throw new Error('No ID returned from database.');
+
+    const url = `${location.origin}${location.pathname.replace('index.html','').replace(/\/$/, '')}/read.html?id=${row.id}`;
+    status.textContent = '';
+    status.className = 'status-msg';
+
+    const resultBox = document.getElementById('result-box');
+    const linkInput = document.getElementById('result-link');
+    const openLink = document.getElementById('open-link');
+    resultBox.style.display = 'block';
+    linkInput.value = url;
+    openLink.href = url;
+
+    // Reload library
+    loadDynamicTexts();
+  } catch(e) {
+    status.textContent = 'Error: ' + e.message;
+    status.className = 'status-msg err';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('copy-btn').addEventListener('click', () => {
+  const linkInput = document.getElementById('result-link');
+  navigator.clipboard.writeText(linkInput.value).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy link', 2000);
+  });
+});
+</script>
+</body>
+</html>
