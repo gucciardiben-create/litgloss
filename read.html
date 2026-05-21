@@ -249,11 +249,7 @@ body.sb-open .topbar{margin-top:37px;}
 .feed-card.teacher-prompt-card{border-left:3px solid #7C3AED;}
 .tp-row{display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:0.5px solid #eee;}
 .tp-row label{font-size:12px;color:#7C3AED;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:sans-serif;}
-/* format toolbar */
-.fmt-toolbar{display:flex;flex-wrap:wrap;gap:4px;padding:8px 10px;border-bottom:0.5px solid #eee;background:#fff;flex-shrink:0;display:none;}
-.fmt-toolbar.visible{display:flex;}
-.fmt-btn{font-size:11px;padding:3px 9px;border-radius:20px;border:0.5px solid #ddd;background:#f9f9f9;color:#555;cursor:pointer;font-family:sans-serif;}
-.fmt-btn:hover{background:#e0e0e0;}
+
 /* sort order */
 .feed-order-row{display:flex;gap:4px;padding:6px 10px;border-bottom:0.5px solid #eee;background:#fff;flex-shrink:0;}
 .feed-order-btn{font-size:11px;padding:2px 9px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;font-family:sans-serif;}
@@ -381,6 +377,45 @@ body.sb-open .topbar{margin-top:37px;}
 .fc-btn.hard:hover{background:#FEE2E2;}
 .fc-close{position:absolute;top:12px;right:14px;font-size:20px;color:#aaa;cursor:pointer;border:none;background:none;}
 .fc-close:hover{color:#111;}
+
+/* ── TEACHER TEXT EDITOR ── */
+.te-gate{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:700;display:none;align-items:center;justify-content:center;}
+.te-gate.open{display:flex;}
+.te-gate-box{background:#fff;border-radius:16px;padding:2rem;width:360px;font-family:sans-serif;text-align:center;}
+.te-gate-box h3{font-size:17px;font-weight:500;margin-bottom:6px;}
+.te-gate-box p{font-size:13px;color:#aaa;margin-bottom:1.2rem;}
+.te-gate-pw{width:100%;font-size:14px;padding:9px 12px;border:0.5px solid #ccc;border-radius:8px;font-family:sans-serif;outline:none;text-align:center;letter-spacing:.08em;margin-bottom:8px;}
+.te-gate-pw:focus{border-color:#7C3AED;}
+.te-gate-btn{width:100%;padding:10px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;font-family:sans-serif;cursor:pointer;}
+.te-gate-btn:hover{background:#333;}
+.te-gate-err{font-size:12px;color:#DC2626;min-height:16px;margin-top:4px;}
+
+.te-overlay{position:fixed;inset:0;background:#fafaf8;z-index:690;display:none;flex-direction:column;}
+.te-overlay.open{display:flex;}
+.te-topbar{display:flex;align-items:center;gap:10px;padding:.75rem 1.25rem;border-bottom:0.5px solid #e0e0e0;background:#fff;flex-shrink:0;}
+.te-title{font-size:14px;font-weight:500;flex:1;color:#111;}
+.te-badge{font-size:10px;padding:2px 8px;border-radius:20px;background:#FEF9C3;color:#713F12;border:0.5px solid #CA8A04;font-family:sans-serif;}
+.te-close-btn{font-size:12px;padding:4px 12px;border-radius:8px;border:0.5px solid #ddd;background:transparent;color:#666;cursor:pointer;font-family:sans-serif;}
+.te-close-btn:hover{background:#f0f0f0;}
+.te-save-btn{font-size:12px;padding:5px 16px;border-radius:8px;border:none;background:#111;color:#fff;cursor:pointer;font-family:sans-serif;font-weight:500;}
+.te-save-btn:hover{background:#333;}
+.te-save-btn:disabled{background:#ccc;cursor:not-allowed;}
+.te-save-status{font-size:12px;font-family:sans-serif;min-width:60px;}
+.te-save-status.ok{color:#16A34A;}
+.te-save-status.err{color:#DC2626;}
+.te-toolbar{display:flex;gap:5px;flex-wrap:wrap;padding:8px 12px;border-bottom:0.5px solid #eee;background:#f9f9f8;flex-shrink:0;align-items:center;}
+.te-tb-btn{font-size:11px;padding:3px 10px;border-radius:20px;border:0.5px solid #ddd;background:#fff;color:#555;cursor:pointer;font-family:sans-serif;white-space:nowrap;}
+.te-tb-btn:hover{background:#e8e8e8;}
+.te-tb-sep{width:1px;height:18px;background:#ddd;margin:0 3px;}
+.te-body{flex:1;overflow-y:auto;padding:2.5rem 3rem;max-width:680px;margin:0 auto;width:100%;}
+.te-hint{font-size:11px;color:#aaa;font-family:sans-serif;margin-bottom:1rem;line-height:1.6;padding:8px 12px;background:#FFFBEB;border:0.5px solid #FDE68A;border-radius:8px;}
+.te-editor{font-size:15px;line-height:1.9;font-family:Georgia,serif;color:#111;outline:none;min-height:400px;white-space:pre-wrap;caret-color:#7C3AED;}
+.te-editor:empty:before{content:'Paste or type the text here…';color:#ccc;pointer-events:none;}
+.te-meta{display:flex;gap:10px;margin-bottom:1.5rem;}
+.te-meta input{font-size:13px;padding:6px 10px;border:0.5px solid #ddd;border-radius:8px;font-family:sans-serif;outline:none;background:#fff;color:#111;}
+.te-meta input:focus{border-color:#7C3AED;}
+.te-meta-title{flex:2;}
+.te-meta-author{flex:1;}
 </style>
 </head>
 <body>
@@ -405,13 +440,7 @@ body.sb-open .topbar{margin-top:37px;}
   <a href="index.html" style="font-size:12px;color:#888;text-decoration:none;white-space:nowrap;border:0.5px solid #ddd;padding:4px 10px;border-radius:8px;font-family:sans-serif;">← Home</a>
 </div>
 
-<div class="fmt-toolbar" id="fmt-toolbar">
-  <span style="font-size:11px;color:#aaa;font-family:sans-serif;align-self:center;">Format text:</span>
-  <button class="fmt-btn" id="fmt-strip">Strip extra spaces</button>
-  <button class="fmt-btn" id="fmt-paras">Fix paragraph breaks</button>
-  <button class="fmt-btn" id="fmt-trim">Trim blank lines</button>
-  <button class="fmt-btn" id="fmt-smart">Smart quotes → straight</button>
-</div>
+
 <div class="reader-body">
   <div class="text-col" id="text-col">
     <canvas class="graffiti-canvas hidden" id="graffiti-canvas"></canvas>
@@ -624,6 +653,7 @@ async function sbFetch(path, opts = {}) {
 
 const db = {
   getText: id => sbFetch(`texts?id=eq.${id}&select=id,title,author,content`),
+  updateText: (id, fields) => sbFetch(`texts?id=eq.${id}`, { method: 'PATCH', body: fields, prefer: 'return=minimal' }),
   getAnnotations: () => {
     const nums = [SONG_NUM, ...(window._legacySongNums || [])];
     if (nums.length === 1) {
@@ -1860,55 +1890,264 @@ function handleSel(e, paraIdx) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// TEXT FORMATTER (for teacher use)
 // ═══════════════════════════════════════════════════════════
-// Show format toolbar when text has been loaded (admin use hint)
+// TEACHER TEXT EDITOR
+// ═══════════════════════════════════════════════════════════
+const TEACHER_PASSWORD = 'litgloss2024'; // change to match your preferred password
+const TE_SESSION_KEY   = 'litgloss_teacher_unlocked';
+
+function isTeacherUnlocked() {
+  return sessionStorage.getItem(TE_SESSION_KEY) === 'yes';
+}
+
+// Inject "Edit Text" button into topbar after content loads
 window.addEventListener('DOMContentLoaded', () => {
-  // We make the fmt toolbar accessible via a toggle in the topbar
-  // Inject a tiny "Format" button into topbar
   setTimeout(() => {
     const topbar = document.querySelector('.topbar');
     if (!topbar) return;
-    const fmtToggle = document.createElement('button');
-    fmtToggle.textContent = 'Format text';
-    fmtToggle.style.cssText = 'font-size:11px;padding:3px 10px;border-radius:8px;border:0.5px solid #ddd;background:transparent;color:#888;cursor:pointer;font-family:sans-serif;';
-    fmtToggle.addEventListener('click', () => {
-      const bar = document.getElementById('fmt-toolbar');
-      bar.classList.toggle('visible');
-      fmtToggle.style.background = bar.classList.contains('visible') ? '#111' : 'transparent';
-      fmtToggle.style.color = bar.classList.contains('visible') ? '#fff' : '#888';
+    const editBtn = document.createElement('button');
+    editBtn.id = 'te-open-btn';
+    editBtn.textContent = '✎ Edit Text';
+    editBtn.style.cssText = 'font-size:11px;padding:4px 11px;border-radius:8px;border:0.5px solid #ddd;background:transparent;color:#888;cursor:pointer;font-family:sans-serif;';
+    editBtn.addEventListener('click', () => {
+      if (isTeacherUnlocked()) {
+        openTeacherEditor();
+      } else {
+        openTeacherGate();
+      }
     });
-    topbar.insertBefore(fmtToggle, topbar.querySelector('a'));
-  }, 500);
+    topbar.insertBefore(editBtn, topbar.querySelector('a'));
+  }, 400);
 });
 
-document.getElementById('fmt-strip')?.addEventListener('click', () => {
-  const tc = document.getElementById('text-content');
-  if (!tc) return;
-  tc.querySelectorAll('.para').forEach(p => { p.textContent = p.textContent.replace(/[ \t]{2,}/g,' ').trim(); });
-  applyHighlights();
-});
-document.getElementById('fmt-paras')?.addEventListener('click', () => {
-  const tc = document.getElementById('text-content');
-  if (!tc || !window._rawContent) return;
-  const newContent = window._rawContent.replace(/([.!?])\s+([A-Z])/g, '$1\n\n$2');
-  renderText(newContent); document.querySelectorAll('.para').forEach((p,i)=>bindParaEvents(p,i)); applyHighlights();
-});
-document.getElementById('fmt-trim')?.addEventListener('click', () => {
-  const tc = document.getElementById('text-content');
-  if (!tc) return;
-  tc.querySelectorAll('.para').forEach(p => { p.textContent = p.textContent.trim(); });
-  applyHighlights();
-});
-document.getElementById('fmt-smart')?.addEventListener('click', () => {
-  const tc = document.getElementById('text-content');
-  if (!tc) return;
-  tc.querySelectorAll('.para').forEach(p => {
-    p.textContent = p.textContent.replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"');
+function openTeacherGate() {
+  const gate = document.getElementById('te-gate');
+  const pw   = document.getElementById('te-gate-pw');
+  const err  = document.getElementById('te-gate-err');
+  gate.classList.add('open');
+  err.textContent = '';
+  setTimeout(() => pw.focus(), 80);
+
+  const tryUnlock = () => {
+    if (pw.value === TEACHER_PASSWORD) {
+      sessionStorage.setItem(TE_SESSION_KEY, 'yes');
+      gate.classList.remove('open');
+      pw.value = '';
+      openTeacherEditor();
+    } else {
+      err.textContent = 'Incorrect password.';
+      pw.value = '';
+      pw.focus();
+    }
+  };
+  document.getElementById('te-gate-btn').onclick = tryUnlock;
+  pw.onkeydown = e => { if (e.key === 'Enter') tryUnlock(); };
+  // Close on backdrop click
+  gate.onclick = e => { if (e.target === gate) { gate.classList.remove('open'); } };
+}
+
+function openTeacherEditor() {
+  const overlay = document.getElementById('te-overlay');
+  const editor  = document.getElementById('te-editor');
+  const titleInp  = document.getElementById('te-inp-title');
+  const authorInp = document.getElementById('te-inp-author');
+
+  // Populate from current rendered text
+  const rawContent = window._rawContent || '';
+  titleInp.value  = document.getElementById('topbar-title')?.textContent || '';
+  authorInp.value = document.getElementById('topbar-sub')?.textContent  || '';
+
+  // Load content into editor as plain text with <br> line breaks
+  editor.innerHTML = '';
+  const lines = rawContent.split('\n');
+  const frag  = document.createDocumentFragment();
+  lines.forEach((line, i) => {
+    frag.appendChild(document.createTextNode(line));
+    if (i < lines.length - 1) frag.appendChild(document.createElement('br'));
   });
-  applyHighlights();
-});
+  editor.appendChild(frag);
+
+  overlay.classList.add('open');
+  editor.focus();
+  wireTeacherEditorButtons();
+}
+
+function getTeEditorText() {
+  const clone = document.getElementById('te-editor').cloneNode(true);
+  clone.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+  clone.querySelectorAll('div,p').forEach(div => {
+    div.prepend('\n');
+    div.replaceWith(...div.childNodes);
+  });
+  return clone.textContent;
+}
+
+function setTeEditorText(text) {
+  const editor = document.getElementById('te-editor');
+  editor.innerHTML = '';
+  const lines = text.split('\n');
+  const frag  = document.createDocumentFragment();
+  lines.forEach((line, i) => {
+    frag.appendChild(document.createTextNode(line));
+    if (i < lines.length - 1) frag.appendChild(document.createElement('br'));
+  });
+  editor.appendChild(frag);
+}
+
+function wireTeacherEditorButtons() {
+  const editor = document.getElementById('te-editor');
+
+  // Intercept paste — plain text only
+  editor.onpaste = e => {
+    e.preventDefault();
+    const raw = (e.clipboardData || window.clipboardData).getData('text/plain');
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    sel.deleteFromDocument();
+    const range = sel.getRangeAt(0);
+    const lines = raw.split('\n');
+    const frag  = document.createDocumentFragment();
+    lines.forEach((line, i) => {
+      frag.appendChild(document.createTextNode(line));
+      if (i < lines.length - 1) frag.appendChild(document.createElement('br'));
+    });
+    range.insertNode(frag);
+    range.collapse(false);
+    sel.removeAllRanges(); sel.addRange(range);
+  };
+
+  // Format toolbar buttons
+  document.getElementById('te-bold').onmousedown  = e => { e.preventDefault(); editor.focus(); document.execCommand('bold'); };
+  document.getElementById('te-italic').onmousedown = e => { e.preventDefault(); editor.focus(); document.execCommand('italic'); };
+
+  document.getElementById('te-strip-spaces').onclick = () => {
+    setTeEditorText(getTeEditorText().split('\n').map(l => l.replace(/[ \t]{2,}/g, ' ')).join('\n'));
+  };
+  document.getElementById('te-trim-blanks').onclick = () => {
+    setTeEditorText(getTeEditorText().replace(/\n{3,}/g, '\n\n').trim());
+  };
+  document.getElementById('te-straight-q').onclick = () => {
+    setTeEditorText(getTeEditorText()
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/[\u201C\u201D]/g, '"'));
+  };
+  document.getElementById('te-add-section').onclick = () => {
+    editor.focus();
+    document.execCommand('insertText', false, '\n# ');
+  };
+
+  // Preview button — renders to the read view without saving
+  document.getElementById('te-preview-btn').onclick = () => {
+    const newContent = getTeEditorText();
+    const newTitle   = document.getElementById('te-inp-title').value.trim();
+    const newAuthor  = document.getElementById('te-inp-author').value.trim();
+    // Update header
+    if (newTitle)  { document.getElementById('topbar-title').textContent = newTitle; document.title = newTitle + ' — LitGloss'; }
+    if (newAuthor) document.getElementById('topbar-sub').textContent = newAuthor;
+    window._rawContent = newContent;
+    renderText(newContent);
+    document.querySelectorAll('.para').forEach((p,i) => bindParaEvents(p,i));
+    applyHighlights();
+    // Close overlay briefly so they can see it
+    document.getElementById('te-overlay').classList.remove('open');
+    // Show "Back to editor" toast
+    const toast = document.createElement('div');
+    toast.textContent = 'Previewing — click Edit Text to return';
+    toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:12px;padding:8px 18px;border-radius:20px;z-index:800;font-family:sans-serif;cursor:pointer;';
+    document.body.appendChild(toast);
+    toast.onclick = () => { document.body.removeChild(toast); openTeacherEditor(); };
+    setTimeout(() => { if (document.body.contains(toast)) document.body.removeChild(toast); }, 5000);
+  };
+
+  // Save & Publish — patches the texts table in Supabase
+  const saveBtn    = document.getElementById('te-save-btn');
+  const saveStatus = document.getElementById('te-save-status');
+
+  saveBtn.onclick = async () => {
+    const newContent = getTeEditorText().trim();
+    const newTitle   = document.getElementById('te-inp-title').value.trim();
+    const newAuthor  = document.getElementById('te-inp-author').value.trim();
+    if (!newContent) { saveStatus.textContent = 'Content is empty.'; saveStatus.className = 'te-save-status err'; return; }
+    saveBtn.disabled = true;
+    saveStatus.textContent = 'Saving…';
+    saveStatus.className   = 'te-save-status';
+    try {
+      const updates = { content: newContent };
+      if (newTitle)  updates.title  = newTitle;
+      if (newAuthor) updates.author = newAuthor;
+      await db.updateText(TEXT_ID, updates);
+      // Update live view
+      window._rawContent = newContent;
+      if (newTitle)  { document.getElementById('topbar-title').textContent = newTitle; document.title = newTitle + ' — LitGloss'; }
+      if (newAuthor) document.getElementById('topbar-sub').textContent = newAuthor;
+      renderText(newContent);
+      document.querySelectorAll('.para').forEach((p,i) => bindParaEvents(p,i));
+      applyHighlights();
+      saveStatus.textContent = '✓ Published!';
+      saveStatus.className   = 'te-save-status ok';
+      setTimeout(() => { saveStatus.textContent = ''; saveStatus.className = 'te-save-status'; }, 3000);
+    } catch(e) {
+      saveStatus.textContent = 'Error: ' + e.message;
+      saveStatus.className   = 'te-save-status err';
+    } finally {
+      saveBtn.disabled = false;
+    }
+  };
+
+  // Close button
+  document.getElementById('te-close-btn').onclick = () => {
+    document.getElementById('te-overlay').classList.remove('open');
+  };
+}
 
 </script>
+<!-- ── TEACHER PASSWORD GATE ── -->
+<div class="te-gate" id="te-gate">
+  <div class="te-gate-box">
+    <div style="font-size:28px;margin-bottom:10px;">🔒</div>
+    <h3>Teacher Editor</h3>
+    <p>Enter the teacher password to edit this text.</p>
+    <input class="te-gate-pw" type="password" id="te-gate-pw" placeholder="Password…" autocomplete="off"/>
+    <button class="te-gate-btn" id="te-gate-btn">Unlock</button>
+    <div class="te-gate-err" id="te-gate-err"></div>
+  </div>
+</div>
+
+<!-- ── TEACHER TEXT EDITOR ── -->
+<div class="te-overlay" id="te-overlay">
+  <div class="te-topbar">
+    <div>
+      <div class="te-title">✎ Edit Text</div>
+    </div>
+    <span class="te-badge">Teacher Mode</span>
+    <span class="te-save-status" id="te-save-status"></span>
+    <button class="te-save-btn" id="te-save-btn">Save &amp; Publish</button>
+    <button class="te-close-btn" id="te-close-btn">✕ Close</button>
+  </div>
+  <div class="te-toolbar">
+    <button class="te-tb-btn" id="te-bold"><b>B</b></button>
+    <button class="te-tb-btn" id="te-italic"><i>I</i></button>
+    <div class="te-tb-sep"></div>
+    <button class="te-tb-btn" id="te-strip-spaces">Strip extra spaces</button>
+    <button class="te-tb-btn" id="te-trim-blanks">Trim blank lines</button>
+    <button class="te-tb-btn" id="te-straight-q">Straighten quotes</button>
+    <button class="te-tb-btn" id="te-add-section">+ # Section header</button>
+    <div class="te-tb-sep"></div>
+    <button class="te-tb-btn" id="te-preview-btn" style="border-color:#7C3AED;color:#7C3AED;">Preview</button>
+  </div>
+  <div class="te-body">
+    <div class="te-hint">
+      <strong>Blank line</strong> between stanzas/paragraphs = separate annotatable unit. &nbsp;
+      <strong># Header</strong> at start of a line = section header. &nbsp;
+      Annotations are preserved — only the displayed text changes.
+    </div>
+    <div class="te-meta">
+      <input class="te-meta-title" type="text" id="te-inp-title" placeholder="Title…" />
+      <input class="te-meta-author" type="text" id="te-inp-author" placeholder="Author, year…" />
+    </div>
+    <div class="te-editor" id="te-editor" contenteditable="true" spellcheck="false"></div>
+  </div>
+</div>
+
 </body>
 </html>
