@@ -700,8 +700,8 @@ const ALL_DEVICES = Object.entries(DEVICES).flatMap(([cat,items])=>items.map(d=>
 // Heat legend swatches: pale yellow → dark red (matches heatColor function)
 // Legend shows the actual scale: 1 anno (pale yellow) → many (warm red), all at low opacity
 const HEAT_LEGEND = [
-  'rgba(254,249,195,0.28)', 'rgba(253,210,120,0.32)',
-  'rgba(251,140,50,0.36)',  'rgba(210,50,30,0.42)',
+  'hsla(48,90%,70%,0.28)', 'hsla(35,90%,62%,0.38)',
+  'hsla(22,90%,58%,0.44)', 'hsla(10,90%,52%,0.46)',
 ];
 document.getElementById('heat-swatches').innerHTML = HEAT_LEGEND.map(c=>`<div class="swatch" style="background:${c}"></div>`).join('');
 
@@ -951,7 +951,7 @@ function findQuoteSpan(pt, rawQuote) {
 function applyHighlights() {
   const paras = Array.from(document.querySelectorAll('.para'));
   // Strip existing highlights, restore plain text
-  paras.forEach(p => { const t = p.textContent; p.innerHTML = ''; p.appendChild(document.createTextNode(t)); });
+  paras.forEach(p => { const t = p.textContent; p.innerHTML = ''; p.appendChild(document.createTextNode(t)); p.style.backgroundImage = ''; p.style.borderRadius = ''; });
   if (highlightFilter === 'none' || !annotations.length) { paras.forEach((p,i) => bindParaEvents(p,i)); return; }
 
   // Group annotations by paragraph, coercing line_index to number
@@ -992,18 +992,16 @@ function applyHighlights() {
       if (!span) return;
       segs.push({ start: span.start, end: span.end, annoId: a.id });
     });
-    if (!segs.length) return;
+    if (!segs.length) { bindParaEvents(para, paraIdx); return; }
 
-    // Per-character arrays: count of annotations covering each char, and list of annoIds
+    // Per-character heat weights
     const cc = new Array(pt.length).fill(0);
     const ca = new Array(pt.length).fill(null);
     segs.forEach(s => {
       const anno = annotations.find(a => a.id === s.annoId);
-      // Heat weight: 1 base + replies contribute extra warmth (replies = engagement on that spot)
-      // Capped so one super-popular annotation doesn't dominate over 8 quiet ones
-      const replyBoost = Math.min((anno?._replyCount || 0) * 0.5, 2);
-      const upvoteBoost = Math.min((anno?.upvotes || 0) * 0.15, 1);
-      const weight = 1 + replyBoost + upvoteBoost; // 1.0 – 4.0
+      const replyBoost  = Math.min((anno?._replyCount || 0) * 0.5, 2);
+      const upvoteBoost = Math.min((anno?.upvotes    || 0) * 0.15, 1);
+      const weight = 1 + replyBoost + upvoteBoost;
       for (let i = s.start; i < s.end; i++) {
         cc[i] += weight;
         if (!ca[i]) ca[i] = [];
@@ -1011,84 +1009,93 @@ function applyHighlights() {
       }
     });
 
-    // Heat color: pale yellow → amber → orange → red
-    // Scale is calibrated so a class of 30 students can fill the full range.
-    // Opacity kept low throughout so text remains legible.
-    function heatColor(count) {
-      // Normalize against expected class size (~30 students, peak ~20 overlaps)
-      const MAX = 20;
-      const t = Math.min((count - 1) / (MAX - 1), 1); // 0 = 1 anno, 1 = MAX annos
-      // Interpolate through: pale yellow → amber → orange → red
-      // Using low opacity throughout — heat is shown by COLOR shift, not darkness
-      const r = Math.round(254 + t * (185 - 254));
-      const g = Math.round(249 + t * (28  - 249));
-      const b = Math.round(195 + t * (28  - 195));
-      // Opacity: gentle range 0.18 → 0.42 — always light enough to read through
-      const a = (0.18 + t * 0.24).toFixed(2);
-      return `rgba(${r},${g},${b},${a})`;
-    }
-
-    // Render: walk character by character, group runs of same count into spans
-    para.innerHTML = '';
-    let i = 0;
-    while (i < pt.length) {
-      if (cc[i] < 0.01) {
-        // Plain text run
-        let j = i;
-        while (j < pt.length && cc[j] < 0.01) j++;
-        para.appendChild(document.createTextNode(pt.slice(i, j)));
-        i = j;
-      } else {
-        // Highlighted run — group contiguous chars with same count
-        const cnt = Math.ceil(cc[i]); // bucket fractional weights to nearest integer
-        let j = i;
-        // Group chars with same integer bucket
-        while (j < pt.length && Math.ceil(cc[j]) === cnt) j++;
-
-        // Collect all unique annoIds touching this run
-        const annoIdSet = new Set();
-        for (let k = i; k < j; k++) {
-          if (ca[k]) ca[k].forEach(id => annoIdSet.add(id));
-        }
-        const annoIds = [...annoIdSet];
-        const sa = annotations.filter(a => annoIds.includes(a.id));
-
-        // has-device: majority of annotations on this span have a device tagged
-        const devCount = sa.filter(a => {
-          try {
-            const d = typeof a.devices === 'string' ? JSON.parse(a.devices) : a.devices;
-            return Array.isArray(d) && d.length > 0;
-          } catch(_) { return false; }
-        }).length;
-        const hd  = devCount > 0 && devCount >= Math.ceil(sa.length / 2);
-        const isTP = sa.some(a => a.is_teacher_prompt === true || a.is_teacher_prompt === 'true');
-
-        const sp = document.createElement('span');
-        sp.className = 'highlight' + (hd ? ' has-device' : '') + (isTP ? ' teacher-prompt-hl' : '');
-        sp.style.background = heatColor(cnt);
-        // Tooltip shows annotation count and total replies for this span
-        const spanReplies = sa.reduce((sum, a) => sum + (a._replyCount||0), 0);
-        sp.title = cnt + ' annotation' + (cnt !== 1 ? 's' : '') + (spanReplies ? ` · ${spanReplies} repl${spanReplies !== 1 ? 'ies' : 'y'}` : '');
-        sp.textContent = pt.slice(i, j);
-
-        const capturedIds = [...annoIds];
-        sp.addEventListener('mouseenter', () => {
-          clearTimeout(popupTimeout);
-          const ma = annotations.filter(a => capturedIds.includes(a.id));
-          if (ma.length) showPopup(ma, sp, paraIdx);
-        });
-        sp.addEventListener('mouseleave', () => { popupTimeout = setTimeout(hidePopup, 300); });
-        sp.addEventListener('click', e => {
-          const sel = window.getSelection(); if (sel && sel.toString().trim()) return;
-          const ma = annotations.filter(a => capturedIds.includes(a.id));
-          if (ma.length) showPopup(ma, sp, paraIdx);
-        });
-        para.appendChild(sp);
-        i = j;
+    // ── GRADIENT BACKGROUND ──────────────────────────────────────────────────
+    // Smooth heat values with a box blur so edges fade naturally
+    const BLUR = 8;
+    const smooth = cc.map((v, i) => {
+      let sum = 0, n = 0;
+      for (let k = Math.max(0, i - BLUR); k <= Math.min(cc.length - 1, i + BLUR); k++) {
+        sum += cc[k]; n++;
       }
+      return sum / n;
+    });
+
+    const MAX_HEAT = 20;
+    function heatStop(val) {
+      const t = Math.min(val / MAX_HEAT, 1);
+      if (t < 0.015) return 'transparent';
+      // Gold → amber → orange-red, kept light so text stays readable
+      const h = Math.round(48 - t * 38);   // 48 (gold) → 10 (red-orange)
+      const s2 = 90;
+      const l = Math.round(70 - t * 18);   // 70% → 52% lightness
+      const alpha = (0.14 + t * 0.32).toFixed(2);
+      return `hsla(${h},${s2}%,${l}%,${alpha})`;
     }
+
+    // Sample character positions → build gradient stops
+    const SAMPLE = Math.max(1, Math.floor(pt.length / 60));
+    const gradStops = [];
+    for (let i = 0; i <= smooth.length - 1; i += SAMPLE) {
+      const pct = ((i / (smooth.length - 1 || 1)) * 100).toFixed(1);
+      gradStops.push(`${heatStop(smooth[i])} ${pct}%`);
+    }
+    gradStops.push(`${heatStop(smooth[smooth.length - 1])} 100%`);
+
+    para.style.backgroundImage = `linear-gradient(to right, ${gradStops.join(', ')})`;
+    para.style.backgroundRepeat = 'no-repeat';
+    para.style.backgroundSize = '100% 85%';
+    para.style.backgroundPosition = 'left center';
+    para.style.borderRadius = '3px';
+
+    // ── HOVER / CLICK: map cursor x-position → character → annotations ───────
+    function charAtPoint(x, y) {
+      const r = document.caretRangeFromPoint
+        ? document.caretRangeFromPoint(x, y)
+        : (document.caretPositionFromPoint
+            ? (() => {
+                const cp = document.caretPositionFromPoint(x, y);
+                if (!cp) return null;
+                const r2 = document.createRange();
+                r2.setStart(cp.offsetNode, cp.offset);
+                return r2;
+              })()
+            : null);
+      if (!r) return -1;
+      const node = r.startContainer;
+      if (node.nodeType !== 3) return -1;
+      let offset = r.startOffset;
+      const walker = document.createTreeWalker(para, NodeFilter.SHOW_TEXT);
+      let found = false;
+      while (walker.nextNode()) {
+        if (walker.currentNode === node) { found = true; break; }
+        offset += walker.currentNode.length;
+      }
+      return found ? offset : -1;
+    }
+
+    function idsAtChar(ci) {
+      return (ci >= 0 && ca[ci]) ? ca[ci] : [];
+    }
+
+    para.addEventListener('mousemove', e => {
+      if (graffitiMode) return;
+      const ids = idsAtChar(charAtPoint(e.clientX, e.clientY));
+      if (!ids.length) { clearTimeout(popupTimeout); popupTimeout = setTimeout(hidePopup, 200); return; }
+      clearTimeout(popupTimeout);
+      const ma = annotations.filter(a => ids.includes(a.id));
+      if (ma.length) showPopup(ma, para, paraIdx);
+    });
+    para.addEventListener('mouseleave', () => { popupTimeout = setTimeout(hidePopup, 300); });
+    para.addEventListener('click', e => {
+      if (graffitiMode) return;
+      const sel = window.getSelection(); if (sel && sel.toString().trim()) return;
+      const ids = idsAtChar(charAtPoint(e.clientX, e.clientY));
+      if (!ids.length) return;
+      const ma = annotations.filter(a => ids.includes(a.id));
+      if (ma.length) showPopup(ma, para, paraIdx);
+    });
+
     bindParaEvents(para, paraIdx);
-  });
   paras.forEach((p, i) => { if (!byPara[i]) bindParaEvents(p, i); });
 }
 
