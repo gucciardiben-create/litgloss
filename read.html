@@ -23,7 +23,7 @@ body{font-family:Georgia,serif;background:#fafaf8;color:#111;margin:0;overscroll
 .text-title{font-size:24px;font-weight:500;margin-bottom:4px;}
 .text-author{font-size:13px;color:#999;font-style:italic;margin-bottom:2.5rem;display:block;}
 .section-head{font-size:12px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.1em;margin:2rem 0 .75rem;border-top:0.5px solid #eee;padding-top:1rem;font-family:sans-serif;}
-.para{font-size:15px;line-height:1.85;margin-bottom:0;cursor:text;white-space:pre;}
+.para{font-size:15px;line-height:1.85;margin:0;padding:0;cursor:text;white-space:pre;display:block;}
 .stanza-break{height:1.85em;}
 .highlight{border-radius:2px;cursor:pointer;transition:filter .15s;}
 @keyframes shimmer{0%{background-position:0% 50%;}100%{background-position:200% 50%;}}
@@ -824,7 +824,7 @@ function renderText(content) {
       tc.appendChild(el);
     } else {
       lastWasBlank = false;
-      const el = document.createElement('p');
+      const el = document.createElement('div');
       el.className = 'para';
       el.textContent = line; // preserve original line including any leading spaces
       tc.appendChild(el);
