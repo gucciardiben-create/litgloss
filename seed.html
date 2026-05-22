@@ -672,7 +672,7 @@ document.getElementById('btn-seed').addEventListener('click', async () => {
         try {
           const saved = await sb('replies', {
             method: 'POST',
-            body: { annotation_id: anno.id, body, text: body, username: rUsername, author: replier, date: dateStr, likes: Math.floor(Math.random()*4) }
+            body: { annotation_id: anno.id, body, text: body, username: rUsername, author: replier, date: dateStr }
           });
           const sr = Array.isArray(saved) ? saved[0] : saved;
           if (sr?.id) seededReplyIds.push(sr.id);
