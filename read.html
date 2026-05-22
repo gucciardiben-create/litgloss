@@ -948,6 +948,42 @@ function findQuoteSpan(pt, rawQuote) {
   return null;
 }
 
+
+// ── HEAT GRADIENT HELPERS (hoisted — used inside applyHighlights forEach) ────
+const HEAT_MAX = 20;
+function heatStop(val) {
+  const t = Math.min(val / HEAT_MAX, 1);
+  if (t < 0.015) return 'transparent';
+  const h = Math.round(48 - t * 38);
+  const l = Math.round(70 - t * 18);
+  const alpha = (0.14 + t * 0.32).toFixed(2);
+  return `hsla(${h},90%,${l}%,${alpha})`;
+}
+function charAtPoint(para, x, y) {
+  const r = document.caretRangeFromPoint
+    ? document.caretRangeFromPoint(x, y)
+    : (document.caretPositionFromPoint
+        ? (() => {
+            const cp = document.caretPositionFromPoint(x, y);
+            if (!cp) return null;
+            const r2 = document.createRange();
+            r2.setStart(cp.offsetNode, cp.offset);
+            return r2;
+          })()
+        : null);
+  if (!r) return -1;
+  const node = r.startContainer;
+  if (node.nodeType !== 3) return -1;
+  let offset = r.startOffset;
+  const walker = document.createTreeWalker(para, NodeFilter.SHOW_TEXT);
+  let found = false;
+  while (walker.nextNode()) {
+    if (walker.currentNode === node) { found = true; break; }
+    offset += walker.currentNode.length;
+  }
+  return found ? offset : -1;
+}
+
 function applyHighlights() {
   const paras = Array.from(document.querySelectorAll('.para'));
   // Strip existing highlights, restore plain text
@@ -1020,18 +1056,6 @@ function applyHighlights() {
       return sum / n;
     });
 
-    const MAX_HEAT = 20;
-    function heatStop(val) {
-      const t = Math.min(val / MAX_HEAT, 1);
-      if (t < 0.015) return 'transparent';
-      // Gold → amber → orange-red, kept light so text stays readable
-      const h = Math.round(48 - t * 38);   // 48 (gold) → 10 (red-orange)
-      const s2 = 90;
-      const l = Math.round(70 - t * 18);   // 70% → 52% lightness
-      const alpha = (0.14 + t * 0.32).toFixed(2);
-      return `hsla(${h},${s2}%,${l}%,${alpha})`;
-    }
-
     // Sample character positions → build gradient stops
     const SAMPLE = Math.max(1, Math.floor(pt.length / 60));
     const gradStops = [];
@@ -1048,38 +1072,13 @@ function applyHighlights() {
     para.style.borderRadius = '3px';
 
     // ── HOVER / CLICK: map cursor x-position → character → annotations ───────
-    function charAtPoint(x, y) {
-      const r = document.caretRangeFromPoint
-        ? document.caretRangeFromPoint(x, y)
-        : (document.caretPositionFromPoint
-            ? (() => {
-                const cp = document.caretPositionFromPoint(x, y);
-                if (!cp) return null;
-                const r2 = document.createRange();
-                r2.setStart(cp.offsetNode, cp.offset);
-                return r2;
-              })()
-            : null);
-      if (!r) return -1;
-      const node = r.startContainer;
-      if (node.nodeType !== 3) return -1;
-      let offset = r.startOffset;
-      const walker = document.createTreeWalker(para, NodeFilter.SHOW_TEXT);
-      let found = false;
-      while (walker.nextNode()) {
-        if (walker.currentNode === node) { found = true; break; }
-        offset += walker.currentNode.length;
-      }
-      return found ? offset : -1;
-    }
-
     function idsAtChar(ci) {
       return (ci >= 0 && ca[ci]) ? ca[ci] : [];
     }
 
     para.addEventListener('mousemove', e => {
       if (graffitiMode) return;
-      const ids = idsAtChar(charAtPoint(e.clientX, e.clientY));
+      const ids = idsAtChar(charAtPoint(para, e.clientX, e.clientY));
       if (!ids.length) { clearTimeout(popupTimeout); popupTimeout = setTimeout(hidePopup, 200); return; }
       clearTimeout(popupTimeout);
       const ma = annotations.filter(a => ids.includes(a.id));
@@ -1089,7 +1088,7 @@ function applyHighlights() {
     para.addEventListener('click', e => {
       if (graffitiMode) return;
       const sel = window.getSelection(); if (sel && sel.toString().trim()) return;
-      const ids = idsAtChar(charAtPoint(e.clientX, e.clientY));
+      const ids = idsAtChar(charAtPoint(para, e.clientX, e.clientY));
       if (!ids.length) return;
       const ma = annotations.filter(a => ids.includes(a.id));
       if (ma.length) showPopup(ma, para, paraIdx);
