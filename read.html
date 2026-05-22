@@ -667,6 +667,8 @@ const db = {
   insertAnnotation: row => sbFetch('annotations', { method: 'POST', body: row }),
   upvoteAnnotation: (id, v) => sbFetch(`annotations?id=eq.${id}`, { method: 'PATCH', body: { upvotes: v } }),
   deleteAnnotation: id => sbFetch(`annotations?id=eq.${id}`, { method: 'DELETE' }),
+  deleteAllAnnotations: (songNum) => sbFetch(`annotations?song_nums=cs.{${songNum}}`, { method: 'DELETE' }),
+  deleteAllRepliesForAnnotations: (ids) => ids.length ? sbFetch(`replies?annotation_id=in.(${ids.join(',')})`, { method: 'DELETE' }) : Promise.resolve(null),
   updateAnnotation: (id, f) => sbFetch(`annotations?id=eq.${id}`, { method: 'PATCH', body: f }),
   getReplies: annoId => sbFetch(`replies?annotation_id=eq.${annoId}&order=created_at.asc`),
   getRepliesForAnnotations: ids => sbFetch(`replies?annotation_id=in.(${ids.join(',')})&select=id,annotation_id,body,author,username,likes`),
@@ -1479,6 +1481,118 @@ function startFlashcards() {
   renderCard();
 }
 
+// ── DELETE ALL COMMENTS ──────────────────────────────────────────────────────
+function openDeleteAllDialog() {
+  const total = annotations.length;
+  if (!total) {
+    alert('There are no comments to delete on this text.');
+    return;
+  }
+
+  // Build confirmation overlay
+  let overlay = document.getElementById('delete-all-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'delete-all-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:800;display:flex;align-items:center;justify-content:center;';
+    document.body.appendChild(overlay);
+  }
+
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:2rem;width:380px;font-family:sans-serif;text-align:center;">
+      <div style="font-size:32px;margin-bottom:12px;">🗑</div>
+      <div style="font-size:17px;font-weight:500;margin-bottom:8px;">Delete all comments?</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;">
+        This will permanently delete <strong style="color:#DC2626;">${total} annotation${total!==1?'s':''}</strong>
+        and all their replies from this text.
+      </div>
+      <div style="font-size:12px;color:#DC2626;background:#FEF2F2;border:0.5px solid #FCA5A5;border-radius:8px;padding:8px 12px;margin-bottom:1.2rem;">
+        ⚠ This cannot be undone.
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:1rem;">Type <strong>delete</strong> to confirm:</div>
+      <input id="del-confirm-inp" type="text" placeholder="delete"
+        style="width:100%;font-size:14px;padding:8px 12px;border:0.5px solid #ccc;border-radius:8px;
+               font-family:sans-serif;outline:none;text-align:center;margin-bottom:10px;"
+        autocomplete="off" />
+      <div style="display:flex;gap:8px;">
+        <button id="del-cancel-btn"
+          style="flex:1;padding:10px;background:transparent;border:0.5px solid #ddd;border-radius:8px;
+                 font-size:13px;cursor:pointer;font-family:sans-serif;color:#888;">
+          Cancel
+        </button>
+        <button id="del-confirm-btn" disabled
+          style="flex:1;padding:10px;background:#DC2626;color:#fff;border:none;border-radius:8px;
+                 font-size:13px;font-weight:600;cursor:pointer;font-family:sans-serif;opacity:0.4;">
+          Delete all
+        </button>
+      </div>
+      <div id="del-status" style="font-size:12px;margin-top:10px;min-height:16px;color:#aaa;"></div>
+    </div>`;
+
+  overlay.style.display = 'flex';
+
+  const inp     = overlay.querySelector('#del-confirm-inp');
+  const confBtn = overlay.querySelector('#del-confirm-btn');
+  const cancelBtn = overlay.querySelector('#del-cancel-btn');
+  const status  = overlay.querySelector('#del-status');
+
+  inp.focus();
+  inp.addEventListener('input', () => {
+    const ready = inp.value.trim().toLowerCase() === 'delete';
+    confBtn.disabled = !ready;
+    confBtn.style.opacity = ready ? '1' : '0.4';
+    confBtn.style.cursor  = ready ? 'pointer' : 'not-allowed';
+  });
+
+  cancelBtn.addEventListener('click', () => { overlay.style.display = 'none'; });
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.style.display = 'none'; });
+
+  confBtn.addEventListener('click', async () => {
+    confBtn.disabled = true;
+    cancelBtn.disabled = true;
+    status.style.color = '#aaa';
+    status.textContent = 'Deleting replies…';
+
+    try {
+      // Step 1: delete all replies for these annotations
+      const annoIds = annotations.map(a => a.id);
+      if (annoIds.length) {
+        // Batch into groups of 50 to stay within URL length limits
+        for (let i = 0; i < annoIds.length; i += 50) {
+          const batch = annoIds.slice(i, i + 50);
+          await db.deleteAllRepliesForAnnotations(batch);
+        }
+      }
+
+      status.textContent = 'Deleting annotations…';
+
+      // Step 2: delete all annotations for this text (by SONG_NUM + any legacy nums)
+      const allNums = [SONG_NUM, ...(window._legacySongNums || [])];
+      for (const num of allNums) {
+        try { await db.deleteAllAnnotations(num); } catch(_) {}
+      }
+
+      // Step 3: clear local state and re-render
+      annotations = [];
+      applyHighlights();
+      renderFeed();
+      renderLeaderboard();
+
+      status.style.color = '#16A34A';
+      status.textContent = `✓ Deleted ${total} annotation${total!==1?'s':''} and their replies.`;
+      confBtn.style.background = '#16A34A';
+      confBtn.textContent = '✓ Done';
+
+      setTimeout(() => { overlay.style.display = 'none'; }, 2000);
+    } catch(e) {
+      status.style.color = '#DC2626';
+      status.textContent = 'Error: ' + e.message;
+      confBtn.disabled = false;
+      cancelBtn.disabled = false;
+    }
+  });
+}
+
 // Wire vocab toggle
 document.getElementById('toggle-vocab')?.addEventListener('click', () => {
   vocabVisible = !vocabVisible;
@@ -1989,20 +2103,31 @@ window.addEventListener('DOMContentLoaded', () => {
     editBtn.textContent = '✎ Edit Text';
     editBtn.style.cssText = 'font-size:11px;padding:4px 11px;border-radius:8px;border:0.5px solid #ddd;background:transparent;color:#888;cursor:pointer;font-family:sans-serif;';
     editBtn.addEventListener('click', () => {
-      if (isTeacherUnlocked()) {
-        openTeacherEditor();
-      } else {
-        openTeacherGate();
-      }
+      if (isTeacherUnlocked()) { openTeacherEditor(); } else { openTeacherGate(); }
     });
     topbar.insertBefore(editBtn, topbar.querySelector('a'));
+
+    // Delete All Comments button
+    const delBtn = document.createElement('button');
+    delBtn.id = 'te-delete-btn';
+    delBtn.textContent = '🗑 Delete All Comments';
+    delBtn.style.cssText = 'font-size:11px;padding:4px 11px;border-radius:8px;border:0.5px solid #FCA5A5;background:transparent;color:#DC2626;cursor:pointer;font-family:sans-serif;';
+    delBtn.addEventListener('click', () => {
+      if (isTeacherUnlocked()) { openDeleteAllDialog(); } else { openTeacherGate('delete'); }
+    });
+    topbar.insertBefore(delBtn, topbar.querySelector('a'));
   }, 400);
 });
 
-function openTeacherGate() {
+function openTeacherGate(action = 'edit') {
   const gate = document.getElementById('te-gate');
   const pw   = document.getElementById('te-gate-pw');
   const err  = document.getElementById('te-gate-err');
+  const box  = gate.querySelector('.te-gate-box');
+  // Update prompt text based on action
+  box.querySelector('p').textContent = action === 'delete'
+    ? 'Enter the teacher password to delete all comments.'
+    : 'Enter the teacher password to edit this text.';
   gate.classList.add('open');
   err.textContent = '';
   setTimeout(() => pw.focus(), 80);
@@ -2012,7 +2137,7 @@ function openTeacherGate() {
       sessionStorage.setItem(TE_SESSION_KEY, 'yes');
       gate.classList.remove('open');
       pw.value = '';
-      openTeacherEditor();
+      if (action === 'delete') { openDeleteAllDialog(); } else { openTeacherEditor(); }
     } else {
       err.textContent = 'Incorrect password.';
       pw.value = '';
@@ -2021,7 +2146,6 @@ function openTeacherGate() {
   };
   document.getElementById('te-gate-btn').onclick = tryUnlock;
   pw.onkeydown = e => { if (e.key === 'Enter') tryUnlock(); };
-  // Close on backdrop click
   gate.onclick = e => { if (e.target === gate) { gate.classList.remove('open'); } };
 }
 
