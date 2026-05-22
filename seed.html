@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LitGloss — Annotation Seeder</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Georgia',serif;background:#0f0e0d;color:#e8e4dd;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:3rem 1.5rem;}
+
+/* Header */
+.header{text-align:center;margin-bottom:3rem;}
+.logo{font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:#6b6560;margin-bottom:1rem;font-family:sans-serif;}
+h1{font-size:36px;font-weight:400;letter-spacing:-.02em;color:#f5f0e8;margin-bottom:.5rem;}
+.subtitle{font-size:13px;color:#6b6560;font-family:sans-serif;line-height:1.6;}
+.warning{display:inline-block;margin-top:10px;font-size:11px;padding:4px 12px;border-radius:20px;background:#3d1a1a;color:#f87171;border:0.5px solid #7f1d1d;font-family:sans-serif;}
+
+/* Card */
+.card{background:#1a1916;border:0.5px solid #2e2b27;border-radius:16px;padding:2rem;width:100%;max-width:580px;margin-bottom:1.5rem;}
+.card-title{font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:#6b6560;font-family:sans-serif;margin-bottom:1.2rem;}
+
+/* Fields */
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:11px;color:#8a8480;margin-bottom:5px;font-family:sans-serif;text-transform:uppercase;letter-spacing:.06em;}
+.field input, .field select{width:100%;font-size:13px;padding:9px 12px;border:0.5px solid #2e2b27;border-radius:8px;background:#0f0e0d;color:#e8e4dd;font-family:sans-serif;outline:none;}
+.field input:focus, .field select:focus{border-color:#8b6f4e;}
+.field input::placeholder{color:#4a4640;}
+.field select option{background:#1a1916;}
+
+/* Sliders */
+.slider-row{display:flex;align-items:center;gap:10px;}
+.slider-row input[type=range]{flex:1;accent-color:#c4a882;}
+.slider-val{font-size:13px;color:#c4a882;font-family:sans-serif;min-width:28px;text-align:right;}
+
+/* Config grid */
+.config-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* Device toggles */
+.device-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.device-toggle{font-size:11px;padding:3px 10px;border-radius:20px;border:0.5px solid #2e2b27;background:transparent;color:#8a8480;cursor:pointer;font-family:sans-serif;transition:all .15s;}
+.device-toggle:hover{border-color:#8b6f4e;color:#c4a882;}
+.device-toggle.on{background:#2a2018;border-color:#8b6f4e;color:#c4a882;}
+
+/* Names list */
+.names-textarea{width:100%;font-size:12px;padding:9px 12px;border:0.5px solid #2e2b27;border-radius:8px;background:#0f0e0d;color:#e8e4dd;font-family:sans-serif;outline:none;resize:vertical;min-height:90px;line-height:1.6;}
+.names-textarea:focus{border-color:#8b6f4e;}
+
+/* Buttons */
+.btn-row{display:flex;gap:8px;margin-top:1.5rem;}
+.btn-primary{flex:1;padding:12px;background:#c4a882;color:#0f0e0d;border:none;border-radius:10px;font-size:14px;font-family:sans-serif;font-weight:600;cursor:pointer;letter-spacing:.02em;transition:background .15s;}
+.btn-primary:hover{background:#d4b892;}
+.btn-primary:disabled{background:#3a3530;color:#6b6560;cursor:not-allowed;}
+.btn-secondary{padding:12px 20px;background:transparent;color:#8a8480;border:0.5px solid #2e2b27;border-radius:10px;font-size:13px;font-family:sans-serif;cursor:pointer;}
+.btn-secondary:hover{background:#1a1916;color:#e8e4dd;}
+
+/* Progress */
+.progress-card{display:none;}
+.progress-card.visible{display:block;}
+.progress-bar-track{height:4px;background:#2e2b27;border-radius:2px;margin-bottom:12px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,#8b6f4e,#c4a882);border-radius:2px;transition:width .3s ease;width:0%;}
+.progress-log{font-size:12px;font-family:sans-serif;color:#6b6560;line-height:1.8;max-height:180px;overflow-y:auto;}
+.progress-log .ok{color:#6ee7b7;}
+.progress-log .err{color:#f87171;}
+.progress-log .dim{color:#4a4640;}
+
+/* Stats */
+.stats-row{display:flex;gap:12px;margin-top:1rem;}
+.stat{flex:1;text-align:center;padding:12px 8px;background:#0f0e0d;border-radius:10px;border:0.5px solid #2e2b27;}
+.stat-num{font-size:22px;font-weight:400;color:#c4a882;}
+.stat-label{font-size:10px;color:#6b6560;font-family:sans-serif;text-transform:uppercase;letter-spacing:.08em;margin-top:2px;}
+
+/* Text preview */
+.para-list{display:flex;flex-direction:column;gap:3px;margin-top:8px;max-height:200px;overflow-y:auto;}
+.para-item{font-size:12px;padding:4px 8px;border-radius:5px;cursor:pointer;color:#8a8480;font-family:Georgia,serif;border:0.5px solid transparent;transition:all .12s;display:flex;align-items:center;gap:8px;}
+.para-item:hover{background:#1a1916;color:#e8e4dd;border-color:#2e2b27;}
+.para-item.selected{background:#2a2018;color:#c4a882;border-color:#8b6f4e;}
+.para-idx{font-size:10px;color:#4a4640;font-family:sans-serif;min-width:20px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">LitGloss</div>
+  <h1>Annotation Seeder</h1>
+  <p class="subtitle">Generate realistic student annotations to test heatmaps,<br>literary devices, and the full annotation suite.</p>
+  <span class="warning">⚠ Writes real data to Supabase — delete after testing</span>
+</div>
+
+<!-- STEP 1: Load Text -->
+<div class="card">
+  <div class="card-title">Step 1 — Text</div>
+  <div class="field">
+    <label>Text ID (from URL: read.html?id=N)</label>
+    <input type="text" id="inp-id" placeholder="e.g. 4" />
+  </div>
+  <button class="btn-primary" id="btn-load" style="width:100%;margin-top:4px;">Load text →</button>
+  <div id="text-preview" style="margin-top:12px;display:none;">
+    <div style="font-size:12px;color:#8a8480;font-family:sans-serif;margin-bottom:6px;">
+      <span id="preview-title" style="color:#c4a882;font-weight:500;"></span>
+      <span id="preview-author" style="margin-left:6px;"></span>
+      <span id="preview-count" style="margin-left:6px;color:#6b6560;"></span>
+    </div>
+    <div style="font-size:11px;color:#6b6560;font-family:sans-serif;margin-bottom:5px;">Click lines to pin annotation targets (or leave empty to randomize):</div>
+    <div class="para-list" id="para-list"></div>
+  </div>
+</div>
+
+<!-- STEP 2: Configure -->
+<div class="card" id="config-card" style="display:none;">
+  <div class="card-title">Step 2 — Configure</div>
+
+  <div class="config-grid">
+    <div class="field">
+      <label>Students</label>
+      <div class="slider-row">
+        <input type="range" id="sl-students" min="5" max="40" value="30" />
+        <span class="slider-val" id="lbl-students">30</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Annotations per student</label>
+      <div class="slider-row">
+        <input type="range" id="sl-per" min="1" max="8" value="3" />
+        <span class="slider-val" id="lbl-per">3</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Device tagging rate</label>
+      <div class="slider-row">
+        <input type="range" id="sl-device" min="0" max="100" value="60" />
+        <span class="slider-val" id="lbl-device">60%</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Teacher prompts</label>
+      <div class="slider-row">
+        <input type="range" id="sl-tp" min="0" max="10" value="2" />
+        <span class="slider-val" id="lbl-tp">2</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="field" style="margin-top:4px;">
+    <label>Tag distribution</label>
+    <select id="sel-tags">
+      <option value="realistic">Realistic (mostly Analysis + Question)</option>
+      <option value="even">Even spread across all types</option>
+      <option value="analysis">Heavy analysis focus</option>
+      <option value="questions">Heavy questions focus</option>
+    </select>
+  </div>
+
+  <div style="border-top:0.5px solid #2e2b27;padding-top:14px;margin-top:6px;">
+    <div class="card-title" style="margin-bottom:10px;">Conversation &amp; Overlap</div>
+    <div class="config-grid">
+      <div class="field">
+        <label>Reply rate</label>
+        <div class="slider-row">
+          <input type="range" id="sl-reply" min="0" max="100" value="40" />
+          <span class="slider-val" id="lbl-reply">40%</span>
+        </div>
+        <div style="font-size:10px;color:#4a4640;font-family:sans-serif;margin-top:3px;">% of annotations that get replies</div>
+      </div>
+      <div class="field">
+        <label>Max replies per post</label>
+        <div class="slider-row">
+          <input type="range" id="sl-max-reply" min="1" max="6" value="3" />
+          <span class="slider-val" id="lbl-max-reply">3</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Overlap density</label>
+        <div class="slider-row">
+          <input type="range" id="sl-overlap" min="0" max="100" value="50" />
+          <span class="slider-val" id="lbl-overlap">50%</span>
+        </div>
+        <div style="font-size:10px;color:#4a4640;font-family:sans-serif;margin-top:3px;">% chance a student picks an already-annotated line</div>
+      </div>
+      <div class="field">
+        <label>Hot lines</label>
+        <div class="slider-row">
+          <input type="range" id="sl-hot" min="0" max="5" value="2" />
+          <span class="slider-val" id="lbl-hot">2</span>
+        </div>
+        <div style="font-size:10px;color:#4a4640;font-family:sans-serif;margin-top:3px;">Lines that attract 3× more annotations</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Include literary devices</label>
+    <div class="device-grid" id="device-grid"></div>
+  </div>
+
+  <div class="field">
+    <label>Student names (one per line — or leave blank for defaults)</label>
+    <textarea class="names-textarea" id="inp-names" placeholder="Emma Chen&#10;Marcus Williams&#10;Sofia Rodriguez&#10;…"></textarea>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-secondary" id="btn-back">← Back</button>
+    <button class="btn-primary" id="btn-seed">Seed annotations →</button>
+  </div>
+</div>
+
+<!-- STEP 3: Progress -->
+<div class="card progress-card" id="progress-card">
+  <div class="card-title">Step 3 — Seeding</div>
+  <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill"></div></div>
+  <div class="progress-log" id="progress-log"></div>
+  <div class="stats-row" id="stats-row" style="display:none;">
+    <div class="stat"><div class="stat-num" id="stat-posted">0</div><div class="stat-label">Annotations</div></div>
+    <div class="stat"><div class="stat-num" id="stat-devices">0</div><div class="stat-label">With devices</div></div>
+    <div class="stat"><div class="stat-num" id="stat-lines">0</div><div class="stat-label">Lines hit</div></div>
+    <div class="stat"><div class="stat-num" id="stat-replies">0</div><div class="stat-label">Replies</div></div>
+  </div>
+  <div class="btn-row" id="done-btns" style="display:none;">
+    <button class="btn-secondary" id="btn-delete-all">🗑 Delete all seeded</button>
+    <button class="btn-primary" id="btn-open-read">Open in reader →</button>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://cajrjmroqidjuzqsvzon.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhanJqbXJvcWlkanV6cXN2em9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MzY4NjEsImV4cCI6MjA5MjExMjg2MX0.mk-7_sAGkh9mAFHjTZXImm5WM_WAwzg-ulYgGlQ9oXg';
+
+async function sb(path, opts = {}) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method: opts.method || 'GET',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || (opts.method === 'POST' ? 'return=representation' : 'return=minimal'),
+    },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (!r.ok) { const d = await r.json().catch(()=>({})); throw new Error(d.message || r.statusText); }
+  if (r.status === 204) return null;
+  return r.json();
+}
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const DEVICES_ALL = [
+  'Alliteration','Assonance','Anaphora','Onomatopoeia','Euphony','Cacophony',
+  'Metaphor','Simile','Extended Metaphor','Personification','Hyperbole','Synecdoche',
+  'Allusion','Apostrophe','Antithesis','Rhetorical Question','Paradox',
+  'Asyndeton','Polysyndeton','Parallelism','Periodic Sentence',
+  'Irony','Ambiguity','Diction','Tone',
+  'Visual Imagery','Auditory Imagery','Tactile Imagery','Olfactory Imagery',
+];
+
+const TAGS = ['Question','Analysis','Free Write','Analysis/Criticism','Connection','Summary','Footnote','Clarification'];
+
+const TAG_WEIGHTS = {
+  realistic:   [8, 30, 10, 20, 15, 5, 5, 7],
+  even:        [1,  1,  1,  1,  1, 1, 1, 1],
+  analysis:    [3, 40,  5, 35,  5, 5, 3, 4],
+  questions:   [40,15, 10, 10, 10, 5, 5, 5],
+};
+
+const SUBJECTS = {
+  Question: [
+    "What does this suggest about {word}?",
+    "Why does {word} appear here?",
+    "Is this ironic?",
+    "What is the speaker's tone toward {word}?",
+    "Who is the audience here?",
+    "What does '{word}' mean in context?",
+    "How does this connect to the title?",
+    "Why this word choice?",
+  ],
+  Analysis: [
+    "The {device} here creates distance",
+    "{device} emphasizes the speaker's isolation",
+    "Tone shift at '{word}'",
+    "The image of {word} recurs throughout",
+    "{device} reinforces the central theme",
+    "Structure mirrors meaning here",
+    "The diction of {word} is significant",
+    "Contrast between {word} and the stanza above",
+  ],
+  'Free Write': [
+    "This reminds me of...",
+    "First reaction",
+    "Personal connection",
+    "Something feels off here",
+    "I keep coming back to '{word}'",
+  ],
+  'Analysis/Criticism': [
+    "A {device} that doesn't quite work",
+    "Overreach in the metaphor",
+    "Ambiguous — productively or not?",
+    "The speaker undermines himself here",
+    "This line resists interpretation",
+  ],
+  Connection: [
+    "Connection to {word}",
+    "Echoes of {other}",
+    "Compare to earlier stanza",
+    "This mirrors the opening",
+    "Reminds me of {other}",
+  ],
+  Summary:   ["Summarizing this passage","What happens here","The gist of this section"],
+  Footnote:  ["Context: {word}","Historical note","Biographical detail","Allusion glossed"],
+  Clarification: ["What does '{word}' mean?","Syntax unclear","Ambiguous pronoun reference","Need context for {word}"],
+};
+
+const BODIES = {
+  Question: [
+    "I'm not sure whether this is meant to be read literally or as {device}. The word choice feels deliberately destabilizing.",
+    "The question isn't answered anywhere in the poem — is that the point? The silence itself seems to be the response.",
+    "There's a tension here I can't resolve. The speaker seems to be asking something they already know the answer to.",
+    "Is this addressed to a specific person, or is it more of an apostrophe to an abstraction?",
+    "Why this particular moment for the shift? Something changes tonally right here and I want to understand why.",
+    "The ambiguity feels intentional — but intentional to what end?",
+  ],
+  Analysis: [
+    "The {device} here is doing heavy lifting — it collapses two registers that the poem has been carefully keeping apart. The effect is sudden and disorienting.",
+    "Notice how the syntax enacts the meaning: the sentence breaks down just as the subject is breaking down. Form and content are inseparable.",
+    "The speaker's distance from the subject becomes audible in the diction. Words like '{word}' carry a kind of enforced detachment.",
+    "This is the emotional center of the piece, I think, even though it arrives quietly. The restraint makes it more devastating.",
+    "The {device} creates a double exposure — we see two images simultaneously. It demands we hold both in mind at once.",
+    "There's a musical quality to this line: the vowel sounds slow everything down, creating a kind of mournful duration.",
+    "The line break here is doing real semantic work — holding two readings in tension before the next line collapses them.",
+  ],
+  'Free Write': [
+    "This stopped me cold the first time I read it. Something about the juxtaposition feels almost unbearable.",
+    "I've read this three times and each time it feels like a slightly different poem. The meaning keeps shifting.",
+    "'{word}' — I don't know why but that word is the one that gets me.",
+    "Reading this I thought of my grandmother. Not sure why. Something about how grief gets deflected into observation.",
+    "The poem earns this moment. Everything before has been building to this and when it arrives it lands hard.",
+  ],
+  'Analysis/Criticism': [
+    "The {device} feels strained here — I'm not sure the comparison holds up under pressure. The tenor and vehicle don't map cleanly.",
+    "There's a risk of sentimentality in this line that the poem doesn't quite escape. The emotion isn't fully earned.",
+    "The shift in register feels abrupt rather than purposeful. I need to sit with it more but my first instinct is that it's a miscalculation.",
+    "The abstraction here loses the concreteness that made the earlier stanzas so powerful. I wanted more image, less statement.",
+  ],
+  Connection: [
+    "This echoes the opening stanza but with the emotional valence reversed — what was tender has become something close to bitter.",
+    "There's a whole tradition behind this image. The poem is clearly in dialogue with it, whether consciously or not.",
+    "Compare this to the penultimate stanza — the same word appears, but the context has transformed its meaning entirely.",
+    "I kept thinking of Berryman's Dream Songs here — the same fractured intimacy, the same sense of a self dissolving into elegy.",
+    "The structure here mirrors the structure of grief itself: the circling back, the failure to arrive at resolution.",
+  ],
+  Summary:   [
+    "The speaker is working through the implications of a loss that can't be named directly.",
+    "This passage establishes the central tension: the desire to speak and the impossibility of adequate speech.",
+    "A kind of catalog — the poem lists in order to enact the failure of lists to capture what matters.",
+  ],
+  Footnote:  [
+    "This is likely an allusion to the biblical tradition of exile — the specific phrasing echoes Lamentations.",
+    "Historical context: this was written in the aftermath of a close friend's death. The biographical weight is real.",
+    "'Tref' is a Yiddish word meaning ritually impure or unclean — the contamination is cosmic, not just personal.",
+    "The proper name here carries a double meaning — both the historical figure and the speaker's own projected self.",
+  ],
+  Clarification: [
+    "The grammar here is doing something unusual — the subject shifts mid-sentence and I want to make sure I'm following correctly.",
+    "Genuinely unsure about the referent of this pronoun. It could be the speaker, the addressee, or an absent third party.",
+    "The syntax is inverted here in a way that initially obscures the meaning — once you untangle it, the inversion seems deliberate.",
+    "Need context for the allusion before I can interpret this line with any confidence.",
+  ],
+};
+
+const FIRST = ['Emma','Marcus','Sofia','Lena','James','Priya','Noah','Aria','Elijah','Maya','Caleb','Zara','Owen','Nadia','Felix','Ingrid','Leo','Chloe','Tobias','Mei','Rafi','Simone','Amos','Yuki','Declan','Freya','Orion','Paloma','Jasper','Rue'];
+const LAST  = ['Chen','Williams','Rodriguez','Novak','Park','Osei','Andersen','Kimura','Nakamura','Okonkwo','Petrov','Hassan','Laurent','Fernandez','Bjornstad','Yilmaz','MacAlister','Delacroix','Reyes','Tamura'];
+
+function randName(i) { return `${FIRST[i % FIRST.length]} ${LAST[Math.floor(i/FIRST.length) % LAST.length]}`; }
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function pickWeighted(arr, weights) {
+  const total = weights.reduce((a,b)=>a+b,0);
+  let r = Math.random() * total;
+  for (let i = 0; i < arr.length; i++) { r -= weights[i]; if (r <= 0) return arr[i]; }
+  return arr[arr.length-1];
+}
+function fillTemplate(template, word, device) {
+  const others = ['loss','time','death','memory','grief','love','silence','self'];
+  return template
+    .replace(/\{word\}/g, word || pick(['this','here','now','it']))
+    .replace(/\{device\}/g, device || pick(['metaphor','image','repetition','diction']))
+    .replace(/\{other\}/g, pick(others));
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let textData = null;
+let paraLines = [];
+let pinnedParas = new Set();
+let seededIds = [];
+let enabledDevices = new Set(DEVICES_ALL);
+
+// ── UI SETUP ──────────────────────────────────────────────────────────────────
+const sliders = [
+  ['sl-students',  'lbl-students',  v => v],
+  ['sl-per',       'lbl-per',       v => v],
+  ['sl-device',    'lbl-device',    v => v+'%'],
+  ['sl-tp',        'lbl-tp',        v => v],
+  ['sl-reply',     'lbl-reply',     v => v+'%'],
+  ['sl-max-reply', 'lbl-max-reply', v => v],
+  ['sl-overlap',   'lbl-overlap',   v => v+'%'],
+  ['sl-hot',       'lbl-hot',       v => v],
+];
+sliders.forEach(([id, lblId, fmt]) => {
+  const el = document.getElementById(id);
+  const lbl = document.getElementById(lblId);
+  lbl.textContent = fmt(el.value);
+  el.addEventListener('input', () => lbl.textContent = fmt(el.value));
+});
+
+// Device toggle grid
+const dg = document.getElementById('device-grid');
+DEVICES_ALL.forEach(d => {
+  const btn = document.createElement('button');
+  btn.className = 'device-toggle on';
+  btn.textContent = d;
+  btn.addEventListener('click', () => {
+    btn.classList.toggle('on');
+    enabledDevices.has(d) ? enabledDevices.delete(d) : enabledDevices.add(d);
+  });
+  dg.appendChild(btn);
+});
+
+// ── LOAD TEXT ──────────────────────────────────────────────────────────────────
+document.getElementById('btn-load').addEventListener('click', async () => {
+  const id = document.getElementById('inp-id').value.trim();
+  if (!id) return;
+  const btn = document.getElementById('btn-load');
+  btn.textContent = 'Loading…'; btn.disabled = true;
+  try {
+    const rows = await sb(`texts?id=eq.${id}&select=id,title,author,content`);
+    if (!rows || !rows.length) throw new Error('Text not found');
+    textData = rows[0];
+
+    // Parse lines (same logic as renderText)
+    paraLines = [];
+    textData.content.split('\n').forEach((line, i) => {
+      if (line.trim() !== '' && !line.trimStart().startsWith('#')) {
+        paraLines.push({ idx: paraLines.length, text: line, original: line });
+      }
+    });
+
+    document.getElementById('preview-title').textContent = textData.title;
+    document.getElementById('preview-author').textContent = textData.author || '';
+    document.getElementById('preview-count').textContent = `· ${paraLines.length} annotatable lines`;
+
+    const list = document.getElementById('para-list');
+    list.innerHTML = '';
+    paraLines.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'para-item';
+      div.innerHTML = `<span class="para-idx">${p.idx}</span><span>${p.text.trim().slice(0,70)}${p.text.trim().length>70?'…':''}</span>`;
+      div.addEventListener('click', () => {
+        div.classList.toggle('selected');
+        pinnedParas.has(p.idx) ? pinnedParas.delete(p.idx) : pinnedParas.add(p.idx);
+      });
+      list.appendChild(div);
+    });
+
+    document.getElementById('text-preview').style.display = 'block';
+    document.getElementById('config-card').style.display = 'block';
+    btn.textContent = '✓ Loaded';
+  } catch(e) {
+    btn.textContent = 'Load text →'; btn.disabled = false;
+    alert('Error: ' + e.message);
+  }
+});
+
+document.getElementById('btn-back').addEventListener('click', () => {
+  document.getElementById('config-card').style.display = 'none';
+  document.getElementById('progress-card').classList.remove('visible');
+});
+
+// ── SEED ──────────────────────────────────────────────────────────────────────
+document.getElementById('btn-seed').addEventListener('click', async () => {
+  if (!textData) return;
+
+  const nStudents  = parseInt(document.getElementById('sl-students').value);
+  const perStudent = parseInt(document.getElementById('sl-per').value);
+  const deviceRate = parseInt(document.getElementById('sl-device').value) / 100;
+  const nTP        = parseInt(document.getElementById('sl-tp').value);
+  const tagMode    = document.getElementById('sel-tags').value;
+  const weights    = TAG_WEIGHTS[tagMode];
+  const devicesArr = [...enabledDevices];
+  const replyRate  = parseInt(document.getElementById('sl-reply').value) / 100;
+  const maxReplies = parseInt(document.getElementById('sl-max-reply').value);
+  const overlapRate= parseInt(document.getElementById('sl-overlap').value) / 100;
+  const nHotLines  = parseInt(document.getElementById('sl-hot').value);
+
+  // Student names
+  let names = document.getElementById('inp-names').value.trim().split('\n').map(s=>s.trim()).filter(Boolean);
+  if (names.length < nStudents) {
+    for (let i = names.length; i < nStudents; i++) names.push(randName(i));
+  }
+
+  // SONG_NUM (same derivation as read.html)
+  const idInt = parseInt(textData.id);
+  const SONG_NUM = (!isNaN(idInt) && String(idInt) === String(textData.id).trim())
+    ? 10000 + idInt
+    : (() => { let h=0; for(let i=0;i<textData.id.length;i++) h=((h<<5)-h+textData.id.charCodeAt(i))|0; return 50000+Math.abs(h)%9000; })();
+
+  // Show progress
+  document.getElementById('config-card').style.display = 'none';
+  const pc = document.getElementById('progress-card');
+  pc.classList.add('visible');
+  const log = document.getElementById('progress-log');
+  const progFill = document.getElementById('progress-fill');
+
+  function logLine(msg, cls='') {
+    const d = document.createElement('div');
+    d.className = cls; d.innerHTML = msg;
+    log.appendChild(d); log.scrollTop = log.scrollHeight;
+  }
+  function setProgress(n, total) {
+    progFill.style.width = Math.round(n/total*100)+'%';
+  }
+
+  seededIds = [];
+  let seededReplyIds = [];
+  let withDevices = 0;
+  const linesHit = new Set();
+
+  // Build target paragraph pool
+  const allTargetParas = pinnedParas.size > 0
+    ? [...pinnedParas]
+    : paraLines.map(p => p.idx);
+
+  // Pick hot lines — these are weighted to attract more annotations
+  const hotLines = shuffle([...allTargetParas]).slice(0, nHotLines);
+
+  // Track which para indices have been annotated so far (for overlap logic)
+  const annotatedParas = [];
+
+  // Determine teacher prompt slots
+  const total = nStudents * perStudent;
+  const tpSlots = new Set();
+  while (tpSlots.size < Math.min(nTP, total)) tpSlots.add(Math.floor(Math.random() * total));
+
+  let posted = 0;
+  logLine(`<span class="dim">Seeding ${total} annotations from ${nStudents} students…</span>`);
+  if (hotLines.length) logLine(`<span class="dim">Hot lines: ${hotLines.join(', ')}</span>`);
+
+  // ── PHASE 1: Annotations ───────────────────────────────────────────────────
+  for (let s = 0; s < nStudents; s++) {
+    const name = names[s];
+    const username = name.toLowerCase().replace(/\s+/g,'.');
+
+    for (let a = 0; a < perStudent; a++) {
+      const globalIdx = s * perStudent + a;
+
+      // Para selection: overlap logic + hot lines
+      let paraIdx;
+      const useHot     = hotLines.length && Math.random() < 0.35;
+      const useOverlap = annotatedParas.length && Math.random() < overlapRate;
+
+      if (useHot) {
+        paraIdx = pick(hotLines);
+      } else if (useOverlap) {
+        // Pick from already-annotated lines (weighted toward recently hot ones)
+        paraIdx = pick(annotatedParas);
+      } else {
+        paraIdx = pick(allTargetParas);
+      }
+
+      const para  = paraLines.find(p => p.idx === paraIdx) || paraLines[0];
+      const quote = pickQuote(para.text);
+      linesHit.add(paraIdx);
+      if (!annotatedParas.includes(paraIdx)) annotatedParas.push(paraIdx);
+
+      // Tag
+      const tag = pickWeighted(TAGS, weights);
+
+      // Subject + body
+      const subjectTemplates = SUBJECTS[tag] || SUBJECTS['Analysis'];
+      const bodyTemplates    = BODIES[tag]   || BODIES['Analysis'];
+      const wordInQuote      = quote.trim().split(/\s+/).filter(w=>w.length>3)[0] || quote.trim().split(' ')[0];
+      const device           = devicesArr.length ? pick(devicesArr) : 'metaphor';
+      const subject          = fillTemplate(pick(subjectTemplates), wordInQuote, device);
+      const body             = fillTemplate(pick(bodyTemplates),    wordInQuote, device);
+
+      // Devices
+      let devices = null;
+      if (devicesArr.length && Math.random() < deviceRate) {
+        const n = Math.random() < 0.6 ? 1 : 2;
+        const picked = shuffle(devicesArr).slice(0, n);
+        devices = JSON.stringify(picked);
+        withDevices++;
+      }
+
+      const isTP = tpSlots.has(globalIdx);
+
+      // Date (spread over last 3 weeks, earlier students post earlier)
+      const daysAgo = Math.floor(Math.random() * 14) + Math.floor((nStudents - s) / nStudents * 7);
+      const d = new Date(Date.now() - daysAgo * 86400000);
+      const dateStr = d.toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
+
+      const row = {
+        song_nums: [SONG_NUM],
+        quote,
+        line_index: paraIdx,
+        subject,
+        username,
+        body,
+        date: dateStr,
+        upvotes: Math.floor(Math.random() * 8),
+        is_global: false,
+        devices,
+        allusions: null,
+        user_id: null,
+        tag,
+        is_teacher_prompt: isTP,
+      };
+
+      try {
+        const saved = await sb('annotations', { method: 'POST', body: row });
+        const savedRow = Array.isArray(saved) ? saved[0] : saved;
+        if (savedRow?.id) seededIds.push({ id: savedRow.id, username, paraIdx });
+        posted++;
+        setProgress(posted, total);
+        if (posted % 5 === 0 || posted === total) {
+          const flag = isTP ? ' <span style="color:#a78bfa">★TP</span>' : '';
+          const hot  = hotLines.includes(paraIdx) ? ' 🔥' : '';
+          const ovlp = useOverlap ? ' ↩' : '';
+          logLine(`<span class="ok">✓ ${posted}/${total}</span>${flag}${hot}${ovlp} — ${name}: "${subject.slice(0,38)}…"`);
+        }
+      } catch(e) {
+        logLine(`<span class="err">✗ ${name}: ${e.message}</span>`);
+      }
+
+      await sleep(60);
+    }
+  }
+
+  // ── PHASE 2: Replies ───────────────────────────────────────────────────────
+  if (replyRate > 0 && seededIds.length) {
+    logLine(`<span class="dim">─────────────────────────────</span>`);
+    logLine(`<span class="dim">Seeding replies (${Math.round(replyRate*100)}% of posts)…</span>`);
+
+    const REPLY_BODIES = [
+      "Really interesting point — I hadn't noticed that. Do you think the speaker is aware of this too?",
+      "I read this differently. For me the tension is less about {word} and more about what's being withheld.",
+      "Yes, and this connects to the earlier stanza too — the same instability resurfaces there.",
+      "I'm not sure I agree. The {device} feels deliberate to me rather than a failure of control.",
+      "This is exactly what I was trying to articulate. The word '{word}' is doing so much work here.",
+      "Great catch. I missed the {device} on first read entirely.",
+      "The comparison to earlier is sharp. I think the poem earns it by that point.",
+      "Does anyone else find this line almost unbearable? There's something about the rhythm that tightens everything.",
+      "I keep coming back to '{word}' too. It shifts the register in a way I can't fully explain.",
+      "Agree with the observation but I'd push back on the framing — I think this is the most controlled moment in the poem.",
+      "The {device} is interesting but I wonder if it's undermined by what follows immediately after.",
+      "This reading opened something up for me. I had been stuck on a much narrower interpretation.",
+    ];
+
+    let repliesPosted = 0;
+
+    for (const anno of seededIds) {
+      if (Math.random() > replyRate) continue;
+
+      const nReplies = 1 + Math.floor(Math.random() * maxReplies);
+      // Pick repliers — exclude the original poster
+      const otherNames = names.filter(n => n.toLowerCase().replace(/\s+/g,'.') !== anno.username);
+      const repliers = shuffle(otherNames).slice(0, nReplies);
+
+      for (const replier of repliers) {
+        const rUsername = replier.toLowerCase().replace(/\s+/g,'.');
+        const device    = devicesArr.length ? pick(devicesArr) : 'metaphor';
+        const word      = pick(['this','here','that word','it','the image','the line']);
+        const body      = fillTemplate(pick(REPLY_BODIES), word, device);
+        // Replies come a bit after the original post
+        const daysAgo   = Math.max(0, Math.floor(Math.random() * 8));
+        const dateStr   = new Date(Date.now() - daysAgo*86400000)
+                            .toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
+        try {
+          const saved = await sb('replies', {
+            method: 'POST',
+            body: { annotation_id: anno.id, body, text: body, username: rUsername, author: replier, date: dateStr, likes: Math.floor(Math.random()*4) }
+          });
+          const sr = Array.isArray(saved) ? saved[0] : saved;
+          if (sr?.id) seededReplyIds.push(sr.id);
+          repliesPosted++;
+          if (repliesPosted % 10 === 0 || repliesPosted === 1) {
+            logLine(`<span class="ok">✓ ${repliesPosted} replies</span> — ${replier} → annotation on line ${anno.paraIdx}`);
+          }
+        } catch(e) {
+          logLine(`<span class="err">✗ Reply failed: ${e.message}</span>`);
+        }
+        await sleep(50);
+      }
+    }
+    logLine(`<span class="ok">✓ ${repliesPosted} replies seeded.</span>`);
+  }
+
+  // ── SUMMARY ────────────────────────────────────────────────────────────────
+  const totalSeeded = seededIds.length + seededReplyIds.length;
+  logLine(`<span class="ok">✓ Done — ${seededIds.length} annotations + ${seededReplyIds.length} replies.</span>`);
+  document.getElementById('stat-posted').textContent  = seededIds.length;
+  document.getElementById('stat-devices').textContent = withDevices;
+  document.getElementById('stat-lines').textContent   = linesHit.size;
+  document.getElementById('stat-replies').textContent = seededReplyIds.length;
+  document.getElementById('stats-row').style.display  = 'flex';
+  document.getElementById('done-btns').style.display  = 'flex';
+});
+
+// ── DELETE ALL SEEDED ─────────────────────────────────────────────────────────
+document.getElementById('btn-delete-all').addEventListener('click', async () => {
+  if (!seededIds.length) return;
+  if (!confirm(`Delete all ${seededIds.length} seeded annotations?`)) return;
+  const btn = document.getElementById('btn-delete-all');
+  btn.textContent = 'Deleting…'; btn.disabled = true;
+  const log = document.getElementById('progress-log');
+
+  let deleted = 0;
+  // Delete replies first (FK constraint)
+  if (seededReplyIds.length) {
+    for (let i = 0; i < seededReplyIds.length; i += 10) {
+      const batch = seededReplyIds.slice(i, i+10);
+      try { await sb(`replies?id=in.(${batch.join(',')})`, { method: 'DELETE' }); deleted += batch.length; }
+      catch(e) {}
+      await sleep(80);
+    }
+  }
+  // Delete annotations in batches of 10
+  for (let i = 0; i < seededIds.length; i += 10) {
+    const batch = seededIds.slice(i, i+10).map(x => typeof x === 'object' ? x.id : x);
+    try {
+      await sb(`annotations?id=in.(${batch.join(',')})`, { method: 'DELETE' });
+      deleted += batch.length;
+    } catch(e) {
+      const d = document.createElement('div');
+      d.className = 'err'; d.textContent = `Error deleting batch: ${e.message}`;
+      log.appendChild(d);
+    }
+    await sleep(100);
+  }
+  const d = document.createElement('div');
+  d.className = 'ok'; d.textContent = `✓ Deleted ${deleted} annotations + replies.`;
+  log.appendChild(d); log.scrollTop = log.scrollHeight;
+  seededIds = []; seededReplyIds = [];
+  btn.textContent = '✓ Deleted'; btn.disabled = true;
+});
+
+// ── OPEN IN READER ────────────────────────────────────────────────────────────
+document.getElementById('btn-open-read').addEventListener('click', () => {
+  const id = document.getElementById('inp-id').value.trim();
+  window.open(`read.html?id=${id}`, '_blank');
+});
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function pickQuote(text) {
+  // Split on whitespace but keep track of positions in original string
+  // so the returned quote is a verbatim substring of text (for exact matching)
+  const trimmed = text.trimStart();
+  const leadingSpaces = text.length - trimmed.length;
+  const words = trimmed.split(/\s+/);
+  if (words.length <= 4) return text; // return full line
+  // Build word start positions within the original text
+  const positions = [];
+  let pos = leadingSpaces;
+  words.forEach(w => { positions.push(pos); pos += w.length; while(pos < text.length && text[pos] === ' ') pos++; });
+  const len   = Math.min(3 + Math.floor(Math.random() * 5), words.length);
+  const start = Math.floor(Math.random() * (words.length - len + 1));
+  const qStart = positions[start];
+  const qEnd   = positions[start + len - 1] + words[start + len - 1].length;
+  return text.slice(qStart, qEnd);
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>
