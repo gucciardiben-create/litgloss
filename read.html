@@ -445,8 +445,9 @@ body.sb-open .topbar{margin-top:37px;}
 <div class="reader-body">
   <div class="text-col" id="text-col">
     <canvas class="graffiti-canvas hidden" id="graffiti-canvas"></canvas>
-    <div id="text-header"></div>
-    <div id="text-content"></div>
+    <canvas id="heat-canvas" style="position:absolute;top:0;left:0;width:100%;pointer-events:none;z-index:0;opacity:1;transition:opacity .4s;"></canvas>
+    <div id="text-header" style="position:relative;z-index:1;"></div>
+    <div id="text-content" style="position:relative;z-index:1;"></div>
     <div style="margin-top:2.5rem;padding-top:1rem;border-top:0.5px solid #eee;font-family:sans-serif;">
       <div style="font-size:11px;color:#bbb;margin-bottom:5px;">Color = engagement · Opacity = annotation density</div>
       <div class="heat-swatches" id="heat-swatches"></div>
@@ -949,16 +950,27 @@ function findQuoteSpan(pt, rawQuote) {
 }
 
 
-// ── HEAT GRADIENT HELPERS (hoisted — used inside applyHighlights forEach) ────
-const HEAT_MAX = 20;
+
+// ══════════════════════════════════════════════════════════
+// 2D CANVAS HEATMAP
+// ══════════════════════════════════════════════════════════
+
+// Maps annotation quote positions to pixel coordinates in the text-col,
+// then paints Gaussian blobs on a canvas behind the text.
+
+const HEAT_MAX_WEIGHT = 20;
+
 function heatStop(val) {
-  const t = Math.min(val / HEAT_MAX, 1);
+  // Used by legend swatches only
+  const t = Math.min(val / HEAT_MAX_WEIGHT, 1);
   if (t < 0.015) return 'transparent';
   const h = Math.round(48 - t * 38);
   const l = Math.round(70 - t * 18);
   const alpha = (0.14 + t * 0.32).toFixed(2);
   return `hsla(${h},90%,${l}%,${alpha})`;
 }
+
+// charAtPoint: map a clientX/Y to character offset within a para's text node
 function charAtPoint(para, x, y) {
   const r = document.caretRangeFromPoint
     ? document.caretRangeFromPoint(x, y)
@@ -984,98 +996,199 @@ function charAtPoint(para, x, y) {
   return found ? offset : -1;
 }
 
+// Get pixel rect of a character range within a text node
+function getCharRect(para, start, end) {
+  const walker = document.createTreeWalker(para, NodeFilter.SHOW_TEXT);
+  let pos = 0;
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    const len = node.length;
+    if (pos + len > start) {
+      const s = Math.max(0, start - pos);
+      const e = Math.min(len, end - pos);
+      if (s < e) {
+        const range = document.createRange();
+        range.setStart(node, s);
+        range.setEnd(node, e);
+        const rect = range.getBoundingClientRect();
+        return rect;
+      }
+    }
+    pos += len;
+    if (pos >= end) break;
+  }
+  return null;
+}
+
+// Paint the 2D heatmap onto the canvas
+function paintHeatCanvas(heatPoints) {
+  const canvas = document.getElementById('heat-canvas');
+  const col    = document.getElementById('text-col');
+  if (!canvas || !col || !heatPoints.length) {
+    if (canvas) { const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
+    return;
+  }
+
+  // Size canvas to match the scrollable text column interior
+  const tc = document.getElementById('text-content');
+  const tcRect = tc.getBoundingClientRect();
+  const colRect = col.getBoundingClientRect();
+
+  canvas.width  = Math.round(col.scrollWidth);
+  canvas.height = Math.round(col.scrollHeight);
+  canvas.style.width  = canvas.width  + 'px';
+  canvas.style.height = canvas.height + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Convert screen coords → canvas coords (accounting for scroll)
+  const scrollTop  = col.scrollTop;
+  const scrollLeft = col.scrollLeft;
+  const offsetX = colRect.left;
+  const offsetY = colRect.top;
+
+  // Draw one radial gradient blob per heat point
+  for (const pt of heatPoints) {
+    const cx = pt.x - offsetX + scrollLeft;
+    const cy = pt.y - offsetY + scrollTop;
+    const rx = pt.rx; // horizontal radius
+    const ry = pt.ry; // vertical radius  
+    const w  = pt.weight;
+
+    // Elliptical gaussian blob: scale x axis
+    ctx.save();
+    ctx.scale(1, ry / rx); // squish to ellipse
+
+    const t = Math.min(w / HEAT_MAX_WEIGHT, 1);
+    // Color: gold (h=48) → amber → orange-red (h=10)
+    const h1 = Math.round(48 - t * 38);
+    const alpha = 0.10 + t * 0.22; // very light — layers add up
+
+    const grad = ctx.createRadialGradient(cx, cy * (rx / ry), 0, cx, cy * (rx / ry), rx);
+    grad.addColorStop(0,   `hsla(${h1},90%,${Math.round(70 - t * 18)}%,${alpha.toFixed(3)})`);
+    grad.addColorStop(0.5, `hsla(${h1},90%,${Math.round(72 - t * 16)}%,${(alpha * 0.5).toFixed(3)})`);
+    grad.addColorStop(1,   `hsla(${h1},90%,75%,0)`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(cx - rx, (cy - rx) * (rx / ry), rx * 2, rx * 2);
+    ctx.restore();
+  }
+
+  // Blur the result for a smooth glow
+  ctx.filter = 'blur(18px)';
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Redraw blurred — use offscreen canvas trick
+  const offscreen = new OffscreenCanvas(canvas.width, canvas.height);
+  const octx = offscreen.getContext('2d');
+  octx.filter = 'blur(18px)';
+  // Re-draw all blobs on offscreen for proper blur
+  for (const pt of heatPoints) {
+    const cx = pt.x - offsetX + scrollLeft;
+    const cy = pt.y - offsetY + scrollTop;
+    const rx = pt.rx;
+    const ry = pt.ry;
+    const w  = pt.weight;
+    const t  = Math.min(w / HEAT_MAX_WEIGHT, 1);
+    const h1 = Math.round(48 - t * 38);
+    const alpha = 0.10 + t * 0.22;
+
+    octx.save();
+    octx.scale(1, ry / rx);
+    const grad = octx.createRadialGradient(cx, cy * (rx / ry), 0, cx, cy * (rx / ry), rx);
+    grad.addColorStop(0,   `hsla(${h1},90%,${Math.round(70 - t * 18)}%,${alpha.toFixed(3)})`);
+    grad.addColorStop(0.5, `hsla(${h1},90%,${Math.round(72 - t * 16)}%,${(alpha * 0.5).toFixed(3)})`);
+    grad.addColorStop(1,   `hsla(${h1},90%,75%,0)`);
+    octx.fillStyle = grad;
+    octx.fillRect(cx - rx, (cy - rx) * (rx / ry), rx * 2, rx * 2);
+    octx.restore();
+  }
+  ctx.drawImage(offscreen, 0, 0);
+}
+
 function applyHighlights() {
   const paras = Array.from(document.querySelectorAll('.para'));
-  // Strip existing highlights, restore plain text
-  paras.forEach(p => { const t = p.textContent; p.innerHTML = ''; p.appendChild(document.createTextNode(t)); p.style.backgroundImage = ''; p.style.borderRadius = ''; });
-  if (highlightFilter === 'none' || !annotations.length) { paras.forEach((p,i) => bindParaEvents(p,i)); return; }
+  // Clear per-line background gradients and restore plain text
+  paras.forEach(p => {
+    const t = p.textContent;
+    p.innerHTML = '';
+    p.appendChild(document.createTextNode(t));
+    p.style.backgroundImage = '';
+    p.style.borderRadius = '';
+  });
 
-  // Group annotations by paragraph, coercing line_index to number
-  // If line_index is missing/invalid, scan all paras for the quote
+  // Clear canvas if nothing to show
+  const canvas = document.getElementById('heat-canvas');
+  if (highlightFilter === 'none' || !annotations.length) {
+    if (canvas) { const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
+    paras.forEach((p, i) => bindParaEvents(p, i));
+    return;
+  }
+
+  // Group annotations by paragraph (with fuzzy para-scan fallback)
   const byPara = {};
   annotations.forEach(a => {
     if (!a.quote) return;
     const pi = parseInt(a.line_index);
     if (!isNaN(pi) && pi >= 0 && pi < paras.length) {
-      // Verify the quote actually exists in this paragraph
-      if (findQuoteInPara(getParaText(paras[pi]), a.quote) !== -1) {
+      if (findQuoteSpan(getParaText(paras[pi]), a.quote)) {
         if (!byPara[pi]) byPara[pi] = [];
-        byPara[pi].push(a);
-        return;
+        byPara[pi].push(a); return;
       }
     }
-    // Fallback: scan all paragraphs for the quote
     for (let k = 0; k < paras.length; k++) {
-      if (findQuoteInPara(getParaText(paras[k]), a.quote) !== -1) {
+      if (findQuoteSpan(getParaText(paras[k]), a.quote)) {
         if (!byPara[k]) byPara[k] = [];
-        // Avoid duplicates
         if (!byPara[k].find(x => x.id === a.id)) byPara[k].push(a);
         break;
       }
     }
   });
 
+  // Build per-char weight arrays for each para (for hover/click lookup)
+  // AND collect pixel positions for the canvas blobs
+  const heatPoints  = [];
+  const paraCharMap = {}; // paraIdx → {ca, pt}
+
   Object.entries(byPara).forEach(([piStr, annos]) => {
     const paraIdx = parseInt(piStr);
-    const para = paras[paraIdx];
-    const pt = getParaText(para);
+    const para    = paras[paraIdx];
+    const pt      = getParaText(para);
 
-    // Build segments — one per annotation, mapped to its character span in the paragraph
-    const segs = [];
-    annos.forEach(a => {
-      const q = a.quote; if (!q) return;
-      const span = findQuoteSpan(pt, q);
-      if (!span) return;
-      segs.push({ start: span.start, end: span.end, annoId: a.id });
-    });
-    if (!segs.length) { bindParaEvents(para, paraIdx); return; }
-
-    // Per-character heat weights
     const cc = new Array(pt.length).fill(0);
     const ca = new Array(pt.length).fill(null);
-    segs.forEach(s => {
-      const anno = annotations.find(a => a.id === s.annoId);
-      const replyBoost  = Math.min((anno?._replyCount || 0) * 0.5, 2);
-      const upvoteBoost = Math.min((anno?.upvotes    || 0) * 0.15, 1);
-      const weight = 1 + replyBoost + upvoteBoost;
-      for (let i = s.start; i < s.end; i++) {
+
+    annos.forEach(a => {
+      const span = findQuoteSpan(pt, a.quote);
+      if (!span) return;
+      const replyBoost  = Math.min((a._replyCount || 0) * 0.5, 2);
+      const upvoteBoost = Math.min((a.upvotes     || 0) * 0.15, 1);
+      const weight      = 1 + replyBoost + upvoteBoost;
+      for (let i = span.start; i < span.end; i++) {
         cc[i] += weight;
         if (!ca[i]) ca[i] = [];
-        ca[i].push(s.annoId);
+        ca[i].push(a.id);
+      }
+
+      // Get pixel rect of the quoted span for the canvas blob
+      const mid   = Math.floor((span.start + span.end) / 2);
+      const rect  = getCharRect(para, span.start, span.end);
+      if (rect && rect.width > 0) {
+        const colEl = document.getElementById('text-col');
+        heatPoints.push({
+          x:      rect.left + rect.width  / 2,
+          y:      rect.top  + rect.height / 2,
+          rx:     Math.max(rect.width / 2 + 40, 60),  // horizontal spread
+          ry:     Math.max(rect.height * 3, 80),       // vertical spread (bleeds across lines)
+          weight,
+        });
       }
     });
 
-    // ── GRADIENT BACKGROUND ──────────────────────────────────────────────────
-    // Smooth heat values with a box blur so edges fade naturally
-    const BLUR = 8;
-    const smooth = cc.map((v, i) => {
-      let sum = 0, n = 0;
-      for (let k = Math.max(0, i - BLUR); k <= Math.min(cc.length - 1, i + BLUR); k++) {
-        sum += cc[k]; n++;
-      }
-      return sum / n;
-    });
+    paraCharMap[paraIdx] = { ca, pt };
 
-    // Sample character positions → build gradient stops
-    const SAMPLE = Math.max(1, Math.floor(pt.length / 60));
-    const gradStops = [];
-    for (let i = 0; i <= smooth.length - 1; i += SAMPLE) {
-      const pct = ((i / (smooth.length - 1 || 1)) * 100).toFixed(1);
-      gradStops.push(`${heatStop(smooth[i])} ${pct}%`);
-    }
-    gradStops.push(`${heatStop(smooth[smooth.length - 1])} 100%`);
-
-    para.style.backgroundImage = `linear-gradient(to right, ${gradStops.join(', ')})`;
-    para.style.backgroundRepeat = 'no-repeat';
-    para.style.backgroundSize = '100% 85%';
-    para.style.backgroundPosition = 'left center';
-    para.style.borderRadius = '3px';
-
-    // ── HOVER / CLICK: map cursor x-position → character → annotations ───────
-    function idsAtChar(ci) {
-      return (ci >= 0 && ca[ci]) ? ca[ci] : [];
-    }
-
+    // Wire hover/click on this para using charAtPoint
+    function idsAtChar(ci) { return (ci >= 0 && ca[ci]) ? ca[ci] : []; }
     para.addEventListener('mousemove', e => {
       if (graffitiMode) return;
       const ids = idsAtChar(charAtPoint(para, e.clientX, e.clientY));
@@ -1093,11 +1206,15 @@ function applyHighlights() {
       const ma = annotations.filter(a => ids.includes(a.id));
       if (ma.length) showPopup(ma, para, paraIdx);
     });
-
     bindParaEvents(para, paraIdx);
   });
+
   paras.forEach((p, i) => { if (!byPara[i]) bindParaEvents(p, i); });
+
+  // Paint canvas — defer one frame so para rects are laid out
+  requestAnimationFrame(() => paintHeatCanvas(heatPoints));
 }
+
 
 function hidePopup(){document.getElementById('anno-popup').classList.remove('visible');}
 
