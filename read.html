@@ -440,6 +440,12 @@ body.sb-open .topbar{margin-top:37px;}
 .hm-btn:hover{background:#f5f5f5;}
 .hm-btn.primary{background:#7C3AED;color:#fff;border-color:#7C3AED;}
 .hm-btn.primary:hover{background:#6D28D9;}
+
+/* hide-text mode */
+.text-hidden #text-content { opacity: 0; pointer-events: none; }
+.text-hidden #text-header  { opacity: 0; pointer-events: none; }
+#text-col { transition: background .3s; }
+.hm-btn.active { background: #7C3AED; color: #fff; border-color: #7C3AED; }
 </style>
 </head>
 <body>
@@ -2581,6 +2587,14 @@ function wireTeacherEditorButtons() {
     <div class="hm-row"><label>Vert. size</label><input type="range" id="hm-tenorRy" min="0.1" max="4" step="0.1"/><span class="hm-val" id="hm-tenorRy-v"></span></div>
     <div class="hm-row"><label>Blur</label><input type="range" id="hm-tenorBlur" min="0" max="100" step="2"/><span class="hm-val" id="hm-tenorBlur-v"></span></div>
     <div class="hm-row"><label>Opacity</label><input type="range" id="hm-tenorAlpha" min="0" max="2" step="0.05"/><span class="hm-val" id="hm-tenorAlpha-v"></span></div>
+    <div class="hm-btn-row" style="margin-top:12px;border-top:0.5px solid #f0f0f0;padding-top:10px;">
+      <button class="hm-btn" id="hm-hide-text" style="display:flex;align-items:center;gap:4px;justify-content:center;">
+        <span id="hm-eye-icon">◎</span> Hide text
+      </button>
+      <button class="hm-btn" id="hm-download" style="display:flex;align-items:center;gap:4px;justify-content:center;">
+        ↓ Download
+      </button>
+    </div>
     <div class="hm-btn-row">
       <button class="hm-btn" id="hm-reset">Reset</button>
       <button class="hm-btn primary" id="hm-save">Save settings</button>
@@ -2655,6 +2669,61 @@ function wireTeacherEditorButtons() {
       });
       hmSave();
       if (window._lastHeatPoints) paintHeatCanvas(window._lastHeatPoints);
+    });
+
+    // ── Hide / show text ──────────────────────────────────────────────────────
+    let textHidden = false;
+    document.getElementById('hm-hide-text').addEventListener('click', () => {
+      textHidden = !textHidden;
+      const col  = document.getElementById('text-col');
+      const btn  = document.getElementById('hm-hide-text');
+      const icon = document.getElementById('hm-eye-icon');
+      col.classList.toggle('text-hidden', textHidden);
+      btn.classList.toggle('active', textHidden);
+      icon.textContent = textHidden ? '●' : '◎';
+      btn.childNodes[1].textContent = textHidden ? ' Show text' : ' Hide text';
+    });
+
+    // ── Download heatmap ──────────────────────────────────────────────────────
+    document.getElementById('hm-download').addEventListener('click', async () => {
+      const heatCanvas  = document.getElementById('heat-canvas');
+      const tenorCanvas = document.getElementById('tenor-canvas');
+      const col         = document.getElementById('text-col');
+      const btn         = document.getElementById('hm-download');
+      if (!heatCanvas || !tenorCanvas) return;
+
+      btn.textContent = '…'; btn.disabled = true;
+
+      // Composite both canvas layers onto a fresh canvas with white background
+      const W = heatCanvas.width;
+      const H = heatCanvas.height;
+      const out = new OffscreenCanvas(W, H);
+      const ctx = out.getContext('2d');
+
+      // White background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, W, H);
+
+      // Tenor layer then heat layer
+      ctx.drawImage(tenorCanvas, 0, 0);
+      ctx.drawImage(heatCanvas,  0, 0);
+
+      // Get title for filename
+      const title = (document.getElementById('topbar-title')?.textContent || 'heatmap')
+        .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
+
+      // Convert to blob and download
+      const blob = await out.convertToBlob({ type: 'image/png' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `${title}-heatmap.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+
+      btn.textContent = '↓ Download'; btn.disabled = false;
     });
   }
 
