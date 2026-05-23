@@ -1193,7 +1193,6 @@ function paintHeatCanvas(heatPoints) {
   const col         = document.getElementById('text-col');
 
   // ── DIAGNOSTIC: draw a bright red rectangle to confirm canvas is visible ──
-  alert('paintHeatCanvas fired, pts:' + heatPoints.length);
   if (heatCanvas) {
     const colRect = col.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
@@ -1318,7 +1317,6 @@ function paintHeatCanvas(heatPoints) {
 function applyHighlights() {
   const paras = Array.from(document.querySelectorAll('.para'));
   const mode  = (typeof viewMode !== 'undefined') ? viewMode : 'highlights';
-  if (mode === 'landscape') alert('applyHighlights in landscape, annos:' + annotations.length + ' byPara will follow');
 
   // Always reset para text and clear old gradient backgrounds
   paras.forEach(p => {
@@ -1504,34 +1502,30 @@ function applyHighlights() {
       }
     }
 
-    // 4. Wire hover/click using charAtPoint
-    //    charAtPoint uses TreeWalker(SHOW_TEXT) which correctly traverses
-    //    text nodes inside spans, accumulating offsets properly.
-    function idsAtChar(ci) { return (ci >= 0 && ca[ci]) ? ca[ci] : []; }
-
-    // Remove old listeners by cloning (cheap on per-para basis)
-    const fresh = para.cloneNode(true);
-    para.parentNode.replaceChild(fresh, para);
-    paras[paraIdx] = fresh;
-
-    fresh.addEventListener('mousemove', e => {
-      if (typeof graffitiMode !== 'undefined' && graffitiMode) return;
-      const ids = idsAtChar(charAtPoint(fresh, e.clientX, e.clientY));
-      if (!ids.length) { clearTimeout(popupTimeout); popupTimeout = setTimeout(hidePopup, 200); return; }
-      clearTimeout(popupTimeout);
-      const ma = annotations.filter(a => ids.includes(a.id));
-      if (ma.length) showPopup(ma, fresh, paraIdx);
-    });
-    fresh.addEventListener('mouseleave', () => { popupTimeout = setTimeout(hidePopup, 300); });
-    fresh.addEventListener('click', e => {
-      if (typeof graffitiMode !== 'undefined' && graffitiMode) return;
-      const sel = window.getSelection(); if (sel && sel.toString().trim()) return;
-      const ids = idsAtChar(charAtPoint(fresh, e.clientX, e.clientY));
-      if (!ids.length) return;
-      const ma = annotations.filter(a => ids.includes(a.id));
-      if (ma.length) showPopup(ma, fresh, paraIdx);
-    });
-    bindParaEvents(fresh, paraIdx);
+    // 4. Wire hover/click — store ca/paraIdx in closure via IIFE
+    //    No cloneNode; just attach directly. idsAtChar uses the local ca array.
+    (function(localCa, localParaIdx, localPara) {
+      localPara.addEventListener('mousemove', function(e) {
+        if (typeof graffitiMode !== 'undefined' && graffitiMode) return;
+        const ci = charAtPoint(localPara, e.clientX, e.clientY);
+        const ids = (ci >= 0 && localCa[ci]) ? localCa[ci] : [];
+        if (!ids.length) { clearTimeout(popupTimeout); popupTimeout = setTimeout(hidePopup, 200); return; }
+        clearTimeout(popupTimeout);
+        const ma = annotations.filter(a => ids.includes(a.id));
+        if (ma.length) showPopup(ma, localPara, localParaIdx);
+      });
+      localPara.addEventListener('mouseleave', function() { popupTimeout = setTimeout(hidePopup, 300); });
+      localPara.addEventListener('click', function(e) {
+        if (typeof graffitiMode !== 'undefined' && graffitiMode) return;
+        const sel = window.getSelection(); if (sel && sel.toString().trim()) return;
+        const ci = charAtPoint(localPara, e.clientX, e.clientY);
+        const ids = (ci >= 0 && localCa[ci]) ? localCa[ci] : [];
+        if (!ids.length) return;
+        const ma = annotations.filter(a => ids.includes(a.id));
+        if (ma.length) showPopup(ma, localPara, localParaIdx);
+      });
+    })(ca, paraIdx, para);
+    bindParaEvents(para, paraIdx);
   });
 
   paras.forEach((p, i) => { if (!byPara[i]) bindParaEvents(p, i); });
@@ -3065,7 +3059,6 @@ let activeFocusParaIdx = -1;
 let multiSegments = [];
 
 function setViewMode(mode) {
-  alert('setViewMode called: ' + mode);
   viewMode = mode;
   document.querySelectorAll('.vm-btn').forEach(b => b.classList.remove('active'));
   const btnId = ({ 'highlights':'vm-highlights', 'landscape':'vm-landscape', 'line-focus':'vm-line-focus' })[mode];
