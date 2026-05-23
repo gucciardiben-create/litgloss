@@ -1188,13 +1188,19 @@ const TAG_LIT = {
 };
 
 function drawBlobsOnCanvas(ctx, points, blur) {
-  // Draw on an offscreen canvas with blur, then composite
-  const os   = new OffscreenCanvas(ctx.canvas.width, ctx.canvas.height);
-  const octx = os.getContext('2d');
-  // Match the parent context's transform so coordinates are consistent
-  octx.setTransform(...ctx.getTransform().toFloat64Array
-    ? [ctx.getTransform().a, 0, 0, ctx.getTransform().d, 0, 0]
-    : [window.devicePixelRatio||1, 0, 0, window.devicePixelRatio||1, 0, 0]);
+  // Use OffscreenCanvas if available (Safari 16.4+), else fall back to in-place blur
+  const W = ctx.canvas.width, H = ctx.canvas.height;
+  const dpr = window.devicePixelRatio || 1;
+  let os, octx;
+  try {
+    os   = new OffscreenCanvas(W, H);
+    octx = os.getContext('2d');
+    octx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  } catch(_) {
+    // Fallback: draw directly on ctx with filter
+    octx = ctx;
+    os   = null;
+  }
   octx.filter = `blur(${blur}px)`;
   for (const pt of points) {
     const cx = pt.cx, cy = pt.cy;
@@ -1210,7 +1216,7 @@ function drawBlobsOnCanvas(ctx, points, blur) {
     octx.fillRect(cx - rx, (cy - rx) * (rx / Math.max(ry, 1)), rx * 2, rx * 2);
     octx.restore();
   }
-  ctx.drawImage(os, 0, 0);
+  if (os) ctx.drawImage(os, 0, 0);
 }
 
 function paintHeatCanvas(heatPoints) {
@@ -1489,7 +1495,11 @@ function applyHighlights() {
 
   paras.forEach((p, i) => { if (!byPara[i]) bindParaEvents(p, i); });
   window._lastHeatPoints = heatPoints;
-  requestAnimationFrame(() => paintHeatCanvas(heatPoints));
+  // Defer two frames: first to ensure squiggle DOM is settled, second to paint
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    try { paintHeatCanvas(heatPoints); }
+    catch(e) { console.error('paintHeatCanvas error:', e); }
+  }));
 }
 
 
@@ -2526,11 +2536,15 @@ function isTeacherUnlocked() {
   return sessionStorage.getItem(TE_SESSION_KEY) === 'yes';
 }
 
-// Inject "Edit Text" button into topbar after content loads
-window.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
+// Inject teacher buttons into topbar — wrapped to survive any earlier errors
+function injectTeacherButtons() {
+  try {
     const topbar = document.querySelector('.topbar');
     if (!topbar) return;
+    if (document.getElementById('te-open-btn')) return; // already injected
+
+    const anchor = topbar.querySelector('a');
+
     const editBtn = document.createElement('button');
     editBtn.id = 'te-open-btn';
     editBtn.textContent = '✎ Edit Text';
@@ -2538,9 +2552,8 @@ window.addEventListener('DOMContentLoaded', () => {
     editBtn.addEventListener('click', () => {
       if (isTeacherUnlocked()) { openTeacherEditor(); } else { openTeacherGate(); }
     });
-    topbar.insertBefore(editBtn, topbar.querySelector('a'));
+    topbar.insertBefore(editBtn, anchor);
 
-    // Delete All Comments button
     const delBtn = document.createElement('button');
     delBtn.id = 'te-delete-btn';
     delBtn.textContent = '🗑 Delete All Comments';
@@ -2548,9 +2561,10 @@ window.addEventListener('DOMContentLoaded', () => {
     delBtn.addEventListener('click', () => {
       if (isTeacherUnlocked()) { openDeleteAllDialog(); } else { openTeacherGate('delete'); }
     });
-    topbar.insertBefore(delBtn, topbar.querySelector('a'));
-  }, 400);
-});
+    topbar.insertBefore(delBtn, anchor);
+  } catch(e) { console.warn('Teacher button injection failed:', e); }
+}
+window.addEventListener('DOMContentLoaded', () => setTimeout(injectTeacherButtons, 400));
 
 function openTeacherGate(action = 'edit') {
   const gate = document.getElementById('te-gate');
@@ -3009,6 +3023,10 @@ function setViewMode(mode) {
 
   const lfBar = document.getElementById('line-focus-bar');
   if (lfBar) lfBar.classList.toggle('visible', mode === 'line-focus');
+
+  // Show/hide tuning panel directly here too (belt-and-suspenders with applyHighlights)
+  const hmPanel = document.getElementById('hm-panel');
+  if (hmPanel) hmPanel.style.display = (mode === 'landscape') ? '' : 'none';
 
   if (mode !== 'line-focus') {
     document.querySelectorAll('.para').forEach(p => {
