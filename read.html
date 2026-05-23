@@ -1529,12 +1529,9 @@ function applyHighlights() {
   });
 
   paras.forEach((p, i) => { if (!byPara[i]) bindParaEvents(p, i); });
-  console.log('[LG] heatPoints collected:', heatPoints.length);
+  alert('REACHED PAINT. heatPoints=' + heatPoints.length + ' byPara=' + Object.keys(byPara).length + ' annos=' + annotations.length);
   window._lastHeatPoints = heatPoints;
-  requestAnimationFrame(() => {
-    try { paintHeatCanvas(heatPoints); }
-    catch(e) { console.error('paintHeatCanvas error:', e); }
-  });
+  paintHeatCanvas(heatPoints);
 }
 
 
