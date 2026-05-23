@@ -29,6 +29,18 @@ body{font-family:Georgia,serif;background:#fafaf8;color:#111;margin:0;overscroll
 @keyframes shimmer{0%{background-position:0% 50%;}100%{background-position:200% 50%;}}
 .highlight.has-device{position:relative;padding-bottom:2px;}
 .highlight.has-device::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:3px;background:linear-gradient(90deg,#7C3AED 0%,#2563EB 20%,#16A34A 40%,#CA8A04 60%,#EA580C 80%,#7C3AED 100%);background-size:200% 100%;animation:shimmer 2.8s linear infinite;border-radius:1px;pointer-events:none;z-index:2;box-shadow:0 1px 3px rgba(124,58,237,0.4);}
+/* Landscape mode: black squiggle underline for literary device annotations */
+.ls-device{position:relative;}
+.ls-device::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:3px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='3'%3E%3Cpath d='M0 2 Q2 0 4 2 Q6 4 8 2' stroke='%23111' stroke-width='1.2' fill='none'/%3E%3C/svg%3E");
+  background-repeat:repeat-x;background-size:8px 3px;pointer-events:none;z-index:3;}
+/* Hide squiggles when toggle is active */
+.hide-squiggles .ls-device::after{display:none;}
+/* Gradient selector swatches */
+.grad-picker{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;}
+.grad-swatch{width:36px;height:16px;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:border-color .12s;}
+.grad-swatch:hover{border-color:#555;}
+.grad-swatch.active{border-color:#111;}
 .highlight:hover{filter:brightness(.88);}
 /* leaderboard */
 .leaderboard-panel{padding:10px;overflow-y:auto;font-family:sans-serif;display:none;}
@@ -1041,6 +1053,40 @@ function findQuoteSpan(pt, rawQuote) {
 
 const HEAT_MAX_WEIGHT = 20;
 
+// Gradient presets: each is an array of [h, s, lBase, lDrop] for HSL interpolation
+// or a special function override stored in GRAD_STOPS as [r,g,b,a] stops
+const GRAD_PRESETS = {
+  classic: { stops: [[254,249,195,0],[253,186,116,0.3],[249,115,22,0.45],[220,38,38,0.5],[185,28,28,0.55]] },
+  fire:    { stops: [[255,247,237,0],[251,146,60,0.3],[239,68,68,0.45],[159,18,57,0.5],[127,13,13,0.55]] },
+  ocean:   { stops: [[239,246,255,0],[147,197,253,0.28],[59,130,246,0.42],[37,99,235,0.48],[30,58,138,0.54]] },
+  aurora:  { stops: [[240,253,244,0],[110,231,183,0.28],[52,211,153,0.38],[124,58,237,0.48],[109,40,217,0.54]] },
+  dusk:    { stops: [[253,244,255,0],[240,171,252,0.28],[232,121,249,0.38],[167,139,250,0.46],[67,56,202,0.54]] },
+  ember:   { stops: [[255,251,235,0],[252,211,77,0.3],[251,146,60,0.42],[220,38,38,0.5],[185,28,28,0.56]] },
+  forest:  { stops: [[240,253,244,0],[187,247,208,0.28],[134,239,172,0.38],[22,163,74,0.48],[20,83,45,0.55]] },
+  mono:    { stops: [[249,250,251,0],[209,213,219,0.28],[107,114,128,0.42],[55,65,81,0.5],[17,24,39,0.56]] },
+};
+
+let activeGradient = hmGet('gradient', 'classic');
+
+function heatStopFromGrad(val) {
+  const MAX = HEAT_MAX_WEIGHT;
+  const t   = Math.min(val / MAX, 1);
+  if (t < 0.015) return 'transparent';
+  const preset = GRAD_PRESETS[activeGradient] || GRAD_PRESETS.classic;
+  const stops  = preset.stops;
+  // Interpolate between stops
+  const pos = t * (stops.length - 1);
+  const lo  = Math.floor(pos), hi = Math.min(lo + 1, stops.length - 1);
+  const frac = pos - lo;
+  const [r1,g1,b1,a1] = stops[lo];
+  const [r2,g2,b2,a2] = stops[hi];
+  const r = Math.round(r1 + (r2-r1)*frac);
+  const g = Math.round(g1 + (g2-g1)*frac);
+  const b = Math.round(b1 + (b2-b1)*frac);
+  const a = (a1 + (a2-a1)*frac).toFixed(3);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
 // ── HEATMAP TUNING PARAMS (user-adjustable via tuning panel) ─────────────────
 let HM = (() => {
   try { return JSON.parse(localStorage.getItem('litgloss_hm') || '{}'); } catch(_) { return {}; }
@@ -1063,13 +1109,8 @@ function hmParams() {
 }
 
 function heatStop(val) {
-  // Used by legend swatches only
-  const t = Math.min(val / HEAT_MAX_WEIGHT, 1);
-  if (t < 0.015) return 'transparent';
-  const h = Math.round(48 - t * 38);
-  const l = Math.round(70 - t * 18);
-  const alpha = (0.14 + t * 0.32).toFixed(2);
-  return `hsla(${h},90%,${l}%,${alpha})`;
+  // Delegates to gradient-aware version
+  return heatStopFromGrad(val);
 }
 
 // charAtPoint: map a clientX/Y to character offset within a para's text node
@@ -1235,19 +1276,17 @@ function paintHeatCanvas(heatPoints) {
   heatCtx.clearRect(0, 0, W, H);
 
   const heatBlobs = heatPoints.map(pt => {
-    const cx    = pt.x - offX + scrollLeft;
-    const cy    = pt.y - offY + scrollTop;
-    const t     = Math.min(pt.weight / HEAT_MAX_WEIGHT, 1);
-    const h1    = Math.round(48 - t * 38);
-    const l1    = Math.round(70 - t * 18);
-    const alpha = (0.10 + t * 0.22) * p.heatAlpha;
+    const cx  = pt.x - offX + scrollLeft;
+    const cy  = pt.y - offY + scrollTop;
+    // Use gradient preset for center color, fade to transparent at edge
+    const c0 = heatStopFromGrad(pt.weight * p.heatAlpha);
+    const c1 = heatStopFromGrad(pt.weight * p.heatAlpha * 0.5);
     return {
       cx, cy,
       rx: pt.rx * p.heatRx,
       ry: pt.ry * p.heatRy,
-      c0: `hsla(${h1},90%,${l1}%,${alpha.toFixed(3)})`,
-      c1: `hsla(${h1},90%,${l1 + 2}%,${(alpha * 0.5).toFixed(3)})`,
-      c2: `hsla(${h1},90%,75%,0)`,
+      c0, c1,
+      c2: 'transparent',
     };
   });
 
@@ -1398,6 +1437,34 @@ function applyHighlights() {
     });
 
     paraCharMap[paraIdx] = { ca, pt };
+
+    // Mark device-annotated regions with squiggle spans
+    const deviceChar = new Array(pt.length).fill(false);
+    annos.forEach(a => {
+      const hasDevice = (() => {
+        try { const d = typeof a.devices==='string'?JSON.parse(a.devices):a.devices; return Array.isArray(d)&&d.length>0; } catch(_){return false;}
+      })();
+      if (!hasDevice) return;
+      const span = findQuoteSpan(pt, a.quote); if (!span) return;
+      for (let i = span.start; i < span.end; i++) deviceChar[i] = true;
+    });
+    // Rebuild para text nodes with squiggle spans where deviceChar is true
+    if (deviceChar.some(Boolean)) {
+      para.innerHTML = '';
+      let i = 0;
+      while (i < pt.length) {
+        if (!deviceChar[i]) {
+          let j = i; while (j < pt.length && !deviceChar[j]) j++;
+          para.appendChild(document.createTextNode(pt.slice(i,j))); i = j;
+        } else {
+          let j = i; while (j < pt.length && deviceChar[j]) j++;
+          const sq = document.createElement('span');
+          sq.className = 'ls-device';
+          sq.textContent = pt.slice(i, j);
+          para.appendChild(sq); i = j;
+        }
+      }
+    }
 
     function idsAtChar(ci) { return (ci>=0&&ca[ci])?ca[ci]:[]; }
     para.addEventListener('mousemove', e => {
@@ -2735,13 +2802,27 @@ function wireTeacherEditorButtons() {
     <div class="hm-row"><label>Vert. size</label><input type="range" id="hm-tenorRy" min="0.1" max="4" step="0.1"/><span class="hm-val" id="hm-tenorRy-v"></span></div>
     <div class="hm-row"><label>Blur</label><input type="range" id="hm-tenorBlur" min="0" max="100" step="2"/><span class="hm-val" id="hm-tenorBlur-v"></span></div>
     <div class="hm-row"><label>Opacity</label><input type="range" id="hm-tenorAlpha" min="0" max="2" step="0.05"/><span class="hm-val" id="hm-tenorAlpha-v"></span></div>
+    <div class="hm-section">Gradient</div>
+    <div class="grad-picker" id="hm-grad-picker">
+      <div class="grad-swatch active" data-grad="classic" title="Classic (gold→red)" style="background:linear-gradient(to right,#FEF9C3,#FDBA74,#EF4444)"></div>
+      <div class="grad-swatch" data-grad="fire" title="Fire" style="background:linear-gradient(to right,#FFF7ED,#FB923C,#7F1D1D)"></div>
+      <div class="grad-swatch" data-grad="ocean" title="Ocean" style="background:linear-gradient(to right,#EFF6FF,#60A5FA,#1E3A8A)"></div>
+      <div class="grad-swatch" data-grad="aurora" title="Aurora" style="background:linear-gradient(to right,#F0FDF4,#34D399,#7C3AED)"></div>
+      <div class="grad-swatch" data-grad="dusk" title="Dusk" style="background:linear-gradient(to right,#FDF4FF,#E879F9,#4338CA)"></div>
+      <div class="grad-swatch" data-grad="ember" title="Ember" style="background:linear-gradient(to right,#FFFBEB,#FCD34D,#DC2626)"></div>
+      <div class="grad-swatch" data-grad="forest" title="Forest" style="background:linear-gradient(to right,#F0FDF4,#86EFAC,#14532D)"></div>
+      <div class="grad-swatch" data-grad="mono" title="Monochrome" style="background:linear-gradient(to right,#F9FAFB,#9CA3AF,#111827)"></div>
+    </div>
     <div class="hm-btn-row" style="margin-top:12px;border-top:0.5px solid #f0f0f0;padding-top:10px;">
       <button class="hm-btn" id="hm-hide-text" style="display:flex;align-items:center;gap:4px;justify-content:center;">
         <span id="hm-eye-icon">◎</span> Hide text
       </button>
-      <button class="hm-btn" id="hm-download" style="display:flex;align-items:center;gap:4px;justify-content:center;">
-        ↓ Download
+      <button class="hm-btn" id="hm-hide-squiggle" style="display:flex;align-items:center;gap:4px;justify-content:center;">
+        ∿ Hide squiggles
       </button>
+    </div>
+    <div class="hm-btn-row">
+      <button class="hm-btn" id="hm-download">↓ Download</button>
     </div>
     <div class="hm-btn-row">
       <button class="hm-btn" id="hm-reset">Reset</button>
@@ -2802,6 +2883,7 @@ function wireTeacherEditorButtons() {
     });
 
     document.getElementById('hm-save').addEventListener('click', () => {
+      HM['gradient'] = activeGradient;
       hmSave();
       const btn = document.getElementById('hm-save');
       btn.textContent = '✓ Saved'; setTimeout(() => btn.textContent = 'Save settings', 1500);
@@ -2817,6 +2899,31 @@ function wireTeacherEditorButtons() {
       });
       hmSave();
       if (window._lastHeatPoints) paintHeatCanvas(window._lastHeatPoints);
+    });
+
+    // ── Gradient picker ───────────────────────────────────────────────────────
+    document.querySelectorAll('.grad-swatch').forEach(swatch => {
+      if (swatch.dataset.grad === activeGradient) swatch.classList.add('active');
+      swatch.addEventListener('click', () => {
+        document.querySelectorAll('.grad-swatch').forEach(s => s.classList.remove('active'));
+        swatch.classList.add('active');
+        activeGradient = swatch.dataset.grad;
+        HM['gradient'] = activeGradient;
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          if (window._lastHeatPoints) paintHeatCanvas(window._lastHeatPoints);
+        }, 80);
+      });
+    });
+
+    // ── Squiggle toggle ────────────────────────────────────────────────────────
+    let squigglesHidden = false;
+    document.getElementById('hm-hide-squiggle').addEventListener('click', () => {
+      squigglesHidden = !squigglesHidden;
+      const btn = document.getElementById('hm-hide-squiggle');
+      document.getElementById('text-col').classList.toggle('hide-squiggles', squigglesHidden);
+      btn.classList.toggle('active', squigglesHidden);
+      btn.textContent = squigglesHidden ? '∿ Show squiggles' : '∿ Hide squiggles';
     });
 
     // ── Hide / show text ──────────────────────────────────────────────────────
