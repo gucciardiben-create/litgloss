@@ -1193,6 +1193,7 @@ function paintHeatCanvas(heatPoints) {
   const col         = document.getElementById('text-col');
 
   // ── DIAGNOSTIC: draw a bright red rectangle to confirm canvas is visible ──
+  alert('paintHeatCanvas fired, pts:' + heatPoints.length);
   if (heatCanvas) {
     const colRect = col.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
@@ -1317,6 +1318,7 @@ function paintHeatCanvas(heatPoints) {
 function applyHighlights() {
   const paras = Array.from(document.querySelectorAll('.para'));
   const mode  = (typeof viewMode !== 'undefined') ? viewMode : 'highlights';
+  if (mode === 'landscape') alert('applyHighlights in landscape, annos:' + annotations.length + ' byPara will follow');
 
   // Always reset para text and clear old gradient backgrounds
   paras.forEach(p => {
@@ -3063,6 +3065,7 @@ let activeFocusParaIdx = -1;
 let multiSegments = [];
 
 function setViewMode(mode) {
+  alert('setViewMode called: ' + mode);
   viewMode = mode;
   document.querySelectorAll('.vm-btn').forEach(b => b.classList.remove('active'));
   const btnId = ({ 'highlights':'vm-highlights', 'landscape':'vm-landscape', 'line-focus':'vm-line-focus' })[mode];
