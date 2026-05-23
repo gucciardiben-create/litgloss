@@ -1223,6 +1223,7 @@ function paintHeatCanvas(heatPoints) {
   const heatCanvas  = document.getElementById('heat-canvas');
   const tenorCanvas = document.getElementById('tenor-canvas');
   const col         = document.getElementById('text-col');
+  console.log('[LG] paintHeatCanvas called, points:', heatPoints.length, 'canvas:', !!heatCanvas, 'col:', !!col);
   if (!heatCanvas || !col) return;
 
   if (!heatPoints.length) {
@@ -1236,6 +1237,7 @@ function paintHeatCanvas(heatPoints) {
   const dpr = window.devicePixelRatio || 1;
   const W = Math.round(col.scrollWidth);
   const H = Math.round(col.scrollHeight);
+  console.log('[LG] canvas size:', W, 'x', H, 'dpr:', window.devicePixelRatio);
   const scrollTop  = col.scrollTop;
   const scrollLeft = col.scrollLeft;
   const offX = colRect.left;
@@ -1412,6 +1414,7 @@ function applyHighlights() {
   }
 
   // ── LANDSCAPE MODE: canvas Gaussian heatmap ───────────────────────────────
+  console.log('[LG] landscape mode. byPara keys:', Object.keys(byPara).length, 'annotations:', annotations.length);
   const heatPoints  = [];
 
   Object.entries(byPara).forEach(([piStr, annos]) => {
@@ -1447,6 +1450,7 @@ function applyHighlights() {
     annos.forEach(a => {
       const span = findQuoteSpan(pt, a.quote); if (!span) return;
       const rect = getCharRect(para, span.start, span.end);
+      console.log('[LG] rect for', JSON.stringify(a.quote?.slice(0,20)), rect ? `${rect.width.toFixed(0)}x${rect.height.toFixed(0)}` : 'null');
       if (rect && rect.width > 0) {
         const isTP2  = a.is_teacher_prompt===true||a.is_teacher_prompt==='true';
         const tagKey = isTP2 ? '_teacher' : (a.tag||null);
@@ -1516,6 +1520,7 @@ function applyHighlights() {
   });
 
   paras.forEach((p, i) => { if (!byPara[i]) bindParaEvents(p, i); });
+  console.log('[LG] heatPoints collected:', heatPoints.length);
   window._lastHeatPoints = heatPoints;
   requestAnimationFrame(() => {
     try { paintHeatCanvas(heatPoints); }
