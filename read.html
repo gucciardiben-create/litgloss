@@ -1427,10 +1427,11 @@ function applyHighlights() {
   }
 
   // ── LANDSCAPE MODE: canvas Gaussian heatmap ───────────────────────────────
-  console.log('[LG] landscape mode. byPara keys:', Object.keys(byPara).length, 'annotations:', annotations.length);
+  alert('LANDSCAPE BRANCH. byPara=' + Object.keys(byPara).length + ' annos=' + annotations.length);
   const heatPoints  = [];
 
   Object.entries(byPara).forEach(([piStr, annos]) => {
+    try {
     const paraIdx = parseInt(piStr);
     const para    = paras[paraIdx];
     const pt      = getParaText(para);
@@ -1526,6 +1527,7 @@ function applyHighlights() {
       });
     })(ca, paraIdx, para);
     bindParaEvents(para, paraIdx);
+    } catch(err) { alert('FOREACH ERROR para=' + piStr + ': ' + err.message); }
   });
 
   paras.forEach((p, i) => { if (!byPara[i]) bindParaEvents(p, i); });
