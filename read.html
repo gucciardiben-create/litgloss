@@ -445,7 +445,8 @@ body.sb-open .topbar{margin-top:37px;}
 <div class="reader-body">
   <div class="text-col" id="text-col">
     <canvas class="graffiti-canvas hidden" id="graffiti-canvas"></canvas>
-    <canvas id="heat-canvas" style="position:absolute;top:0;left:0;width:100%;pointer-events:none;z-index:0;opacity:1;transition:opacity .4s;"></canvas>
+    <canvas id="tenor-canvas" style="position:absolute;top:0;left:0;width:100%;pointer-events:none;z-index:0;opacity:1;transition:opacity .4s;"></canvas>
+    <canvas id="heat-canvas"  style="position:absolute;top:0;left:0;width:100%;pointer-events:none;z-index:1;opacity:1;transition:opacity .4s;"></canvas>
     <div id="text-header" style="position:relative;z-index:1;"></div>
     <div id="text-content" style="position:relative;z-index:1;"></div>
     <div style="margin-top:2.5rem;padding-top:1rem;border-top:0.5px solid #eee;font-family:sans-serif;">
@@ -1021,89 +1022,111 @@ function getCharRect(para, start, end) {
 }
 
 // Paint the 2D heatmap onto the canvas
+// Tag → hue mapping for tenor layer
+// Each tag gets a hue in HSL; blended where multiple tags overlap
+const TAG_HUE = {
+  'Question':           240,  // blue-violet  — inquiry, uncertainty
+  'Analysis':           185,  // teal          — focused engagement
+  'Analysis/Criticism': 210,  // slate-blue    — critical distance
+  'Connection':         140,  // green         — associative, expansive
+  'Free Write':         35,   // warm amber    — personal, loose
+  'Summary':            0,    // neutral (no tenor)
+  'Footnote':           270,  // soft purple   — scholarly gloss
+  'Clarification':      200,  // sky blue      — puzzlement
+  '_teacher':           285,  // violet        — teacher prompt
+};
+
+function drawBlobsOnCanvas(ctx, points, blur) {
+  // Draw on an offscreen canvas with blur, then composite
+  const os   = new OffscreenCanvas(ctx.canvas.width, ctx.canvas.height);
+  const octx = os.getContext('2d');
+  octx.filter = `blur(${blur}px)`;
+  for (const pt of points) {
+    const cx = pt.cx, cy = pt.cy;
+    const rx = pt.rx, ry = pt.ry;
+    octx.save();
+    octx.scale(1, ry / Math.max(rx, 1));
+    const g = octx.createRadialGradient(cx, cy * (rx / Math.max(ry, 1)), 0,
+                                         cx, cy * (rx / Math.max(ry, 1)), rx);
+    g.addColorStop(0,   pt.c0);
+    g.addColorStop(0.55, pt.c1);
+    g.addColorStop(1,   pt.c2);
+    octx.fillStyle = g;
+    octx.fillRect(cx - rx, (cy - rx) * (rx / Math.max(ry, 1)), rx * 2, rx * 2);
+    octx.restore();
+  }
+  ctx.drawImage(os, 0, 0);
+}
+
 function paintHeatCanvas(heatPoints) {
-  const canvas = document.getElementById('heat-canvas');
-  const col    = document.getElementById('text-col');
-  if (!canvas || !col || !heatPoints.length) {
-    if (canvas) { const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
+  const heatCanvas  = document.getElementById('heat-canvas');
+  const tenorCanvas = document.getElementById('tenor-canvas');
+  const col         = document.getElementById('text-col');
+  if (!heatCanvas || !col) return;
+
+  if (!heatPoints.length) {
+    [heatCanvas, tenorCanvas].forEach(c => {
+      if (c) { const cx = c.getContext('2d'); cx.clearRect(0, 0, c.width, c.height); }
+    });
     return;
   }
 
-  // Size canvas to match the scrollable text column interior
-  const tc = document.getElementById('text-content');
-  const tcRect = tc.getBoundingClientRect();
   const colRect = col.getBoundingClientRect();
-
-  canvas.width  = Math.round(col.scrollWidth);
-  canvas.height = Math.round(col.scrollHeight);
-  canvas.style.width  = canvas.width  + 'px';
-  canvas.style.height = canvas.height + 'px';
-
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Convert screen coords → canvas coords (accounting for scroll)
+  const W = Math.round(col.scrollWidth);
+  const H = Math.round(col.scrollHeight);
   const scrollTop  = col.scrollTop;
   const scrollLeft = col.scrollLeft;
-  const offsetX = colRect.left;
-  const offsetY = colRect.top;
+  const offX = colRect.left;
+  const offY = colRect.top;
 
-  // Draw one radial gradient blob per heat point
-  for (const pt of heatPoints) {
-    const cx = pt.x - offsetX + scrollLeft;
-    const cy = pt.y - offsetY + scrollTop;
-    const rx = pt.rx; // horizontal radius
-    const ry = pt.ry; // vertical radius  
-    const w  = pt.weight;
+  [heatCanvas, tenorCanvas].forEach(c => {
+    c.width  = W; c.height = H;
+    c.style.width = W + 'px'; c.style.height = H + 'px';
+  });
 
-    // Elliptical gaussian blob: scale x axis
-    ctx.save();
-    ctx.scale(1, ry / rx); // squish to ellipse
+  // ── LAYER 1: TENOR (tag color, large diffuse blobs, heavy blur) ────────────
+  const tenorCtx = tenorCanvas.getContext('2d');
+  tenorCtx.clearRect(0, 0, W, H);
 
-    const t = Math.min(w / HEAT_MAX_WEIGHT, 1);
-    // Color: gold (h=48) → amber → orange-red (h=10)
-    const h1 = Math.round(48 - t * 38);
-    const alpha = 0.10 + t * 0.22; // very light — layers add up
+  const tenorBlobs = heatPoints.map(pt => {
+    const cx  = pt.x - offX + scrollLeft;
+    const cy  = pt.y - offY + scrollTop;
+    const hue = pt.hue;
+    if (hue === null) return null;  // no tenor for this tag
+    // Tenor blobs: very wide, very soft — they form a diffuse color field
+    const rx  = pt.rx * 2.5;
+    const ry  = pt.ry * 2.2;
+    const alpha = 0.09;
+    return {
+      cx, cy, rx, ry,
+      c0: `hsla(${hue},55%,72%,${alpha})`,
+      c1: `hsla(${hue},50%,75%,${(alpha * 0.45).toFixed(3)})`,
+      c2: `hsla(${hue},45%,80%,0)`,
+    };
+  }).filter(Boolean);
 
-    const grad = ctx.createRadialGradient(cx, cy * (rx / ry), 0, cx, cy * (rx / ry), rx);
-    grad.addColorStop(0,   `hsla(${h1},90%,${Math.round(70 - t * 18)}%,${alpha.toFixed(3)})`);
-    grad.addColorStop(0.5, `hsla(${h1},90%,${Math.round(72 - t * 16)}%,${(alpha * 0.5).toFixed(3)})`);
-    grad.addColorStop(1,   `hsla(${h1},90%,75%,0)`);
-    ctx.fillStyle = grad;
-    ctx.fillRect(cx - rx, (cy - rx) * (rx / ry), rx * 2, rx * 2);
-    ctx.restore();
-  }
+  drawBlobsOnCanvas(tenorCtx, tenorBlobs, 40);
 
-  // Blur the result for a smooth glow
-  ctx.filter = 'blur(18px)';
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  // Redraw blurred — use offscreen canvas trick
-  const offscreen = new OffscreenCanvas(canvas.width, canvas.height);
-  const octx = offscreen.getContext('2d');
-  octx.filter = 'blur(18px)';
-  // Re-draw all blobs on offscreen for proper blur
-  for (const pt of heatPoints) {
-    const cx = pt.x - offsetX + scrollLeft;
-    const cy = pt.y - offsetY + scrollTop;
-    const rx = pt.rx;
-    const ry = pt.ry;
-    const w  = pt.weight;
-    const t  = Math.min(w / HEAT_MAX_WEIGHT, 1);
-    const h1 = Math.round(48 - t * 38);
+  // ── LAYER 2: HEAT (density, smaller tighter blobs, moderate blur) ──────────
+  const heatCtx = heatCanvas.getContext('2d');
+  heatCtx.clearRect(0, 0, W, H);
+
+  const heatBlobs = heatPoints.map(pt => {
+    const cx = pt.x - offX + scrollLeft;
+    const cy = pt.y - offY + scrollTop;
+    const t  = Math.min(pt.weight / HEAT_MAX_WEIGHT, 1);
+    const h1 = Math.round(48 - t * 38);   // gold → red-orange
+    const l1 = Math.round(70 - t * 18);
     const alpha = 0.10 + t * 0.22;
+    return {
+      cx, cy, rx: pt.rx, ry: pt.ry,
+      c0: `hsla(${h1},90%,${l1}%,${alpha.toFixed(3)})`,
+      c1: `hsla(${h1},90%,${l1 + 2}%,${(alpha * 0.5).toFixed(3)})`,
+      c2: `hsla(${h1},90%,75%,0)`,
+    };
+  });
 
-    octx.save();
-    octx.scale(1, ry / rx);
-    const grad = octx.createRadialGradient(cx, cy * (rx / ry), 0, cx, cy * (rx / ry), rx);
-    grad.addColorStop(0,   `hsla(${h1},90%,${Math.round(70 - t * 18)}%,${alpha.toFixed(3)})`);
-    grad.addColorStop(0.5, `hsla(${h1},90%,${Math.round(72 - t * 16)}%,${(alpha * 0.5).toFixed(3)})`);
-    grad.addColorStop(1,   `hsla(${h1},90%,75%,0)`);
-    octx.fillStyle = grad;
-    octx.fillRect(cx - rx, (cy - rx) * (rx / ry), rx * 2, rx * 2);
-    octx.restore();
-  }
-  ctx.drawImage(offscreen, 0, 0);
+  drawBlobsOnCanvas(heatCtx, heatBlobs, 18);
 }
 
 function applyHighlights() {
@@ -1175,12 +1198,17 @@ function applyHighlights() {
       const rect  = getCharRect(para, span.start, span.end);
       if (rect && rect.width > 0) {
         const colEl = document.getElementById('text-col');
+        // Determine tenor hue from tag + teacher prompt
+        const rawHue = a.is_teacher_prompt === true || a.is_teacher_prompt === 'true'
+          ? TAG_HUE['_teacher']
+          : (TAG_HUE[a.tag] ?? null);
         heatPoints.push({
           x:      rect.left + rect.width  / 2,
           y:      rect.top  + rect.height / 2,
-          rx:     Math.max(rect.width / 2 + 40, 60),  // horizontal spread
-          ry:     Math.max(rect.height * 3, 80),       // vertical spread (bleeds across lines)
+          rx:     Math.max(rect.width / 2 + 40, 60),
+          ry:     Math.max(rect.height * 3, 80),
           weight,
+          hue:    rawHue,
         });
       }
     });
