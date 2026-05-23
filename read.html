@@ -1235,11 +1235,11 @@ function paintHeatCanvas(heatPoints) {
 
   const colRect = col.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
-  const W = Math.round(col.scrollWidth);
-  const H = Math.round(col.scrollHeight);
+  // Use visible viewport of text-col, not full scroll height
+  const W = Math.round(colRect.width);
+  const H = Math.round(colRect.height);
   console.log('[LG] canvas size:', W, 'x', H, 'dpr:', window.devicePixelRatio);
-  const scrollTop  = col.scrollTop;
-  const scrollLeft = col.scrollLeft;
+  // offX/offY map from viewport screen coords to canvas coords
   const offX = colRect.left;
   const offY = colRect.top;
 
@@ -1247,8 +1247,13 @@ function paintHeatCanvas(heatPoints) {
   [heatCanvas, tenorCanvas].forEach(c => {
     c.width  = Math.round(W * dpr);
     c.height = Math.round(H * dpr);
-    c.style.width  = W + 'px';
-    c.style.height = H + 'px';
+    // Switch to fixed positioning so canvas maps 1:1 to viewport coords
+    c.style.position = 'fixed';
+    c.style.left     = colRect.left + 'px';
+    c.style.top      = colRect.top  + 'px';
+    c.style.width    = W + 'px';
+    c.style.height   = H + 'px';
+    c.style.pointerEvents = 'none';
   });
 
   // ── LAYER 1: TENOR (tag color, large diffuse blobs, heavy blur) ────────────
@@ -1258,8 +1263,8 @@ function paintHeatCanvas(heatPoints) {
 
   const p = hmParams();
   const tenorBlobs = heatPoints.map(pt => {
-    const cx  = pt.x - offX + scrollLeft;
-    const cy  = pt.y - offY + scrollTop;
+    const cx  = pt.x - offX;  // viewport coords, no scroll offset needed
+    const cy  = pt.y - offY;  // viewport coords, no scroll offset needed
     const hue = pt.hue;
     if (hue === null) return null;
     const rx    = pt.rx * 2.5 * p.tenorRx;
@@ -1284,8 +1289,8 @@ function paintHeatCanvas(heatPoints) {
   heatCtx.clearRect(0, 0, W, H);
 
   const heatBlobs = heatPoints.map(pt => {
-    const cx  = pt.x - offX + scrollLeft;
-    const cy  = pt.y - offY + scrollTop;
+    const cx  = pt.x - offX;  // viewport coords, no scroll offset needed
+    const cy  = pt.y - offY;  // viewport coords, no scroll offset needed
     // Use gradient preset for center color, fade to transparent at edge
     const c0 = heatStopFromGrad(pt.weight * p.heatAlpha);
     const c1 = heatStopFromGrad(pt.weight * p.heatAlpha * 0.5);
@@ -2493,7 +2498,20 @@ document.querySelectorAll('.gt-tool').forEach(btn=>{btn.addEventListener('click'
 document.querySelectorAll('.gt-color').forEach(dot=>{dot.addEventListener('click',()=>{document.querySelectorAll('.gt-color').forEach(d=>d.classList.remove('active'));dot.classList.add('active');graffitiColor=dot.dataset.color;});});
 document.querySelectorAll('.gt-size').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.gt-size').forEach(b=>b.classList.remove('active'));btn.classList.add('active');graffitiSize=parseInt(btn.dataset.size);});});
 document.getElementById('gt-clear-all')?.addEventListener('click',()=>{if(!confirm('Clear all graffiti?'))return;graffitiStrokes=[];redrawGraffiti();});
-window.addEventListener('resize',()=>{if(graffitiMode)resizeGraffitiCanvas();});
+window.addEventListener('resize', () => {
+  if (graffitiMode) resizeGraffitiCanvas();
+  // Reposition heat canvases on resize
+  if (typeof viewMode !== 'undefined' && viewMode === 'landscape' && window._lastHeatPoints) {
+    paintHeatCanvas(window._lastHeatPoints);
+  }
+});
+
+// Reposition canvases when text-col scrolls
+document.getElementById('text-col')?.addEventListener('scroll', () => {
+  if (typeof viewMode !== 'undefined' && viewMode === 'landscape' && window._lastHeatPoints) {
+    paintHeatCanvas(window._lastHeatPoints);
+  }
+});
 
 // ═══════════════════════════════════════════════════════════
 // SELECTION HOOK — feeds fallacy, rhet mode, arg map
