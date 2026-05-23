@@ -1188,35 +1188,39 @@ const TAG_LIT = {
 };
 
 function drawBlobsOnCanvas(ctx, points, blur) {
-  // Use OffscreenCanvas if available (Safari 16.4+), else fall back to in-place blur
-  const W = ctx.canvas.width, H = ctx.canvas.height;
-  const dpr = window.devicePixelRatio || 1;
-  let os, octx;
-  try {
-    os   = new OffscreenCanvas(W, H);
-    octx = os.getContext('2d');
-    octx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  } catch(_) {
-    // Fallback: draw directly on ctx with filter
-    octx = ctx;
-    os   = null;
-  }
+  // Dimensions in CSS pixels (ctx already has dpr transform set by caller)
+  const dpr  = window.devicePixelRatio || 1;
+  const cssW = ctx.canvas.width  / dpr;
+  const cssH = ctx.canvas.height / dpr;
+
+  // OffscreenCanvas at physical pixels, drawn with dpr transform = CSS coords
+  const os   = new OffscreenCanvas(Math.round(cssW * dpr), Math.round(cssH * dpr));
+  const octx = os.getContext('2d');
+  octx.setTransform(dpr, 0, 0, dpr, 0, 0);  // work in CSS pixels
   octx.filter = `blur(${blur}px)`;
+
   for (const pt of points) {
     const cx = pt.cx, cy = pt.cy;
-    const rx = pt.rx, ry = pt.ry;
+    const rx = pt.rx, ry = Math.max(pt.ry, 1);
+    const scaleY = ry / rx;
     octx.save();
-    octx.scale(1, ry / Math.max(rx, 1));
-    const g = octx.createRadialGradient(cx, cy * (rx / Math.max(ry, 1)), 0,
-                                         cx, cy * (rx / Math.max(ry, 1)), rx);
-    g.addColorStop(0,   pt.c0);
+    octx.scale(1, scaleY);
+    const gcy = cy / scaleY;
+    const g = octx.createRadialGradient(cx, gcy, 0, cx, gcy, rx);
+    g.addColorStop(0,    pt.c0);
     g.addColorStop(0.55, pt.c1);
-    g.addColorStop(1,   pt.c2);
+    g.addColorStop(1,    pt.c2);
     octx.fillStyle = g;
-    octx.fillRect(cx - rx, (cy - rx) * (rx / Math.max(ry, 1)), rx * 2, rx * 2);
+    // fillRect covers the full blob area
+    octx.fillRect(cx - rx, gcy - rx, rx * 2, rx * 2);
     octx.restore();
   }
-  if (os) ctx.drawImage(os, 0, 0);
+
+  // Composite onto main canvas — reset transform so we copy raw pixels 1:1
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.drawImage(os, 0, 0);
+  ctx.restore();
 }
 
 function paintHeatCanvas(heatPoints) {
