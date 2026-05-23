@@ -1051,10 +1051,16 @@ function findQuoteSpan(pt, rawQuote) {
 // Maps annotation quote positions to pixel coordinates in the text-col,
 // then paints Gaussian blobs on a canvas behind the text.
 
+// ── HEATMAP TUNING PARAMS — must come before any hmGet() call ────────────────
+let HM = (() => {
+  try { return JSON.parse(localStorage.getItem('litgloss_hm') || '{}'); } catch(_) { return {}; }
+})();
+function hmGet(k, def) { return k in HM ? HM[k] : def; }
+function hmSave() { try { localStorage.setItem('litgloss_hm', JSON.stringify(HM)); } catch(_) {} }
+
 const HEAT_MAX_WEIGHT = 20;
 
-// Gradient presets: each is an array of [h, s, lBase, lDrop] for HSL interpolation
-// or a special function override stored in GRAD_STOPS as [r,g,b,a] stops
+// Gradient presets
 const GRAD_PRESETS = {
   classic: { stops: [[254,249,195,0],[253,186,116,0.3],[249,115,22,0.45],[220,38,38,0.5],[185,28,28,0.55]] },
   fire:    { stops: [[255,247,237,0],[251,146,60,0.3],[239,68,68,0.45],[159,18,57,0.5],[127,13,13,0.55]] },
@@ -1087,12 +1093,6 @@ function heatStopFromGrad(val) {
   return `rgba(${r},${g},${b},${a})`;
 }
 
-// ── HEATMAP TUNING PARAMS (user-adjustable via tuning panel) ─────────────────
-let HM = (() => {
-  try { return JSON.parse(localStorage.getItem('litgloss_hm') || '{}'); } catch(_) { return {}; }
-})();
-function hmGet(k, def) { return k in HM ? HM[k] : def; }
-function hmSave() { try { localStorage.setItem('litgloss_hm', JSON.stringify(HM)); } catch(_) {} }
 
 // Returns current tuning values with defaults
 function hmParams() {
