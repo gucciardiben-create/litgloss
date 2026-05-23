@@ -1256,36 +1256,42 @@ function paintHeatCanvas(heatPoints) {
 
 function applyHighlights() {
   const paras = Array.from(document.querySelectorAll('.para'));
-  // Clear per-line background gradients and restore plain text
+  const mode  = (typeof viewMode !== 'undefined') ? viewMode : 'highlights';
+
+  // Always reset para text and clear old gradient backgrounds
   paras.forEach(p => {
     const t = p.textContent;
     p.innerHTML = '';
     p.appendChild(document.createTextNode(t));
     p.style.backgroundImage = '';
-    p.style.borderRadius = '';
+    p.style.borderRadius    = '';
   });
 
-  // Clear canvas if nothing to show
-  const canvas = document.getElementById('heat-canvas');
+  // Clear canvas
+  const heatCanvas  = document.getElementById('heat-canvas');
+  const tenorCanvas = document.getElementById('tenor-canvas');
+  function clearCanvases() {
+    [heatCanvas, tenorCanvas].forEach(c => { if(c){const x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);} });
+  }
+
+  // Show/hide tuning panel
   const hmPanelEl = document.getElementById('hm-panel');
-  const showPanel = (typeof viewMode === 'undefined' || viewMode === 'landscape') && highlightFilter !== 'none' && annotations.length > 0;
-  if (hmPanelEl) hmPanelEl.style.display = showPanel ? '' : 'none';
+  if (hmPanelEl) hmPanelEl.style.display = (mode === 'landscape' && highlightFilter !== 'none' && annotations.length > 0) ? '' : 'none';
+
   if (highlightFilter === 'none' || !annotations.length) {
-    if (canvas) { const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
+    clearCanvases();
     paras.forEach((p, i) => bindParaEvents(p, i));
     return;
   }
 
-  // Group annotations by paragraph (with fuzzy para-scan fallback)
+  // Group annotations by paragraph (fuzzy fallback)
   const byPara = {};
   annotations.forEach(a => {
     if (!a.quote) return;
     const pi = parseInt(a.line_index);
-    if (!isNaN(pi) && pi >= 0 && pi < paras.length) {
-      if (findQuoteSpan(getParaText(paras[pi]), a.quote)) {
-        if (!byPara[pi]) byPara[pi] = [];
-        byPara[pi].push(a); return;
-      }
+    if (!isNaN(pi) && pi >= 0 && pi < paras.length && findQuoteSpan(getParaText(paras[pi]), a.quote)) {
+      if (!byPara[pi]) byPara[pi] = [];
+      byPara[pi].push(a); return;
     }
     for (let k = 0; k < paras.length; k++) {
       if (findQuoteSpan(getParaText(paras[k]), a.quote)) {
@@ -1296,10 +1302,73 @@ function applyHighlights() {
     }
   });
 
-  // Build per-char weight arrays for each para (for hover/click lookup)
-  // AND collect pixel positions for the canvas blobs
-  const heatPoints  = [];
-  const paraCharMap = {}; // paraIdx → {ca, pt}
+  // ── HIGHLIGHTS MODE: classic coloured spans ────────────────────────────────
+  if (mode === 'highlights') {
+    clearCanvases();
+    Object.entries(byPara).forEach(([piStr, annos]) => {
+      const paraIdx = parseInt(piStr);
+      const para    = paras[paraIdx];
+      const pt      = getParaText(para);
+
+      // Per-char: count + annoId list
+      const cc = new Array(pt.length).fill(0);
+      const ca = new Array(pt.length).fill(null);
+      annos.forEach(a => {
+        const span = findQuoteSpan(pt, a.quote); if (!span) return;
+        for (let i = span.start; i < span.end; i++) {
+          cc[i]++;
+          if (!ca[i]) ca[i] = [];
+          ca[i].push(a.id);
+        }
+      });
+
+      function heatColor(count) {
+        const stops = [
+          [254,249,195,0.35],[254,215,170,0.45],[253,186,116,0.52],
+          [251,146, 60,0.58],[249,115, 22,0.64],[239, 68, 68,0.70],
+          [220, 38, 38,0.75],[185, 28, 28,0.82],
+        ];
+        const [r,g,b,a2] = stops[Math.min(count-1, stops.length-1)];
+        return `rgba(${r},${g},${b},${a2})`;
+      }
+
+      para.innerHTML = '';
+      let i = 0;
+      while (i < pt.length) {
+        if (!cc[i]) {
+          let j = i; while (j < pt.length && !cc[j]) j++;
+          para.appendChild(document.createTextNode(pt.slice(i, j))); i = j;
+        } else {
+          const cnt = Math.ceil(cc[i]);
+          let j = i; while (j < pt.length && Math.ceil(cc[j]) === cnt) j++;
+          const annoIdSet = new Set();
+          for (let k = i; k < j; k++) { if (ca[k]) ca[k].forEach(id => annoIdSet.add(id)); }
+          const annoIds = [...annoIdSet];
+          const sa = annotations.filter(a => annoIds.includes(a.id));
+          const devCount = sa.filter(a => { try { const d = typeof a.devices==='string'?JSON.parse(a.devices):a.devices; return Array.isArray(d)&&d.length>0; } catch(_){return false;} }).length;
+          const hd   = devCount > 0 && devCount >= Math.ceil(sa.length / 2);
+          const isTP = sa.some(a => a.is_teacher_prompt===true||a.is_teacher_prompt==='true');
+          const sp = document.createElement('span');
+          sp.className = 'highlight' + (hd?' has-device':'') + (isTP?' teacher-prompt-hl':'');
+          sp.style.background = heatColor(cnt);
+          sp.title = cnt + ' annotation' + (cnt!==1?'s':'');
+          sp.textContent = pt.slice(i, j);
+          const capturedIds = [...annoIds];
+          sp.addEventListener('mouseenter', () => { clearTimeout(popupTimeout); const ma=annotations.filter(a=>capturedIds.includes(a.id)); if(ma.length)showPopup(ma,sp,paraIdx); });
+          sp.addEventListener('mouseleave', () => { popupTimeout=setTimeout(hidePopup,300); });
+          sp.addEventListener('click', e => { const sel=window.getSelection();if(sel&&sel.toString().trim())return; const ma=annotations.filter(a=>capturedIds.includes(a.id));if(ma.length)showPopup(ma,sp,paraIdx); });
+          para.appendChild(sp); i = j;
+        }
+      }
+      bindParaEvents(para, paraIdx);
+    });
+    paras.forEach((p, i) => { if (!byPara[i]) bindParaEvents(p, i); });
+    return;
+  }
+
+  // ── LANDSCAPE MODE: canvas Gaussian heatmap ───────────────────────────────
+  const heatPoints = [];
+  const paraCharMap = {};
 
   Object.entries(byPara).forEach(([piStr, annos]) => {
     const paraIdx = parseInt(piStr);
@@ -1308,69 +1377,50 @@ function applyHighlights() {
 
     const cc = new Array(pt.length).fill(0);
     const ca = new Array(pt.length).fill(null);
-
     annos.forEach(a => {
-      const span = findQuoteSpan(pt, a.quote);
-      if (!span) return;
-      const replyBoost  = Math.min((a._replyCount || 0) * 0.5, 2);
-      const upvoteBoost = Math.min((a.upvotes     || 0) * 0.15, 1);
-      const weight      = 1 + replyBoost + upvoteBoost;
+      const span = findQuoteSpan(pt, a.quote); if (!span) return;
+      const replyBoost  = Math.min((a._replyCount||0)*0.5, 2);
+      const upvoteBoost = Math.min((a.upvotes||0)*0.15, 1);
+      const weight = 1 + replyBoost + upvoteBoost;
       for (let i = span.start; i < span.end; i++) {
         cc[i] += weight;
         if (!ca[i]) ca[i] = [];
         ca[i].push(a.id);
       }
-
-      // Get pixel rect of the quoted span for the canvas blob
-      const mid   = Math.floor((span.start + span.end) / 2);
-      const rect  = getCharRect(para, span.start, span.end);
+      const rect = getCharRect(para, span.start, span.end);
       if (rect && rect.width > 0) {
-        const colEl = document.getElementById('text-col');
-        // Determine tenor hue from tag + teacher prompt
-        const isTP2 = a.is_teacher_prompt === true || a.is_teacher_prompt === 'true';
-        const tagKey = isTP2 ? '_teacher' : (a.tag || null);
-        const rawHue = tagKey ? (TAG_HUE[tagKey] ?? null) : null;
-        // Prose-friendly ry: use actual line height rather than fixed multiplier
-        const lineH = rect.height || 20;
-        heatPoints.push({
-          x:      rect.left + rect.width  / 2,
-          y:      rect.top  + rect.height / 2,
-          rx:     Math.max(rect.width / 2 + 32, 48),
-          ry:     Math.max(lineH * 2.2, 50),   // smaller vertical spread for prose
-          weight,
-          hue:    rawHue,
-          tagKey,
-        });
+        const isTP2  = a.is_teacher_prompt===true||a.is_teacher_prompt==='true';
+        const tagKey = isTP2 ? '_teacher' : (a.tag||null);
+        const rawHue = tagKey ? (TAG_HUE[tagKey]??null) : null;
+        const lineH  = rect.height||20;
+        heatPoints.push({ x:rect.left+rect.width/2, y:rect.top+rect.height/2, rx:Math.max(rect.width/2+32,48), ry:Math.max(lineH*2.2,50), weight, hue:rawHue, tagKey });
       }
     });
 
     paraCharMap[paraIdx] = { ca, pt };
 
-    // Wire hover/click on this para using charAtPoint
-    function idsAtChar(ci) { return (ci >= 0 && ca[ci]) ? ca[ci] : []; }
+    function idsAtChar(ci) { return (ci>=0&&ca[ci])?ca[ci]:[]; }
     para.addEventListener('mousemove', e => {
       if (graffitiMode) return;
       const ids = idsAtChar(charAtPoint(para, e.clientX, e.clientY));
-      if (!ids.length) { clearTimeout(popupTimeout); popupTimeout = setTimeout(hidePopup, 200); return; }
+      if (!ids.length) { clearTimeout(popupTimeout); popupTimeout=setTimeout(hidePopup,200); return; }
       clearTimeout(popupTimeout);
-      const ma = annotations.filter(a => ids.includes(a.id));
+      const ma = annotations.filter(a=>ids.includes(a.id));
       if (ma.length) showPopup(ma, para, paraIdx);
     });
-    para.addEventListener('mouseleave', () => { popupTimeout = setTimeout(hidePopup, 300); });
+    para.addEventListener('mouseleave', () => { popupTimeout=setTimeout(hidePopup,300); });
     para.addEventListener('click', e => {
       if (graffitiMode) return;
-      const sel = window.getSelection(); if (sel && sel.toString().trim()) return;
-      const ids = idsAtChar(charAtPoint(para, e.clientX, e.clientY));
+      const sel=window.getSelection(); if(sel&&sel.toString().trim())return;
+      const ids=idsAtChar(charAtPoint(para,e.clientX,e.clientY));
       if (!ids.length) return;
-      const ma = annotations.filter(a => ids.includes(a.id));
-      if (ma.length) showPopup(ma, para, paraIdx);
+      const ma=annotations.filter(a=>ids.includes(a.id));
+      if (ma.length) showPopup(ma,para,paraIdx);
     });
     bindParaEvents(para, paraIdx);
   });
 
   paras.forEach((p, i) => { if (!byPara[i]) bindParaEvents(p, i); });
-
-  // Paint canvas — defer one frame so para rects are laid out
   window._lastHeatPoints = heatPoints;
   requestAnimationFrame(() => paintHeatCanvas(heatPoints));
 }
