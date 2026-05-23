@@ -1461,24 +1461,24 @@ function applyHighlights() {
       }
     });
 
-    // 2. Measure pixel rects BEFORE touching para DOM
-    annos.forEach(a => {
-      const span = findQuoteSpan(pt, a.quote); if (!span) return;
-      const rect = getCharRect(para, span.start, span.end);
-      if (rect && rect.width > 0) {
+    // 2. Use para bounding rect — simpler and always valid
+    const paraRect = para.getBoundingClientRect();
+    if (paraRect.width > 0 && paraRect.height > 0) {
+      annos.forEach(a => {
         const isTP2  = a.is_teacher_prompt===true||a.is_teacher_prompt==='true';
         const tagKey = isTP2 ? '_teacher' : (a.tag||null);
         const rawHue = tagKey ? (TAG_HUE[tagKey]??null) : null;
-        const lineH  = rect.height || 20;
         heatPoints.push({
-          x: rect.left + rect.width / 2,
-          y: rect.top  + rect.height / 2,
-          rx: Math.max(rect.width / 2 + 32, 48),
-          ry: Math.max(lineH * 2.2, 50),
-          weight, hue: rawHue, tagKey,
+          x:  paraRect.left + paraRect.width  / 2,
+          y:  paraRect.top  + paraRect.height / 2,
+          rx: Math.max(paraRect.width / 2, 60),
+          ry: Math.max(paraRect.height * 2, 50),
+          weight: 1 + Math.min((a._replyCount||0)*0.5,2) + Math.min((a.upvotes||0)*0.15,1),
+          hue: rawHue,
+          tagKey,
         });
-      }
-    });
+      });
+    }
 
     // 3. Rebuild para DOM: squiggle spans for device-annotated regions
     //    Keep plain text nodes otherwise so charAtPoint still works on non-device text.
@@ -1531,6 +1531,7 @@ function applyHighlights() {
 
   paras.forEach((p, i) => { if (!byPara[i]) bindParaEvents(p, i); });
   window._lastHeatPoints = heatPoints;
+  alert('PAINTING: ' + heatPoints.length + ' points');
   paintHeatCanvas(heatPoints);
 }
 
