@@ -1412,95 +1412,117 @@ function applyHighlights() {
   }
 
   // ── LANDSCAPE MODE: canvas Gaussian heatmap ───────────────────────────────
-  const heatPoints = [];
-  const paraCharMap = {};
+  const heatPoints  = [];
 
   Object.entries(byPara).forEach(([piStr, annos]) => {
     const paraIdx = parseInt(piStr);
     const para    = paras[paraIdx];
     const pt      = getParaText(para);
 
+    // 1. Build per-char weight + annoId arrays
     const cc = new Array(pt.length).fill(0);
     const ca = new Array(pt.length).fill(null);
+    const deviceChar = new Array(pt.length).fill(false);
+
     annos.forEach(a => {
       const span = findQuoteSpan(pt, a.quote); if (!span) return;
-      const replyBoost  = Math.min((a._replyCount||0)*0.5, 2);
-      const upvoteBoost = Math.min((a.upvotes||0)*0.15, 1);
+      const replyBoost  = Math.min((a._replyCount||0) * 0.5, 2);
+      const upvoteBoost = Math.min((a.upvotes||0) * 0.15, 1);
       const weight = 1 + replyBoost + upvoteBoost;
       for (let i = span.start; i < span.end; i++) {
         cc[i] += weight;
         if (!ca[i]) ca[i] = [];
         ca[i].push(a.id);
       }
+      // Device flag
+      const hasDevice = (() => {
+        try { const d = typeof a.devices==='string'?JSON.parse(a.devices):a.devices; return Array.isArray(d)&&d.length>0; } catch(_){return false;}
+      })();
+      if (hasDevice) {
+        for (let i = span.start; i < span.end; i++) deviceChar[i] = true;
+      }
+    });
+
+    // 2. Measure pixel rects BEFORE touching para DOM
+    annos.forEach(a => {
+      const span = findQuoteSpan(pt, a.quote); if (!span) return;
       const rect = getCharRect(para, span.start, span.end);
       if (rect && rect.width > 0) {
         const isTP2  = a.is_teacher_prompt===true||a.is_teacher_prompt==='true';
         const tagKey = isTP2 ? '_teacher' : (a.tag||null);
         const rawHue = tagKey ? (TAG_HUE[tagKey]??null) : null;
-        const lineH  = rect.height||20;
-        heatPoints.push({ x:rect.left+rect.width/2, y:rect.top+rect.height/2, rx:Math.max(rect.width/2+32,48), ry:Math.max(lineH*2.2,50), weight, hue:rawHue, tagKey });
+        const lineH  = rect.height || 20;
+        heatPoints.push({
+          x: rect.left + rect.width / 2,
+          y: rect.top  + rect.height / 2,
+          rx: Math.max(rect.width / 2 + 32, 48),
+          ry: Math.max(lineH * 2.2, 50),
+          weight, hue: rawHue, tagKey,
+        });
       }
     });
 
-    paraCharMap[paraIdx] = { ca, pt };
-
-    // Mark device-annotated regions with squiggle spans
-    const deviceChar = new Array(pt.length).fill(false);
-    annos.forEach(a => {
-      const hasDevice = (() => {
-        try { const d = typeof a.devices==='string'?JSON.parse(a.devices):a.devices; return Array.isArray(d)&&d.length>0; } catch(_){return false;}
-      })();
-      if (!hasDevice) return;
-      const span = findQuoteSpan(pt, a.quote); if (!span) return;
-      for (let i = span.start; i < span.end; i++) deviceChar[i] = true;
-    });
-    // Rebuild para text nodes with squiggle spans where deviceChar is true
+    // 3. Rebuild para DOM: squiggle spans for device-annotated regions
+    //    Keep plain text nodes otherwise so charAtPoint still works on non-device text.
+    //    Crucially: the walker in charAtPoint traverses ALL text nodes including
+    //    those inside spans — so we just need it to accumulate offsets correctly.
     if (deviceChar.some(Boolean)) {
       para.innerHTML = '';
       let i = 0;
       while (i < pt.length) {
         if (!deviceChar[i]) {
           let j = i; while (j < pt.length && !deviceChar[j]) j++;
-          para.appendChild(document.createTextNode(pt.slice(i,j))); i = j;
+          para.appendChild(document.createTextNode(pt.slice(i, j)));
+          i = j;
         } else {
           let j = i; while (j < pt.length && deviceChar[j]) j++;
           const sq = document.createElement('span');
           sq.className = 'ls-device';
-          sq.textContent = pt.slice(i, j);
-          para.appendChild(sq); i = j;
+          sq.appendChild(document.createTextNode(pt.slice(i, j)));
+          para.appendChild(sq);
+          i = j;
         }
       }
     }
 
-    function idsAtChar(ci) { return (ci>=0&&ca[ci])?ca[ci]:[]; }
-    para.addEventListener('mousemove', e => {
-      if (graffitiMode) return;
-      const ids = idsAtChar(charAtPoint(para, e.clientX, e.clientY));
-      if (!ids.length) { clearTimeout(popupTimeout); popupTimeout=setTimeout(hidePopup,200); return; }
+    // 4. Wire hover/click using charAtPoint
+    //    charAtPoint uses TreeWalker(SHOW_TEXT) which correctly traverses
+    //    text nodes inside spans, accumulating offsets properly.
+    function idsAtChar(ci) { return (ci >= 0 && ca[ci]) ? ca[ci] : []; }
+
+    // Remove old listeners by cloning (cheap on per-para basis)
+    const fresh = para.cloneNode(true);
+    para.parentNode.replaceChild(fresh, para);
+    paras[paraIdx] = fresh;
+
+    fresh.addEventListener('mousemove', e => {
+      if (typeof graffitiMode !== 'undefined' && graffitiMode) return;
+      const ids = idsAtChar(charAtPoint(fresh, e.clientX, e.clientY));
+      if (!ids.length) { clearTimeout(popupTimeout); popupTimeout = setTimeout(hidePopup, 200); return; }
       clearTimeout(popupTimeout);
-      const ma = annotations.filter(a=>ids.includes(a.id));
-      if (ma.length) showPopup(ma, para, paraIdx);
+      const ma = annotations.filter(a => ids.includes(a.id));
+      if (ma.length) showPopup(ma, fresh, paraIdx);
     });
-    para.addEventListener('mouseleave', () => { popupTimeout=setTimeout(hidePopup,300); });
-    para.addEventListener('click', e => {
-      if (graffitiMode) return;
-      const sel=window.getSelection(); if(sel&&sel.toString().trim())return;
-      const ids=idsAtChar(charAtPoint(para,e.clientX,e.clientY));
+    fresh.addEventListener('mouseleave', () => { popupTimeout = setTimeout(hidePopup, 300); });
+    fresh.addEventListener('click', e => {
+      if (typeof graffitiMode !== 'undefined' && graffitiMode) return;
+      const sel = window.getSelection(); if (sel && sel.toString().trim()) return;
+      const ids = idsAtChar(charAtPoint(fresh, e.clientX, e.clientY));
       if (!ids.length) return;
-      const ma=annotations.filter(a=>ids.includes(a.id));
-      if (ma.length) showPopup(ma,para,paraIdx);
+      const ma = annotations.filter(a => ids.includes(a.id));
+      if (ma.length) showPopup(ma, fresh, paraIdx);
     });
-    bindParaEvents(para, paraIdx);
+    bindParaEvents(fresh, paraIdx);
   });
 
   paras.forEach((p, i) => { if (!byPara[i]) bindParaEvents(p, i); });
   window._lastHeatPoints = heatPoints;
-  // Defer two frames: first to ensure squiggle DOM is settled, second to paint
-  requestAnimationFrame(() => requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
     try { paintHeatCanvas(heatPoints); }
     catch(e) { console.error('paintHeatCanvas error:', e); }
-  }));
+  });
 }
+
 
 
 function hidePopup(){document.getElementById('anno-popup').classList.remove('visible');}
