@@ -446,6 +446,45 @@ body.sb-open .topbar{margin-top:37px;}
 .text-hidden #text-header  { opacity: 0; pointer-events: none; }
 #text-col { transition: background .3s; }
 .hm-btn.active { background: #7C3AED; color: #fff; border-color: #7C3AED; }
+
+/* ── HIGHLIGHT MODE TOGGLE ── */
+.view-mode-bar{display:flex;gap:6px;padding:6px 10px;border-bottom:0.5px solid #eee;background:#fff;flex-shrink:0;}
+.vm-btn{font-size:11px;padding:3px 10px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;font-family:sans-serif;transition:all .15s;}
+.vm-btn:hover{background:#f0f0f0;}
+.vm-btn.active{background:#111;color:#fff;border-color:#111;}
+
+/* ── LINE FOCUS VIEW ── */
+.line-focus-bar{display:none;border-bottom:0.5px solid #eee;background:#FAFAF8;flex-shrink:0;}
+.line-focus-bar.visible{display:block;}
+.lf-line{font-size:15px;font-family:Georgia,serif;padding:12px 16px 8px;color:#111;border-bottom:0.5px solid #f0f0f0;white-space:pre-wrap;}
+.lf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;padding:10px 12px;max-height:260px;overflow-y:auto;}
+.lf-card{background:#fff;border:0.5px solid #e0e0e0;border-radius:10px;padding:10px 11px;cursor:pointer;transition:border-color .12s;}
+.lf-card:hover{border-color:#7C3AED;}
+.lf-card-quote{font-size:11px;color:#aaa;font-family:Georgia,serif;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lf-card-subject{font-size:12px;font-weight:500;color:#111;margin-bottom:2px;line-height:1.4;}
+.lf-card-author{font-size:11px;color:#aaa;font-family:sans-serif;}
+.lf-card-tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:10px;background:#F3E8FF;color:#7C3AED;margin-bottom:4px;}
+.lf-close{float:right;font-size:18px;color:#aaa;cursor:pointer;padding:4px 8px;line-height:1;border:none;background:none;}
+.lf-close:hover{color:#111;}
+.lf-empty{font-size:12px;color:#aaa;padding:12px 16px;font-family:sans-serif;}
+
+/* ── POPUP SCROLL ── */
+.anno-popup{position:absolute;z-index:100;width:285px;background:#fff;border:0.5px solid #ccc;
+  border-radius:12px;padding:0;pointer-events:none;opacity:0;transition:opacity .15s;left:10px;
+  font-family:sans-serif;max-height:420px;display:flex;flex-direction:column;overflow:hidden;}
+.anno-popup.visible{opacity:1;pointer-events:all;}
+.popup-scroll-area{overflow-y:auto;padding:.9rem 1rem;flex:1;min-height:0;}
+.popup-count-bar{display:none;font-size:10px;font-family:sans-serif;color:#aaa;text-align:center;
+  padding:4px 0;border-top:0.5px solid #eee;flex-shrink:0;}
+.popup-count-bar.visible{display:block;}
+
+/* ── MULTI-SELECT PENDING ── */
+.multi-sel-toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  background:#111;color:#fff;font-size:12px;padding:7px 16px;border-radius:20px;
+  z-index:400;font-family:sans-serif;display:none;gap:8px;align-items:center;}
+.multi-sel-toast.visible{display:flex;}
+.multi-sel-quote{color:#C4B5FD;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.multi-sel-clear{cursor:pointer;color:#FCA5A5;font-size:13px;margin-left:4px;}
 </style>
 </head>
 <body>
@@ -549,6 +588,18 @@ body.sb-open .topbar{margin-top:37px;}
       <button class="gt-size" data-size="10">L</button>
       <div class="gt-sep"></div>
       <button class="gt-clear" id="gt-clear-all">Clear all</button>
+    </div>
+    <!-- View mode toggle -->
+    <div class="view-mode-bar" id="view-mode-bar">
+      <button class="vm-btn active" id="vm-highlights" title="Classic span highlights">◈ Highlights</button>
+      <button class="vm-btn" id="vm-landscape" title="Attention Landscape gradient heatmap">⬡ Landscape</button>
+      <button class="vm-btn" id="vm-line-focus" title="Select a line to see all its annotations">≡ Line Focus</button>
+    </div>
+    <!-- Line focus bar -->
+    <div class="line-focus-bar" id="line-focus-bar">
+      <button class="lf-close" id="lf-close">×</button>
+      <div class="lf-line" id="lf-line-text">Click a line in the poem to focus it.</div>
+      <div class="lf-grid" id="lf-grid"></div>
     </div>
     <div class="rc-scroll-area">
       <div class="feed-panel" id="feed-panel">
@@ -1075,15 +1126,24 @@ function getCharRect(para, start, end) {
 // Tag → hue mapping for tenor layer
 // Each tag gets a hue in HSL; blended where multiple tags overlap
 const TAG_HUE = {
-  'Question':           240,  // blue-violet  — inquiry, uncertainty
-  'Analysis':           185,  // teal          — focused engagement
-  'Analysis/Criticism': 210,  // slate-blue    — critical distance
-  'Connection':         140,  // green         — associative, expansive
-  'Free Write':         35,   // warm amber    — personal, loose
-  'Summary':            0,    // neutral (no tenor)
-  'Footnote':           270,  // soft purple   — scholarly gloss
-  'Clarification':      200,  // sky blue      — puzzlement
-  '_teacher':           285,  // violet        — teacher prompt
+  'Question':           235,  // indigo-blue   — inquiry, uncertainty
+  'Analysis':           175,  // cyan-teal     — focused engagement
+  'Analysis/Criticism': 215,  // slate-blue    — critical distance
+  'Connection':         135,  // fresh green   — associative, expansive
+  'Free Write':         30,   // warm amber    — personal, expressive
+  'Summary':            60,   // yellow-green  — synthesis
+  'Footnote':           270,  // soft violet   — scholarly gloss
+  'Clarification':      195,  // sky blue      — puzzlement
+  '_teacher':           290,  // magenta-violet— teacher prompt
+};
+// Saturation + lightness per tag (more vivid for emotional tags)
+const TAG_SAT = {
+  'Question':60, 'Analysis':55, 'Analysis/Criticism':45, 'Connection':65,
+  'Free Write':70, 'Summary':50, 'Footnote':50, 'Clarification':55, '_teacher':65,
+};
+const TAG_LIT = {
+  'Question':70, 'Analysis':68, 'Analysis/Criticism':65, 'Connection':68,
+  'Free Write':72, 'Summary':70, 'Footnote':72, 'Clarification':72, '_teacher':68,
 };
 
 function drawBlobsOnCanvas(ctx, points, blur) {
@@ -1155,12 +1215,15 @@ function paintHeatCanvas(heatPoints) {
     if (hue === null) return null;
     const rx    = pt.rx * 2.5 * p.tenorRx;
     const ry    = pt.ry * 2.2 * p.tenorRy;
+    const tagKey = pt.tagKey || '_teacher';
+    const sat = TAG_SAT[tagKey] ?? 55;
+    const lit = TAG_LIT[tagKey] ?? 72;
     const alpha = 0.09 * p.tenorAlpha;
     return {
       cx, cy, rx, ry,
-      c0: `hsla(${hue},55%,72%,${alpha.toFixed(3)})`,
-      c1: `hsla(${hue},50%,75%,${(alpha * 0.45).toFixed(3)})`,
-      c2: `hsla(${hue},45%,80%,0)`,
+      c0: `hsla(${hue},${sat}%,${lit}%,${alpha.toFixed(3)})`,
+      c1: `hsla(${hue},${sat-5}%,${lit+3}%,${(alpha * 0.45).toFixed(3)})`,
+      c2: `hsla(${hue},${sat-10}%,${lit+8}%,0)`,
     };
   }).filter(Boolean);
 
@@ -1205,7 +1268,7 @@ function applyHighlights() {
   // Clear canvas if nothing to show
   const canvas = document.getElementById('heat-canvas');
   const hmPanelEl = document.getElementById('hm-panel');
-  const showPanel = highlightFilter !== 'none' && annotations.length > 0;
+  const showPanel = (typeof viewMode === 'undefined' || viewMode === 'landscape') && highlightFilter !== 'none' && annotations.length > 0;
   if (hmPanelEl) hmPanelEl.style.display = showPanel ? '' : 'none';
   if (highlightFilter === 'none' || !annotations.length) {
     if (canvas) { const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
@@ -1264,16 +1327,19 @@ function applyHighlights() {
       if (rect && rect.width > 0) {
         const colEl = document.getElementById('text-col');
         // Determine tenor hue from tag + teacher prompt
-        const rawHue = a.is_teacher_prompt === true || a.is_teacher_prompt === 'true'
-          ? TAG_HUE['_teacher']
-          : (TAG_HUE[a.tag] ?? null);
+        const isTP2 = a.is_teacher_prompt === true || a.is_teacher_prompt === 'true';
+        const tagKey = isTP2 ? '_teacher' : (a.tag || null);
+        const rawHue = tagKey ? (TAG_HUE[tagKey] ?? null) : null;
+        // Prose-friendly ry: use actual line height rather than fixed multiplier
+        const lineH = rect.height || 20;
         heatPoints.push({
           x:      rect.left + rect.width  / 2,
           y:      rect.top  + rect.height / 2,
-          rx:     Math.max(rect.width / 2 + 40, 60),
-          ry:     Math.max(rect.height * 3, 80),
+          rx:     Math.max(rect.width / 2 + 32, 48),
+          ry:     Math.max(lineH * 2.2, 50),   // smaller vertical spread for prose
           weight,
           hue:    rawHue,
+          tagKey,
         });
       }
     });
@@ -1340,7 +1406,9 @@ function showPopup(annos,anchor,paraIdx){
       <button class="open-btn pu-open-btn" data-id="${anno.id}">Open discussion →</button>
     </div>${i<annos.length-1?'<div class="pu-divider"></div>':''}`;
   });
-  popup.innerHTML=html;posRC(anchor);popup.classList.add('visible');
+  popup.innerHTML = `<div class="popup-scroll-area">${html}</div><div class="popup-count-bar${annos.length>1?' visible':''}">${annos.length} annotation${annos.length!==1?'s':''} on this region — scroll to see all</div>`;
+  posRC(anchor);popup.classList.add('visible');
+  const scrollArea = popup.querySelector('.popup-scroll-area');
   popup.addEventListener('mouseenter',()=>clearTimeout(popupTimeout));
   popup.addEventListener('mouseleave',()=>{popupTimeout=setTimeout(hidePopup,300);});
   popup.querySelectorAll('.pu-up-btn').forEach(btn=>{
@@ -2282,21 +2350,48 @@ function handleSel(e, paraIdx) {
   const sel = window.getSelection(); if(!sel||sel.isCollapsed)return;
   const text = sel.toString().trim(); if(!text||text.length<2)return;
   const range = sel.getRangeAt(0);
+
   // Fallacy mode
-  if (fallacyVisible && fallacyActiveTag) { tryTagFallacy(text, range.cloneRange()); window.getSelection().removeAllRanges(); return; }
+  if (fallacyVisible && fallacyActiveTag) { tryTagFallacy(text, range.cloneRange()); sel.removeAllRanges(); return; }
   // Rhet mode
-  if (rhetModeActive) { showRhetBar(text, range.cloneRange()); window.getSelection().removeAllRanges(); return; }
+  if (rhetModeActive) { showRhetBar(text, range.cloneRange()); sel.removeAllRanges(); return; }
   // Arg map mode
-  if (argMapVisible && argMapActiveSlot) { if(tryAddToArgMap(text)){ window.getSelection().removeAllRanges(); return; } }
-  // Normal annotation
+  if (argMapVisible && argMapActiveSlot) { if(tryAddToArgMap(text)){ sel.removeAllRanges(); return; } }
+
+  // ── Cmd/Ctrl + drag = multi-segment ──
+  if (e.metaKey || e.ctrlKey) {
+    const para = document.querySelectorAll('.para')[paraIdx]; if(!para)return;
+    let anc = range.commonAncestorContainer;
+    if(anc.nodeType===3)anc=anc.parentNode;
+    if(!para.contains(anc)&&anc!==para)return;
+    multiSegments.push({ text, paraIdx });
+    updateMultiToast();
+    sel.removeAllRanges();
+    return;
+  }
+
+  // Normal annotation — if there are pending multi-segments, merge them
   const para = document.querySelectorAll('.para')[paraIdx]; if(!para)return;
   let anc = range.commonAncestorContainer;
   if(anc.nodeType===3)anc=anc.parentNode; if(!para.contains(anc)&&anc!==para)return;
-  pendingSelection=text; pendingParaIndex=paraIdx;
-  document.getElementById('cp-quote').textContent='"'+text.slice(0,80)+(text.length>80?'…':'')+'"';
+
+  let finalText = text;
+  let finalParaIdx = paraIdx;
+  if (multiSegments.length) {
+    multiSegments.push({ text, paraIdx });
+    // Use the paraIdx of the first segment; quote is all segments joined with " … "
+    finalParaIdx = multiSegments[0].paraIdx;
+    finalText    = multiSegments.map(s => s.text).join(' … ');
+    multiSegments = [];
+    updateMultiToast();
+  }
+
+  pendingSelection  = finalText;
+  pendingParaIndex  = finalParaIdx;
+  document.getElementById('cp-quote').textContent = '"'+finalText.slice(0,80)+(finalText.length>80?'…':'')+'"';
   cpanel.style.display='block'; hidePopup();
   selectedTag=null; document.querySelectorAll('.tag-pill').forEach(p=>p.classList.remove('selected'));
-  window.getSelection().removeAllRanges();
+  sel.removeAllRanges();
   if(window.innerWidth<=700){cpanel.style.display='none';document.getElementById('mobile-annotate-btn').style.display='flex';document.getElementById('mobile-overlay').classList.add('visible');}
 }
 
@@ -2732,5 +2827,11 @@ function wireTeacherEditorButtons() {
 })();
 </script>
 
+<!-- Multi-select toast -->
+<div class="multi-sel-toast" id="multi-sel-toast">
+  <span>⌘-highlight adds to annotation:</span>
+  <span class="multi-sel-quote" id="multi-sel-quotes"></span>
+  <span class="multi-sel-clear" id="multi-sel-clear" title="Clear">✕</span>
+</div>
 </body>
 </html>
