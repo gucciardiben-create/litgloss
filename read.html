@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LitGloss Reader</title>
 <style>
@@ -1427,11 +1430,9 @@ function applyHighlights() {
   }
 
   // ── LANDSCAPE MODE: canvas Gaussian heatmap ───────────────────────────────
-  alert('LANDSCAPE BRANCH. byPara=' + Object.keys(byPara).length + ' annos=' + annotations.length);
   const heatPoints  = [];
 
   Object.entries(byPara).forEach(([piStr, annos]) => {
-    try {
     const paraIdx = parseInt(piStr);
     const para    = paras[paraIdx];
     const pt      = getParaText(para);
@@ -1464,7 +1465,6 @@ function applyHighlights() {
     annos.forEach(a => {
       const span = findQuoteSpan(pt, a.quote); if (!span) return;
       const rect = getCharRect(para, span.start, span.end);
-      console.log('[LG] rect for', JSON.stringify(a.quote?.slice(0,20)), rect ? `${rect.width.toFixed(0)}x${rect.height.toFixed(0)}` : 'null');
       if (rect && rect.width > 0) {
         const isTP2  = a.is_teacher_prompt===true||a.is_teacher_prompt==='true';
         const tagKey = isTP2 ? '_teacher' : (a.tag||null);
@@ -1527,11 +1527,9 @@ function applyHighlights() {
       });
     })(ca, paraIdx, para);
     bindParaEvents(para, paraIdx);
-    } catch(err) { alert('FOREACH ERROR para=' + piStr + ': ' + err.message); }
   });
 
   paras.forEach((p, i) => { if (!byPara[i]) bindParaEvents(p, i); });
-  alert('REACHED PAINT. heatPoints=' + heatPoints.length + ' byPara=' + Object.keys(byPara).length + ' annos=' + annotations.length);
   window._lastHeatPoints = heatPoints;
   paintHeatCanvas(heatPoints);
 }
