@@ -1040,6 +1040,10 @@ function drawBlobsOnCanvas(ctx, points, blur) {
   // Draw on an offscreen canvas with blur, then composite
   const os   = new OffscreenCanvas(ctx.canvas.width, ctx.canvas.height);
   const octx = os.getContext('2d');
+  // Match the parent context's transform so coordinates are consistent
+  octx.setTransform(...ctx.getTransform().toFloat64Array
+    ? [ctx.getTransform().a, 0, 0, ctx.getTransform().d, 0, 0]
+    : [window.devicePixelRatio||1, 0, 0, window.devicePixelRatio||1, 0, 0]);
   octx.filter = `blur(${blur}px)`;
   for (const pt of points) {
     const cx = pt.cx, cy = pt.cy;
@@ -1072,6 +1076,7 @@ function paintHeatCanvas(heatPoints) {
   }
 
   const colRect = col.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
   const W = Math.round(col.scrollWidth);
   const H = Math.round(col.scrollHeight);
   const scrollTop  = col.scrollTop;
@@ -1079,13 +1084,17 @@ function paintHeatCanvas(heatPoints) {
   const offX = colRect.left;
   const offY = colRect.top;
 
+  // Size canvas at physical resolution, display at CSS size — prevents blur on retina
   [heatCanvas, tenorCanvas].forEach(c => {
-    c.width  = W; c.height = H;
-    c.style.width = W + 'px'; c.style.height = H + 'px';
+    c.width  = Math.round(W * dpr);
+    c.height = Math.round(H * dpr);
+    c.style.width  = W + 'px';
+    c.style.height = H + 'px';
   });
 
   // ── LAYER 1: TENOR (tag color, large diffuse blobs, heavy blur) ────────────
   const tenorCtx = tenorCanvas.getContext('2d');
+  tenorCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   tenorCtx.clearRect(0, 0, W, H);
 
   const tenorBlobs = heatPoints.map(pt => {
@@ -1109,6 +1118,7 @@ function paintHeatCanvas(heatPoints) {
 
   // ── LAYER 2: HEAT (density, smaller tighter blobs, moderate blur) ──────────
   const heatCtx = heatCanvas.getContext('2d');
+  heatCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   heatCtx.clearRect(0, 0, W, H);
 
   const heatBlobs = heatPoints.map(pt => {
