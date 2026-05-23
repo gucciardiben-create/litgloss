@@ -417,6 +417,29 @@ body.sb-open .topbar{margin-top:37px;}
 .te-meta input:focus{border-color:#7C3AED;}
 .te-meta-title{flex:2;}
 .te-meta-author{flex:1;}
+
+/* ── HEATMAP TUNING PANEL ── */
+.hm-panel{position:fixed;bottom:20px;right:20px;z-index:500;background:#fff;border:0.5px solid #e0e0e0;
+  border-radius:14px;box-shadow:0 4px 24px rgba(0,0,0,.12);width:260px;font-family:sans-serif;
+  overflow:hidden;transition:height .2s;}
+.hm-panel-header{display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;cursor:pointer;user-select:none;border-bottom:0.5px solid #eee;}
+.hm-panel-title{font-size:12px;font-weight:600;color:#555;letter-spacing:.03em;}
+.hm-panel-toggle{font-size:16px;color:#aaa;line-height:1;}
+.hm-panel-body{padding:12px 14px 14px;}
+.hm-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.hm-row label{font-size:11px;color:#888;width:90px;flex-shrink:0;}
+.hm-row input[type=range]{flex:1;accent-color:#7C3AED;height:3px;}
+.hm-row .hm-val{font-size:11px;color:#7C3AED;width:28px;text-align:right;font-variant-numeric:tabular-nums;}
+.hm-section{font-size:10px;font-weight:600;color:#bbb;text-transform:uppercase;letter-spacing:.1em;
+  margin:10px 0 6px;padding-top:8px;border-top:0.5px solid #f0f0f0;}
+.hm-section:first-child{margin-top:0;padding-top:0;border-top:none;}
+.hm-btn-row{display:flex;gap:6px;margin-top:10px;}
+.hm-btn{flex:1;font-size:11px;padding:5px 0;border-radius:6px;border:0.5px solid #ddd;
+  background:transparent;color:#666;cursor:pointer;}
+.hm-btn:hover{background:#f5f5f5;}
+.hm-btn.primary{background:#7C3AED;color:#fff;border-color:#7C3AED;}
+.hm-btn.primary:hover{background:#6D28D9;}
 </style>
 </head>
 <body>
@@ -961,6 +984,27 @@ function findQuoteSpan(pt, rawQuote) {
 
 const HEAT_MAX_WEIGHT = 20;
 
+// ── HEATMAP TUNING PARAMS (user-adjustable via tuning panel) ─────────────────
+let HM = (() => {
+  try { return JSON.parse(localStorage.getItem('litgloss_hm') || '{}'); } catch(_) { return {}; }
+})();
+function hmGet(k, def) { return k in HM ? HM[k] : def; }
+function hmSave() { try { localStorage.setItem('litgloss_hm', JSON.stringify(HM)); } catch(_) {} }
+
+// Returns current tuning values with defaults
+function hmParams() {
+  return {
+    heatRx:      hmGet('heatRx',    1.0),   // heat blob horizontal scale (multiplier)
+    heatRy:      hmGet('heatRy',    1.0),   // heat blob vertical scale
+    heatBlur:    hmGet('heatBlur',  18),     // heat blur px
+    heatAlpha:   hmGet('heatAlpha', 1.0),   // heat opacity multiplier
+    tenorRx:     hmGet('tenorRx',   1.0),   // tenor blob horizontal scale
+    tenorRy:     hmGet('tenorRy',   1.0),   // tenor blob vertical scale
+    tenorBlur:   hmGet('tenorBlur', 40),     // tenor blur px
+    tenorAlpha:  hmGet('tenorAlpha',1.0),   // tenor opacity multiplier
+  };
+}
+
 function heatStop(val) {
   // Used by legend swatches only
   const t = Math.min(val / HEAT_MAX_WEIGHT, 1);
@@ -1097,24 +1141,24 @@ function paintHeatCanvas(heatPoints) {
   tenorCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   tenorCtx.clearRect(0, 0, W, H);
 
+  const p = hmParams();
   const tenorBlobs = heatPoints.map(pt => {
     const cx  = pt.x - offX + scrollLeft;
     const cy  = pt.y - offY + scrollTop;
     const hue = pt.hue;
-    if (hue === null) return null;  // no tenor for this tag
-    // Tenor blobs: very wide, very soft — they form a diffuse color field
-    const rx  = pt.rx * 2.5;
-    const ry  = pt.ry * 2.2;
-    const alpha = 0.09;
+    if (hue === null) return null;
+    const rx    = pt.rx * 2.5 * p.tenorRx;
+    const ry    = pt.ry * 2.2 * p.tenorRy;
+    const alpha = 0.09 * p.tenorAlpha;
     return {
       cx, cy, rx, ry,
-      c0: `hsla(${hue},55%,72%,${alpha})`,
+      c0: `hsla(${hue},55%,72%,${alpha.toFixed(3)})`,
       c1: `hsla(${hue},50%,75%,${(alpha * 0.45).toFixed(3)})`,
       c2: `hsla(${hue},45%,80%,0)`,
     };
   }).filter(Boolean);
 
-  drawBlobsOnCanvas(tenorCtx, tenorBlobs, 40);
+  drawBlobsOnCanvas(tenorCtx, tenorBlobs, p.tenorBlur);
 
   // ── LAYER 2: HEAT (density, smaller tighter blobs, moderate blur) ──────────
   const heatCtx = heatCanvas.getContext('2d');
@@ -1122,21 +1166,23 @@ function paintHeatCanvas(heatPoints) {
   heatCtx.clearRect(0, 0, W, H);
 
   const heatBlobs = heatPoints.map(pt => {
-    const cx = pt.x - offX + scrollLeft;
-    const cy = pt.y - offY + scrollTop;
-    const t  = Math.min(pt.weight / HEAT_MAX_WEIGHT, 1);
-    const h1 = Math.round(48 - t * 38);   // gold → red-orange
-    const l1 = Math.round(70 - t * 18);
-    const alpha = 0.10 + t * 0.22;
+    const cx    = pt.x - offX + scrollLeft;
+    const cy    = pt.y - offY + scrollTop;
+    const t     = Math.min(pt.weight / HEAT_MAX_WEIGHT, 1);
+    const h1    = Math.round(48 - t * 38);
+    const l1    = Math.round(70 - t * 18);
+    const alpha = (0.10 + t * 0.22) * p.heatAlpha;
     return {
-      cx, cy, rx: pt.rx, ry: pt.ry,
+      cx, cy,
+      rx: pt.rx * p.heatRx,
+      ry: pt.ry * p.heatRy,
       c0: `hsla(${h1},90%,${l1}%,${alpha.toFixed(3)})`,
       c1: `hsla(${h1},90%,${l1 + 2}%,${(alpha * 0.5).toFixed(3)})`,
       c2: `hsla(${h1},90%,75%,0)`,
     };
   });
 
-  drawBlobsOnCanvas(heatCtx, heatBlobs, 18);
+  drawBlobsOnCanvas(heatCtx, heatBlobs, p.heatBlur);
 }
 
 function applyHighlights() {
@@ -1152,6 +1198,9 @@ function applyHighlights() {
 
   // Clear canvas if nothing to show
   const canvas = document.getElementById('heat-canvas');
+  const hmPanelEl = document.getElementById('hm-panel');
+  const showPanel = highlightFilter !== 'none' && annotations.length > 0;
+  if (hmPanelEl) hmPanelEl.style.display = showPanel ? '' : 'none';
   if (highlightFilter === 'none' || !annotations.length) {
     if (canvas) { const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); }
     paras.forEach((p, i) => bindParaEvents(p, i));
@@ -1250,6 +1299,7 @@ function applyHighlights() {
   paras.forEach((p, i) => { if (!byPara[i]) bindParaEvents(p, i); });
 
   // Paint canvas — defer one frame so para rects are laid out
+  window._lastHeatPoints = heatPoints;
   requestAnimationFrame(() => paintHeatCanvas(heatPoints));
 }
 
@@ -2513,6 +2563,105 @@ function wireTeacherEditorButtons() {
     <div class="te-editor" id="te-editor" contenteditable="true" spellcheck="false"></div>
   </div>
 </div>
+
+<!-- ── HEATMAP TUNING PANEL ── -->
+<div class="hm-panel" id="hm-panel" style="display:none;">
+  <div class="hm-panel-header" id="hm-panel-header">
+    <span class="hm-panel-title">⬡ Heatmap tuning</span>
+    <span class="hm-panel-toggle" id="hm-panel-toggle">▾</span>
+  </div>
+  <div class="hm-panel-body" id="hm-panel-body">
+    <div class="hm-section">Heat layer</div>
+    <div class="hm-row"><label>Horiz. size</label><input type="range" id="hm-heatRx" min="0.1" max="2" step="0.05"/><span class="hm-val" id="hm-heatRx-v"></span></div>
+    <div class="hm-row"><label>Vert. size</label><input type="range" id="hm-heatRy" min="0.1" max="2" step="0.05"/><span class="hm-val" id="hm-heatRy-v"></span></div>
+    <div class="hm-row"><label>Blur</label><input type="range" id="hm-heatBlur" min="0" max="60" step="1"/><span class="hm-val" id="hm-heatBlur-v"></span></div>
+    <div class="hm-row"><label>Opacity</label><input type="range" id="hm-heatAlpha" min="0" max="2" step="0.05"/><span class="hm-val" id="hm-heatAlpha-v"></span></div>
+    <div class="hm-section">Tenor layer</div>
+    <div class="hm-row"><label>Horiz. size</label><input type="range" id="hm-tenorRx" min="0.1" max="4" step="0.1"/><span class="hm-val" id="hm-tenorRx-v"></span></div>
+    <div class="hm-row"><label>Vert. size</label><input type="range" id="hm-tenorRy" min="0.1" max="4" step="0.1"/><span class="hm-val" id="hm-tenorRy-v"></span></div>
+    <div class="hm-row"><label>Blur</label><input type="range" id="hm-tenorBlur" min="0" max="100" step="2"/><span class="hm-val" id="hm-tenorBlur-v"></span></div>
+    <div class="hm-row"><label>Opacity</label><input type="range" id="hm-tenorAlpha" min="0" max="2" step="0.05"/><span class="hm-val" id="hm-tenorAlpha-v"></span></div>
+    <div class="hm-btn-row">
+      <button class="hm-btn" id="hm-reset">Reset</button>
+      <button class="hm-btn primary" id="hm-save">Save settings</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── HEATMAP TUNING PANEL ──────────────────────────────────────────────────────
+(function() {
+  const DEFAULTS = { heatRx:1, heatRy:1, heatBlur:18, heatAlpha:1, tenorRx:1, tenorRy:1, tenorBlur:40, tenorAlpha:1 };
+  const SLIDERS = [
+    ['heatRx', v => v.toFixed(2)],
+    ['heatRy', v => v.toFixed(2)],
+    ['heatBlur', v => Math.round(v) + 'px'],
+    ['heatAlpha', v => v.toFixed(2)],
+    ['tenorRx', v => v.toFixed(2)],
+    ['tenorRy', v => v.toFixed(2)],
+    ['tenorBlur', v => Math.round(v) + 'px'],
+    ['tenorAlpha', v => v.toFixed(2)],
+  ];
+
+  let debounceTimer = null;
+
+  function initPanel() {
+    const panel = document.getElementById('hm-panel');
+    if (!panel) return;
+
+    // Populate sliders from current HM values
+    SLIDERS.forEach(([key, fmt]) => {
+      const slider = document.getElementById('hm-' + key);
+      const label  = document.getElementById('hm-' + key + '-v');
+      const val = hmGet(key, DEFAULTS[key]);
+      slider.value = val;
+      label.textContent = fmt(parseFloat(val));
+
+      slider.addEventListener('input', () => {
+        const v = parseFloat(slider.value);
+        label.textContent = fmt(v);
+        HM[key] = v;
+        // Debounce repaint — repaints 120ms after last slider move
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          if (window._lastHeatPoints) paintHeatCanvas(window._lastHeatPoints);
+        }, 120);
+      });
+    });
+
+    // Toggle collapse
+    const header = document.getElementById('hm-panel-header');
+    const body   = document.getElementById('hm-panel-body');
+    const toggle = document.getElementById('hm-panel-toggle');
+    header.addEventListener('click', () => {
+      const collapsed = body.style.display === 'none';
+      body.style.display = collapsed ? '' : 'none';
+      toggle.textContent = collapsed ? '▾' : '▸';
+    });
+
+    document.getElementById('hm-save').addEventListener('click', () => {
+      hmSave();
+      const btn = document.getElementById('hm-save');
+      btn.textContent = '✓ Saved'; setTimeout(() => btn.textContent = 'Save settings', 1500);
+    });
+
+    document.getElementById('hm-reset').addEventListener('click', () => {
+      HM = {...DEFAULTS};
+      SLIDERS.forEach(([key, fmt]) => {
+        const slider = document.getElementById('hm-' + key);
+        const label  = document.getElementById('hm-' + key + '-v');
+        slider.value = DEFAULTS[key];
+        label.textContent = fmt(DEFAULTS[key]);
+      });
+      hmSave();
+      if (window._lastHeatPoints) paintHeatCanvas(window._lastHeatPoints);
+    });
+  }
+
+  // Show panel after page loads, only when heatmap is active
+  window.addEventListener('DOMContentLoaded', () => setTimeout(initPanel, 600));
+})();
+</script>
 
 </body>
 </html>
