@@ -2352,43 +2352,46 @@ function handleSel(e, paraIdx) {
   const range = sel.getRangeAt(0);
 
   // Fallacy mode
-  if (fallacyVisible && fallacyActiveTag) { tryTagFallacy(text, range.cloneRange()); sel.removeAllRanges(); return; }
+  if (typeof fallacyVisible!=='undefined' && fallacyVisible && fallacyActiveTag) { tryTagFallacy(text, range.cloneRange()); sel.removeAllRanges(); return; }
   // Rhet mode
-  if (rhetModeActive) { showRhetBar(text, range.cloneRange()); sel.removeAllRanges(); return; }
+  if (typeof rhetModeActive!=='undefined' && rhetModeActive) { showRhetBar(text, range.cloneRange()); sel.removeAllRanges(); return; }
   // Arg map mode
-  if (argMapVisible && argMapActiveSlot) { if(tryAddToArgMap(text)){ sel.removeAllRanges(); return; } }
+  if (typeof argMapVisible!=='undefined' && argMapVisible && argMapActiveSlot) { if(tryAddToArgMap(text)){ sel.removeAllRanges(); return; } }
 
-  // ── Cmd/Ctrl + drag = multi-segment ──
-  if (e.metaKey || e.ctrlKey) {
+  // Line-focus mode: just focus the clicked line, don't open compose
+  if (typeof viewMode!=='undefined' && viewMode === 'line-focus') return;
+
+  // Cmd/Ctrl + drag = add to multi-segment
+  if ((e.metaKey || e.ctrlKey) && typeof multiSegments !== 'undefined') {
     const para = document.querySelectorAll('.para')[paraIdx]; if(!para)return;
     let anc = range.commonAncestorContainer;
     if(anc.nodeType===3)anc=anc.parentNode;
     if(!para.contains(anc)&&anc!==para)return;
     multiSegments.push({ text, paraIdx });
-    updateMultiToast();
+    if(typeof updateMultiToast==='function') updateMultiToast();
     sel.removeAllRanges();
     return;
   }
 
-  // Normal annotation — if there are pending multi-segments, merge them
+  // Normal annotation
   const para = document.querySelectorAll('.para')[paraIdx]; if(!para)return;
   let anc = range.commonAncestorContainer;
   if(anc.nodeType===3)anc=anc.parentNode; if(!para.contains(anc)&&anc!==para)return;
 
   let finalText = text;
   let finalParaIdx = paraIdx;
-  if (multiSegments.length) {
+  // If multi-segments are pending, merge them with this selection
+  if (typeof multiSegments!=='undefined' && multiSegments.length) {
     multiSegments.push({ text, paraIdx });
-    // Use the paraIdx of the first segment; quote is all segments joined with " … "
     finalParaIdx = multiSegments[0].paraIdx;
     finalText    = multiSegments.map(s => s.text).join(' … ');
     multiSegments = [];
-    updateMultiToast();
+    if(typeof updateMultiToast==='function') updateMultiToast();
   }
 
-  pendingSelection  = finalText;
-  pendingParaIndex  = finalParaIdx;
-  document.getElementById('cp-quote').textContent = '"'+finalText.slice(0,80)+(finalText.length>80?'…':'')+'"';
+  pendingSelection = finalText;
+  pendingParaIndex = finalParaIdx;
+  document.getElementById('cp-quote').textContent = '“'+finalText.slice(0,80)+(finalText.length>80?'…':'')+'”';
   cpanel.style.display='block'; hidePopup();
   selectedTag=null; document.querySelectorAll('.tag-pill').forEach(p=>p.classList.remove('selected'));
   sel.removeAllRanges();
@@ -2825,6 +2828,139 @@ function wireTeacherEditorButtons() {
   // Show panel after page loads, only when heatmap is active
   window.addEventListener('DOMContentLoaded', () => setTimeout(initPanel, 600));
 })();
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// VIEW MODE + LINE FOCUS + MULTI-SEGMENT
+// ═══════════════════════════════════════════════════════════
+let viewMode = 'highlights'; // 'highlights' | 'landscape' | 'line-focus'
+let activeFocusParaIdx = -1;
+let multiSegments = [];
+
+function setViewMode(mode) {
+  viewMode = mode;
+  document.querySelectorAll('.vm-btn').forEach(b => b.classList.remove('active'));
+  const btnId = ({ 'highlights':'vm-highlights', 'landscape':'vm-landscape', 'line-focus':'vm-line-focus' })[mode];
+  document.getElementById(btnId)?.classList.add('active');
+
+  const heatCanvas  = document.getElementById('heat-canvas');
+  const tenorCanvas = document.getElementById('tenor-canvas');
+  const heatVisible = (mode === 'landscape');
+  if (heatCanvas)  heatCanvas.style.opacity  = heatVisible ? '1' : '0';
+  if (tenorCanvas) tenorCanvas.style.opacity = heatVisible ? '1' : '0';
+
+  const lfBar = document.getElementById('line-focus-bar');
+  if (lfBar) lfBar.classList.toggle('visible', mode === 'line-focus');
+
+  if (mode !== 'line-focus') {
+    document.querySelectorAll('.para').forEach(p => {
+      p.style.opacity = ''; p.style.outline = ''; p.style.borderRadius = '';
+    });
+  } else {
+    document.querySelectorAll('.rc-scroll-area > div').forEach(p => p.classList.remove('visible'));
+    document.querySelectorAll('.rc-toggle').forEach(b => b.classList.remove('active'));
+    updateLineFocus(activeFocusParaIdx);
+  }
+
+  applyHighlights();
+}
+
+document.getElementById('vm-highlights')?.addEventListener('click', () => setViewMode('highlights'));
+document.getElementById('vm-landscape')?.addEventListener('click',  () => setViewMode('landscape'));
+document.getElementById('vm-line-focus')?.addEventListener('click', () => setViewMode('line-focus'));
+
+// ── LINE FOCUS ──────────────────────────────────────────────
+function updateLineFocus(paraIdx) {
+  activeFocusParaIdx = paraIdx;
+  const lfLine = document.getElementById('lf-line-text');
+  const lfGrid = document.getElementById('lf-grid');
+  if (!lfLine || !lfGrid) return;
+  const paras = Array.from(document.querySelectorAll('.para'));
+
+  paras.forEach((p, i) => {
+    p.style.opacity      = (paraIdx === -1 || i === paraIdx) ? '1' : '0.3';
+    p.style.outline      = i === paraIdx ? '2px solid #7C3AED' : '';
+    p.style.borderRadius = i === paraIdx ? '3px' : '';
+  });
+
+  if (paraIdx === -1) {
+    lfLine.textContent = 'Click a line in the poem to focus it.';
+    lfGrid.innerHTML = '';
+    return;
+  }
+
+  const para = paras[paraIdx];
+  lfLine.textContent = para ? getParaText(para).trim() : '';
+
+  const lineAnnos = annotations.filter(a => {
+    if (parseInt(a.line_index) === paraIdx) return true;
+    if (para && findQuoteSpan(getParaText(para), a.quote)) return true;
+    return false;
+  });
+
+  if (!lineAnnos.length) {
+    lfGrid.innerHTML = '<div class="lf-empty">No annotations on this line yet.</div>';
+    return;
+  }
+
+  lfGrid.innerHTML = lineAnnos.map(a => `
+    <div class="lf-card" data-id="${a.id}">
+      ${a.tag ? `<div class="lf-card-tag">${escHtml(a.tag)}</div>` : ''}
+      <div class="lf-card-quote">“${escHtml((a.quote||'').trim().slice(0,50))}”</div>
+      <div class="lf-card-subject">${escHtml(a.subject)}</div>
+      <div class="lf-card-author">by ${escHtml(a.username||'anonymous')} &middot; ${a._replyCount ? a._replyCount+' repl'+(a._replyCount!==1?'ies':'y') : 'no replies'}</div>
+    </div>`).join('');
+
+  lfGrid.querySelectorAll('.lf-card').forEach(card => {
+    card.addEventListener('click', () => openDiscussion(parseInt(card.dataset.id)));
+  });
+}
+
+document.getElementById('lf-close')?.addEventListener('click', () => {
+  activeFocusParaIdx = -1;
+  document.querySelectorAll('.para').forEach(p => {
+    p.style.opacity = ''; p.style.outline = ''; p.style.borderRadius = '';
+  });
+  document.getElementById('line-focus-bar')?.classList.remove('visible');
+  setViewMode('highlights');
+});
+
+document.addEventListener('click', e => {
+  if (viewMode !== 'line-focus') return;
+  const para = e.target.closest('.para');
+  if (!para) return;
+  const idx = Array.from(document.querySelectorAll('.para')).indexOf(para);
+  if (idx !== -1) updateLineFocus(idx);
+});
+
+// ── MULTI-SEGMENT TOAST ─────────────────────────────────────
+function updateMultiToast() {
+  const toast    = document.getElementById('multi-sel-toast');
+  const quotesEl = document.getElementById('multi-sel-quotes');
+  if (!toast) return;
+  if (!multiSegments.length) { toast.classList.remove('visible'); return; }
+  toast.classList.add('visible');
+  quotesEl.textContent = multiSegments.map(s =>
+    '“' + s.text.slice(0, 25) + (s.text.length > 25 ? '…' : '”')
+  ).join(' + ');
+}
+
+document.getElementById('multi-sel-clear')?.addEventListener('click', () => {
+  multiSegments = [];
+  updateMultiToast();
+  window.getSelection()?.removeAllRanges();
+});
+
+// ── HIDE TENOR/HEAT CANVASES ON LOAD (only show in landscape mode) ───────────
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const heatCanvas  = document.getElementById('heat-canvas');
+    const tenorCanvas = document.getElementById('tenor-canvas');
+    if (heatCanvas)  heatCanvas.style.opacity  = '0';
+    if (tenorCanvas) tenorCanvas.style.opacity = '0';
+  }, 100);
+});
 </script>
 
 <!-- Multi-select toast -->
