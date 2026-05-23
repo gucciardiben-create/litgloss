@@ -1191,6 +1191,32 @@ function paintHeatCanvas(heatPoints) {
   const heatCanvas  = document.getElementById('heat-canvas');
   const tenorCanvas = document.getElementById('tenor-canvas');
   const col         = document.getElementById('text-col');
+
+  // ── DIAGNOSTIC: draw a bright red rectangle to confirm canvas is visible ──
+  if (heatCanvas) {
+    const colRect = col.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const W = Math.round(colRect.width);
+    const H = Math.round(colRect.height);
+    heatCanvas.width  = Math.round(W * dpr);
+    heatCanvas.height = Math.round(H * dpr);
+    heatCanvas.style.position = 'fixed';
+    heatCanvas.style.left = colRect.left + 'px';
+    heatCanvas.style.top  = colRect.top  + 'px';
+    heatCanvas.style.width  = W + 'px';
+    heatCanvas.style.height = H + 'px';
+    heatCanvas.style.zIndex = '9999';
+    heatCanvas.style.opacity = '1';
+    heatCanvas.style.pointerEvents = 'none';
+    const ctx = heatCanvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = 'rgba(255,0,0,0.4)';
+    ctx.fillRect(10, 10, 200, 100);
+    ctx.fillStyle = '#000';
+    ctx.font = '16px sans-serif';
+    ctx.fillText('CANVAS WORKS pts:' + heatPoints.length, 15, 40);
+  }
+
   if (!heatCanvas || !tenorCanvas || !col || !heatPoints.length) {
     [heatCanvas, tenorCanvas].forEach(c => {
       if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height);
