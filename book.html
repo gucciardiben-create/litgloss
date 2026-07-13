@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LitGloss — Book a Session</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Georgia,serif;background:#fafaf8;color:#111;min-height:100vh;display:flex;flex-direction:column;}
+
+/* NAV */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;border-bottom:0.5px solid #e0e0e0;background:#fff;}
+.nav-logo{font-size:18px;font-weight:600;letter-spacing:-.02em;}
+.nav-logo span{color:#7C3AED;}
+.nav-logo a{color:inherit;text-decoration:none;}
+.nav-links{display:flex;gap:16px;font-family:sans-serif;align-items:center;}
+.nav-links a, .nav-links button.linklike{font-size:13px;color:#666;text-decoration:none;background:none;border:none;cursor:pointer;font-family:sans-serif;}
+.nav-links a:hover, .nav-links button.linklike:hover{color:#111;}
+
+/* HERO */
+.bk-hero{text-align:center;padding:2.5rem 2rem 1.5rem;max-width:640px;margin:0 auto;}
+.bk-hero h1{font-size:30px;font-weight:500;margin-bottom:10px;line-height:1.2;}
+.bk-hero p{font-size:14px;color:#666;line-height:1.6;font-family:sans-serif;}
+.bk-hero .price-note{display:inline-block;margin-top:10px;font-size:12px;color:#7C3AED;background:#F3E8FF;padding:4px 12px;border-radius:20px;}
+
+/* TOOLBAR */
+.bk-toolbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;padding:0 1rem 1rem;font-family:sans-serif;}
+.bk-view-toggle{display:flex;gap:6px;}
+.vm-btn{font-size:12px;padding:5px 14px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;font-family:sans-serif;transition:all .15s;}
+.vm-btn:hover{background:#f0f0f0;}
+.vm-btn.active{background:#111;color:#fff;border-color:#111;}
+.bk-nav{display:flex;align-items:center;gap:6px;}
+.bk-nav-btn{font-size:13px;padding:5px 12px;border-radius:8px;border:0.5px solid #ddd;background:#fff;color:#555;cursor:pointer;font-family:sans-serif;}
+.bk-nav-btn:hover{background:#f0f0f0;}
+.bk-range-label{font-size:14px;font-weight:500;min-width:200px;text-align:center;}
+
+/* LEGEND */
+.bk-legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;font-size:11px;color:#888;font-family:sans-serif;padding-bottom:10px;}
+.bk-legend span{display:flex;align-items:center;gap:5px;}
+.bk-dot{width:10px;height:10px;border-radius:3px;display:inline-block;}
+.bk-dot-open{background:#fff;border:1px solid #ccc;}
+.bk-dot-pending{background:#FEF9C3;border:1px solid #CA8A04;}
+.bk-dot-paid{background:#DCFCE7;border:1px solid #16A34A;}
+.bk-dot-blocked{background:#F3F4F6;border:1px solid #9CA3AF;}
+
+/* CALENDAR WRAP */
+.bk-calendar-wrap{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:0 1.5rem 3rem;overflow-x:auto;}
+
+/* WEEK / DAY GRID */
+.bk-grid{display:grid;border:0.5px solid #e0e0e0;border-radius:12px;overflow:hidden;background:#fff;min-width:560px;}
+.bk-grid-head{background:#fafaf8;border-bottom:0.5px solid #e0e0e0;padding:8px 4px;text-align:center;font-family:sans-serif;position:sticky;top:0;}
+.bk-grid-head .dow{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.06em;}
+.bk-grid-head .dnum{font-size:15px;font-weight:500;color:#111;}
+.bk-grid-head.today .dnum{color:#7C3AED;}
+.bk-time-label{font-size:11px;color:#aaa;font-family:sans-serif;padding:4px 8px;text-align:right;border-right:0.5px solid #eee;border-top:0.5px solid #f3f3f3;white-space:nowrap;}
+.bk-time-label.hour{color:#888;font-weight:500;}
+.bk-slot{border-top:0.5px solid #f3f3f3;border-left:0.5px solid #f3f3f3;min-height:26px;cursor:pointer;position:relative;transition:background .1s;}
+.bk-slot:hover{background:#F3E8FF;}
+.bk-slot.bk-slot-past{background:#fbfbfa;cursor:not-allowed;}
+.bk-slot.bk-slot-past:hover{background:#fbfbfa;}
+.bk-slot.bk-slot-pending{background:#FEF9C3;cursor:default;}
+.bk-slot.bk-slot-pending:hover{background:#FEF9C3;}
+.bk-slot.bk-slot-paid{background:#DCFCE7;cursor:default;}
+.bk-slot.bk-slot-paid:hover{background:#DCFCE7;}
+.bk-slot.bk-slot-blocked{background:#F3F4F6;cursor:not-allowed;}
+.bk-slot.bk-slot-blocked:hover{background:#F3F4F6;}
+.bk-slot-label{font-size:9px;color:#999;font-family:sans-serif;position:absolute;top:1px;left:3px;pointer-events:none;overflow:hidden;white-space:nowrap;max-width:95%;}
+
+/* MONTH VIEW */
+.bk-month-grid{display:grid;grid-template-columns:repeat(7,1fr);border:0.5px solid #e0e0e0;border-radius:12px;overflow:hidden;background:#fff;}
+.bk-month-dow{background:#fafaf8;font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.06em;text-align:center;padding:8px 0;font-family:sans-serif;border-bottom:0.5px solid #e0e0e0;}
+.bk-month-cell{min-height:88px;border-top:0.5px solid #eee;border-left:0.5px solid #eee;padding:6px;cursor:pointer;font-family:sans-serif;}
+.bk-month-cell:hover{background:#F3E8FF;}
+.bk-month-cell.other-month{color:#ccc;background:#fbfbfa;cursor:default;}
+.bk-month-cell.other-month:hover{background:#fbfbfa;}
+.bk-month-cell.past{color:#ccc;cursor:default;}
+.bk-month-cell.past:hover{background:#fff;}
+.bk-month-cell.today{background:#F3E8FF;}
+.bk-month-daynum{font-size:13px;font-weight:500;margin-bottom:4px;}
+.bk-month-status{font-size:10px;color:#7C3AED;}
+.bk-month-status.full{color:#DC2626;}
+
+/* MODAL */
+.bk-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;display:none;align-items:center;justify-content:center;padding:1rem;}
+.bk-modal-overlay.open{display:flex;}
+.bk-modal{background:#fff;border-radius:16px;padding:2rem;width:440px;max-width:100%;max-height:88vh;overflow-y:auto;position:relative;font-family:sans-serif;}
+.bk-modal-close{position:absolute;top:14px;right:16px;font-size:20px;color:#aaa;cursor:pointer;border:none;background:none;line-height:1;}
+.bk-modal-close:hover{color:#111;}
+.bk-modal h2{font-size:18px;font-weight:500;margin-bottom:2px;font-family:Georgia,serif;}
+.bk-modal .bk-modal-sub{font-size:12px;color:#999;margin-bottom:1.2rem;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:12px;color:#666;margin-bottom:5px;font-family:sans-serif;font-weight:500;}
+.field input[type=text], .field input[type=email], .field input[type=url], .field select, .field input[type=date], .field input[type=time]{width:100%;font-size:14px;padding:8px 12px;border:0.5px solid #ccc;border-radius:8px;background:#fafaf8;color:#111;font-family:sans-serif;outline:none;}
+.field input:focus, .field select:focus{border-color:#7C3AED;background:#fff;}
+.field-row{display:flex;gap:10px;}
+.field-row .field{flex:1;}
+.bk-price-row{display:flex;align-items:center;gap:10px;}
+.bk-price-row input[type=range]{flex:1;accent-color:#7C3AED;}
+.bk-price-val{font-size:18px;font-weight:600;color:#7C3AED;min-width:56px;text-align:right;}
+.bk-price-hint{font-size:11px;color:#aaa;margin-top:3px;}
+.btn-primary{width:100%;padding:12px;background:#111;color:#fff;border:none;border-radius:10px;font-size:14px;font-family:sans-serif;cursor:pointer;margin-top:6px;}
+.btn-primary:hover{background:#333;}
+.btn-primary:disabled{background:#ccc;cursor:not-allowed;}
+.status-msg{font-size:13px;margin-top:10px;font-family:sans-serif;min-height:18px;}
+.status-msg.err{color:#DC2626;}
+.status-msg.ok{color:#16A34A;}
+
+/* CONFIRMATION */
+.bk-confirm h3{font-size:16px;font-weight:600;color:#065F46;margin-bottom:8px;}
+.bk-confirm-box{background:#F0FDF4;border:0.5px solid #16A34A;border-radius:12px;padding:14px;margin-bottom:14px;font-size:13px;line-height:1.7;}
+.bk-venmo-box{background:#F3E8FF;border:0.5px solid #7C3AED;border-radius:12px;padding:14px;font-size:13px;line-height:1.7;}
+.bk-venmo-box a.venmo-btn{display:block;text-align:center;margin-top:10px;background:#3D95CE;color:#fff;text-decoration:none;padding:10px;border-radius:8px;font-weight:600;}
+.bk-venmo-box a.venmo-btn:hover{background:#2f7cad;}
+.bk-note-copy{background:#fff;border:0.5px solid #ddd;border-radius:8px;padding:6px 10px;font-family:monospace;font-size:12px;margin:6px 0;word-break:break-word;}
+
+/* ADMIN GATE */
+.te-gate{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:700;display:none;align-items:center;justify-content:center;}
+.te-gate.open{display:flex;}
+.te-gate-box{background:#fff;border-radius:16px;padding:2rem;width:320px;font-family:sans-serif;text-align:center;}
+.te-gate-box h3{font-size:17px;font-weight:500;margin-bottom:6px;}
+.te-gate-box p{font-size:13px;color:#aaa;margin-bottom:1.2rem;}
+.te-gate-pw{width:100%;font-size:14px;padding:9px 12px;border:0.5px solid #ccc;border-radius:8px;font-family:sans-serif;outline:none;text-align:center;letter-spacing:.08em;margin-bottom:8px;}
+.te-gate-pw:focus{border-color:#7C3AED;}
+.te-gate-btn{width:100%;padding:10px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;font-family:sans-serif;cursor:pointer;}
+.te-gate-btn:hover{background:#333;}
+.te-gate-err{font-size:12px;color:#DC2626;min-height:16px;margin-top:4px;}
+
+/* ADMIN PANEL */
+.bk-admin-overlay{position:fixed;inset:0;background:#fafaf8;z-index:500;display:none;flex-direction:column;overflow-y:auto;}
+.bk-admin-overlay.open{display:flex;}
+.bk-admin-topbar{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:0.5px solid #e0e0e0;background:#fff;font-family:sans-serif;}
+.bk-admin-topbar h2{font-size:16px;font-weight:500;}
+.bk-admin-body{max-width:800px;margin:0 auto;padding:1.5rem;width:100%;font-family:sans-serif;}
+.bk-admin-section{background:#fff;border:0.5px solid #e0e0e0;border-radius:12px;padding:1.2rem 1.4rem;margin-bottom:1.2rem;}
+.bk-admin-section h3{font-size:14px;font-weight:600;margin-bottom:10px;font-family:Georgia,serif;}
+.bk-block-form{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px;}
+.bk-block-form .field{margin-bottom:0;flex:1;min-width:110px;}
+.bk-block-form button{padding:8px 16px;background:#111;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap;}
+.bk-block-form button:hover{background:#333;}
+.bk-list-item{border:0.5px solid #eee;border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;}
+.bk-list-info{font-size:13px;line-height:1.6;flex:1;min-width:200px;}
+.bk-list-info b{font-weight:600;}
+.bk-list-tag{display:inline-block;font-size:10px;padding:1px 8px;border-radius:20px;margin-right:4px;font-weight:500;}
+.bk-list-tag.pending_payment{background:#FEF9C3;color:#713F12;}
+.bk-list-tag.paid{background:#DCFCE7;color:#166534;}
+.bk-list-tag.cancelled{background:#FEE2E2;color:#991B1B;}
+.bk-list-tag.blocked{background:#F3F4F6;color:#374151;}
+.bk-list-actions{display:flex;gap:6px;flex-shrink:0;}
+.bk-list-actions button{font-size:11px;padding:4px 10px;border-radius:20px;border:0.5px solid #ddd;background:transparent;color:#555;cursor:pointer;font-family:sans-serif;}
+.bk-list-actions button:hover{background:#f0f0f0;}
+.bk-list-actions button.paid-btn{border-color:#16A34A;color:#16A34A;}
+.bk-list-actions button.cancel-btn{border-color:#DC2626;color:#DC2626;}
+.bk-empty{font-size:13px;color:#bbb;font-style:italic;padding:8px 0;}
+
+@media(max-width:700px){
+  .bk-modal{width:100%;padding:1.4rem;}
+  .bk-toolbar{gap:8px;}
+  .bk-range-label{min-width:0;width:100%;order:-1;margin-bottom:6px;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo"><a href="index.html">Lit<span>Gloss</span></a></div>
+  <div class="nav-links">
+    <a href="index.html">Library</a>
+    <button class="linklike" id="open-admin-link">Admin</button>
+  </div>
+</nav>
+
+<div class="bk-hero">
+  <h1>Book a Writing Feedback Session</h1>
+  <p>Pick an open half-hour slot below — sessions run any length from 30 minutes up. Pricing is sliding-scale, pay what fits your budget.</p>
+  <div class="price-note">$10–$50 per half hour · scales with session length</div>
+</div>
+
+<div class="bk-toolbar">
+  <div class="bk-view-toggle">
+    <button class="vm-btn active" data-view="week">Week</button>
+    <button class="vm-btn" data-view="day">Day</button>
+    <button class="vm-btn" data-view="month">Month</button>
+  </div>
+  <div class="bk-nav">
+    <button class="bk-nav-btn" id="bk-prev">← Prev</button>
+    <button class="bk-nav-btn" id="bk-today">Today</button>
+    <button class="bk-nav-btn" id="bk-next">Next →</button>
+  </div>
+  <div class="bk-range-label" id="bk-range-label"></div>
+</div>
+
+<div class="bk-legend">
+  <span><i class="bk-dot bk-dot-open"></i> Open</span>
+  <span><i class="bk-dot bk-dot-pending"></i> Reserved (awaiting payment)</span>
+  <span><i class="bk-dot bk-dot-paid"></i> Confirmed</span>
+  <span><i class="bk-dot bk-dot-blocked"></i> Unavailable</span>
+</div>
+
+<div class="bk-calendar-wrap" id="bk-calendar-wrap">
+  <div class="bk-empty">Loading calendar…</div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="bk-modal-overlay" id="bk-modal-overlay">
+  <div class="bk-modal">
+    <button class="bk-modal-close" id="bk-modal-close">×</button>
+    <div id="bk-modal-body"></div>
+  </div>
+</div>
+
+<!-- ADMIN GATE -->
+<div class="te-gate" id="admin-gate">
+  <div class="te-gate-box">
+    <h3>Admin access</h3>
+    <p>Enter the admin password to manage bookings.</p>
+    <input class="te-gate-pw" type="password" id="admin-gate-pw" placeholder="Password…" autocomplete="off"/>
+    <button class="te-gate-btn" id="admin-gate-btn">Unlock</button>
+    <div class="te-gate-err" id="admin-gate-err"></div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="bk-admin-overlay" id="bk-admin-overlay">
+  <div class="bk-admin-topbar">
+    <h2>Booking admin</h2>
+    <button class="bk-nav-btn" id="admin-close-btn">Close</button>
+  </div>
+  <div class="bk-admin-body">
+    <div class="bk-admin-section">
+      <h3>Block off time</h3>
+      <form class="bk-block-form" id="block-form">
+        <div class="field">
+          <label>Date</label>
+          <input type="date" id="block-date" required>
+        </div>
+        <div class="field">
+          <label>Start time</label>
+          <select id="block-start" required></select>
+        </div>
+        <div class="field">
+          <label>Duration</label>
+          <select id="block-duration" required>
+            <option value="30">30 min</option>
+            <option value="60">1 hour</option>
+            <option value="90">1.5 hours</option>
+            <option value="120">2 hours</option>
+            <option value="180">3 hours</option>
+            <option value="360">6 hours</option>
+            <option value="720">All day (12 hr)</option>
+          </select>
+        </div>
+        <button type="submit">Block</button>
+      </form>
+      <div class="status-msg" id="block-status"></div>
+      <div id="blocked-list"><div class="bk-empty">Loading…</div></div>
+    </div>
+    <div class="bk-admin-section">
+      <h3>Upcoming bookings</h3>
+      <div id="admin-bookings-list"><div class="bk-empty">Loading…</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──
+const SUPABASE_URL = 'https://cajrjmroqidjuzqsvzon.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhanJqbXJvcWlkanV6cXN2em9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MzY4NjEsImV4cCI6MjA5MjExMjg2MX0.mk-7_sAGkh9mAFHjTZXImm5WM_WAwzg-ulYgGlQ9oXg';
+const ADMIN_PASSWORD = 'litgloss2024'; // change to match your preferred password
+const VENMO_LINK = 'https://venmo.com/u/litglosswc';
+
+// The fixed calendar timezone — all slots (8:00 AM–8:00 PM) are defined in THIS zone,
+// regardless of a visitor's own browser timezone, so the calendar means the same thing
+// to everyone. Change to your own IANA timezone name if you're not in New York:
+// e.g. 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'Europe/London'.
+const CAL_TIMEZONE = 'America/New_York';
+
+const DAY_START_HOUR = 8;   // 8:00 AM
+const DAY_END_HOUR = 20;    // 8:00 PM (last bookable slot starts 7:30 PM)
+const SLOT_MINUTES = 30;
+const SLOTS_PER_DAY = ((DAY_END_HOUR - DAY_START_HOUR) * 60) / SLOT_MINUTES; // 24
+const MAX_DURATION_MINUTES = 180; // cap a single booking at 3 hours
+
+// ── SUPABASE HELPER ──
+async function sbFetch(path, opts = {}) {
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    'Prefer': opts.prefer || (opts.method === 'POST' ? 'return=representation' : 'return=minimal'),
+  };
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method: opts.method || 'GET',
+    headers,
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (!res.ok) {
+    const d = await res.json().catch(() => ({}));
+    throw new Error(d.message || d.error || res.statusText);
+  }
+  if (res.status === 204 || res.headers.get('content-length') === '0') return null;
+  return res.json();
+}
+
+// ── TIMEZONE HELPERS ──
+// Returns the offset (in minutes) such that: UTC time = wallClockGuess - offset
+function tzOffsetMinutes(date, timeZone) {
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone, hourCycle: 'h23',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
+  const parts = dtf.formatToParts(date).reduce((acc, p) => { acc[p.type] = p.value; return acc; }, {});
+  const asUTC = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second);
+  return (asUTC - date.getTime()) / 60000;
+}
+// Converts a wall-clock date/time in CAL_TIMEZONE into a real UTC Date instant.
+function zonedToUtc(year, month, day, hour, minute) {
+  const guess = new Date(Date.UTC(year, month, day, hour, minute));
+  const offset = tzOffsetMinutes(guess, CAL_TIMEZONE);
+  return new Date(guess.getTime() - offset * 60000);
+}
+// Formats a UTC instant as wall-clock parts in CAL_TIMEZONE: {year,month,day,hour,minute}
+function utcToZonedParts(date) {
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone: CAL_TIMEZONE, hourCycle: 'h23',
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+  });
+  const parts = dtf.formatToParts(date).reduce((acc, p) => { acc[p.type] = p.value; return acc; }, {});
+  return { year: +parts.year, month: +parts.month - 1, day: +parts.day, hour: +parts.hour, minute: +parts.minute };
+}
+function fmtTime(date) {
+  return new Intl.DateTimeFormat('en-US', { timeZone: CAL_TIMEZONE, hour: 'numeric', minute: '2-digit' }).format(date);
+}
+function fmtDateLong(date) {
+  return new Intl.DateTimeFormat('en-US', { timeZone: CAL_TIMEZONE, weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(date);
+}
+function fmtDateShort(date) {
+  return new Intl.DateTimeFormat('en-US', { timeZone: CAL_TIMEZONE, month: 'short', day: 'numeric' }).format(date);
+}
+const visitorTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+function fmtTimeVisitorTz(date) {
+  return new Intl.DateTimeFormat('en-US', { timeZone: visitorTz, hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(date);
+}
+
+// ── STATE ──
+let currentView = 'week'; // 'week' | 'day' | 'month'
+let anchorDate = new Date(); // any Date; we only read its zoned Y/M/D
+let bookingsCache = []; // rows fetched for the currently visible range
+let isAdmin = false;
+let pendingSlot = null; // {start: Date, maxFreeSlots: n} while modal open
+
+function zonedStartOfDay(date) {
+  const p = utcToZonedParts(date);
+  return zonedToUtc(p.year, p.month, p.day, 0, 0);
+}
+function addDays(utcMidnight, n) {
+  const p = utcToZonedParts(utcMidnight);
+  const d = new Date(Date.UTC(p.year, p.month, p.day + n, 12)); // noon-anchor to dodge DST edge issues
+  const p2 = utcToZonedParts(d);
+  return zonedToUtc(p2.year, p2.month, p2.day, 0, 0);
+}
+function startOfWeek(utcMidnight) { // Sunday-start
+  const p = utcToZonedParts(utcMidnight);
+  const dow = new Date(Date.UTC(p.year, p.month, p.day, 12)).getUTCDay();
+  return addDays(utcMidnight, -dow);
+}
+
+// ── DATA FETCH ──
+async function fetchBookingsInRange(startUtc, endUtc) {
+  const path = `bookings?and=(status.neq.cancelled,start_time.lt.${encodeURIComponent(endUtc.toISOString())},end_time.gt.${encodeURIComponent(startUtc.toISOString())})&select=*`;
+  try {
+    return await sbFetch(path) || [];
+  } catch (e) {
+    console.error('Failed to load bookings', e);
+    return [];
+  }
+}
+
+function slotStatusAt(slotStartUtc, slotEndUtc) {
+  for (const b of bookingsCache) {
+    const bs = new Date(b.start_time), be = new Date(b.end_time);
+    if (bs < slotEndUtc && be > slotStartUtc) {
+      if (b.is_admin_block || b.status === 'blocked') return { state: 'blocked', row: b };
+      if (b.status === 'paid') return { state: 'paid', row: b };
+      return { state: 'pending', row: b }; // pending_payment
+    }
+  }
+  return { state: 'open', row: null };
+}
+
+function countFreeConsecutive(dayStartUtc, slotIndex) {
+  let count = 0;
+  const now = new Date();
+  for (let i = slotIndex; i < SLOTS_PER_DAY; i++) {
+    const s = new Date(dayStartUtc.getTime() + (DAY_START_HOUR * 60 + i * SLOT_MINUTES) * 60000);
+    const e = new Date(s.getTime() + SLOT_MINUTES * 60000);
+    if (s < now) break;
+    if (slotStatusAt(s, e).state !== 'open') break;
+    count++;
+    if (count * SLOT_MINUTES >= MAX_DURATION_MINUTES) break;
+  }
+  return count;
+}
+
+// ── RENDER: ROOT ──
+async function renderCalendar() {
+  const wrap = document.getElementById('bk-calendar-wrap');
+  wrap.innerHTML = '<div class="bk-empty">Loading calendar…</div>';
+
+  let rangeStartUtc, rangeEndUtc;
+  const todayMidnight = zonedStartOfDay(new Date());
+  const anchorMidnight = zonedStartOfDay(anchorDate);
+
+  if (currentView === 'week') {
+    rangeStartUtc = startOfWeek(anchorMidnight);
+    rangeEndUtc = addDays(rangeStartUtc, 7);
+  } else if (currentView === 'day') {
+    rangeStartUtc = anchorMidnight;
+    rangeEndUtc = addDays(rangeStartUtc, 1);
+  } else {
+    const p = utcToZonedParts(anchorMidnight);
+    const monthStart = zonedToUtc(p.year, p.month, 1, 0, 0);
+    const monthEnd = zonedToUtc(p.year, p.month + 1, 1, 0, 0);
+    rangeStartUtc = startOfWeek(monthStart);
+    rangeEndUtc = addDays(startOfWeek(addDays(monthEnd, -1)), 7);
+  }
+
+  bookingsCache = await fetchBookingsInRange(rangeStartUtc, rangeEndUtc);
+  updateRangeLabel(rangeStartUtc, rangeEndUtc);
+
+  if (currentView === 'week') renderWeek(rangeStartUtc);
+  else if (currentView === 'day') renderDay(anchorMidnight);
+  else renderMonth(anchorMidnight);
+}
+
+function updateRangeLabel(rangeStartUtc, rangeEndUtc) {
+  const label = document.getElementById('bk-range-label');
+  if (currentView === 'week') {
+    label.textContent = `${fmtDateShort(rangeStartUtc)} – ${fmtDateShort(addDays(rangeStartUtc, 6))}`;
+  } else if (currentView === 'day') {
+    label.textContent = fmtDateLong(anchorDateAsUtcMidnight());
+  } else {
+    const p = utcToZonedParts(zonedStartOfDay(anchorDate));
+    label.textContent = new Intl.DateTimeFormat('en-US', { timeZone: CAL_TIMEZONE, month: 'long', year: 'numeric' }).format(zonedToUtc(p.year, p.month, 1, 12, 0));
+  }
+}
+function anchorDateAsUtcMidnight() { return zonedStartOfDay(anchorDate); }
+
+function timeLabelFor(i) {
+  const totalMin = DAY_START_HOUR * 60 + i * SLOT_MINUTES;
+  const h24 = Math.floor(totalMin / 60), m = totalMin % 60;
+  const ampm = h24 < 12 ? 'AM' : 'PM';
+  let h12 = h24 % 12; if (h12 === 0) h12 = 12;
+  return `${h12}:${m === 0 ? '00' : m} ${ampm}`;
+}
+
+// ── RENDER: WEEK ──
+function renderWeek(weekStartUtc) {
+  const wrap = document.getElementById('bk-calendar-wrap');
+  const grid = document.createElement('div');
+  grid.className = 'bk-grid';
+  grid.style.gridTemplateColumns = `70px repeat(7, minmax(72px, 1fr))`;
+  grid.style.gridAutoRows = 'minmax(26px, auto)';
+
+  const todayMidnight = zonedStartOfDay(new Date());
+  const days = [];
+  for (let d = 0; d < 7; d++) days.push(addDays(weekStartUtc, d));
+
+  // header row
+  grid.appendChild(makeCell('bk-grid-head', ''));
+  days.forEach(day => {
+    const isToday = day.getTime() === todayMidnight.getTime();
+    const head = document.createElement('div');
+    head.className = 'bk-grid-head' + (isToday ? ' today' : '');
+    const p = utcToZonedParts(day);
+    const dow = new Intl.DateTimeFormat('en-US', { timeZone: CAL_TIMEZONE, weekday: 'short' }).format(zonedToUtc(p.year, p.month, p.day, 12, 0));
+    head.innerHTML = `<div class="dow">${dow}</div><div class="dnum">${p.day}</div>`;
+    grid.appendChild(head);
+  });
+
+  // slot rows
+  for (let i = 0; i < SLOTS_PER_DAY; i++) {
+    const isHour = (i % 2 === 0);
+    const timeLabel = document.createElement('div');
+    timeLabel.className = 'bk-time-label' + (isHour ? ' hour' : '');
+    timeLabel.textContent = isHour ? timeLabelFor(i) : '';
+    grid.appendChild(timeLabel);
+
+    days.forEach(day => {
+      const slotStart = new Date(day.getTime() + (DAY_START_HOUR * 60 + i * SLOT_MINUTES) * 60000);
+      const slotEnd = new Date(slotStart.getTime() + SLOT_MINUTES * 60000);
+      grid.appendChild(makeSlotCell(slotStart, slotEnd, day, i));
+    });
+  }
+
+  wrap.innerHTML = '';
+  wrap.appendChild(grid);
+}
+
+// ── RENDER: DAY ──
+function renderDay(dayUtc) {
+  const wrap = document.getElementById('bk-calendar-wrap');
+  const grid = document.createElement('div');
+  grid.className = 'bk-grid';
+  grid.style.gridTemplateColumns = `90px 1fr`;
+
+  grid.appendChild(makeCell('bk-grid-head', ''));
+  const head = document.createElement('div');
+  head.className = 'bk-grid-head';
+  head.innerHTML = `<div class="dow">${fmtDateLong(dayUtc)}</div>`;
+  grid.appendChild(head);
+
+  for (let i = 0; i < SLOTS_PER_DAY; i++) {
+    const timeLabel = document.createElement('div');
+    timeLabel.className = 'bk-time-label hour';
+    timeLabel.textContent = timeLabelFor(i);
+    grid.appendChild(timeLabel);
+
+    const slotStart = new Date(dayUtc.getTime() + (DAY_START_HOUR * 60 + i * SLOT_MINUTES) * 60000);
+    const slotEnd = new Date(slotStart.getTime() + SLOT_MINUTES * 60000);
+    const cell = makeSlotCell(slotStart, slotEnd, dayUtc, i);
+    cell.style.minHeight = '34px';
+    if (isAdmin) {
+      const st = slotStatusAt(slotStart, slotEnd);
+      if (st.row && !st.row.is_admin_block) {
+        const lbl = document.createElement('div');
+        lbl.className = 'bk-slot-label';
+        lbl.textContent = `${st.row.first_name || ''} ${st.row.last_name || ''}`.trim() || st.state;
+        cell.appendChild(lbl);
+      }
+    }
+    grid.appendChild(cell);
+  }
+
+  wrap.innerHTML = '';
+  wrap.appendChild(grid);
+}
+
+function makeCell(cls, html) {
+  const el = document.createElement('div');
+  el.className = cls;
+  el.innerHTML = html;
+  return el;
+}
+
+function makeSlotCell(slotStart, slotEnd, dayUtc, slotIndex) {
+  const cell = document.createElement('div');
+  const now = new Date();
+  const status = slotStatusAt(slotStart, slotEnd);
+  const isPast = slotStart < now;
+
+  let cls = 'bk-slot';
+  if (isPast) cls += ' bk-slot-past';
+  else if (status.state === 'blocked') cls += ' bk-slot-blocked';
+  else if (status.state === 'paid') cls += ' bk-slot-paid';
+  else if (status.state === 'pending') cls += ' bk-slot-pending';
+  cell.className = cls;
+  cell.title = `${fmtTime(slotStart)} – ${fmtTime(slotEnd)}`;
+
+  if (!isPast && status.state === 'open') {
+    cell.addEventListener('click', () => openBookingModal(slotStart, dayUtc, slotIndex));
+  }
+  return cell;
+}
+
+// ── RENDER: MONTH ──
+function renderMonth(anchorMidnightUtc) {
+  const wrap = document.getElementById('bk-calendar-wrap');
+  const p = utcToZonedParts(anchorMidnightUtc);
+  const monthStart = zonedToUtc(p.year, p.month, 1, 0, 0);
+  const monthEndExcl = zonedToUtc(p.year, p.month + 1, 1, 0, 0);
+  const gridStart = startOfWeek(monthStart);
+  const todayMidnight = zonedStartOfDay(new Date());
+
+  const grid = document.createElement('div');
+  grid.className = 'bk-month-grid';
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'bk-month-dow';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  let day = gridStart;
+  for (let i = 0; i < 42; i++) {
+    const inMonth = day.getTime() >= monthStart.getTime() && day.getTime() < monthEndExcl.getTime();
+    const isPast = day.getTime() < todayMidnight.getTime();
+    const isToday = day.getTime() === todayMidnight.getTime();
+    const dp = utcToZonedParts(day);
+
+    const cell = document.createElement('div');
+    let cls = 'bk-month-cell';
+    if (!inMonth) cls += ' other-month';
+    else if (isPast) cls += ' past';
+    if (isToday) cls += ' today';
+    cell.className = cls;
+
+    let statusHtml = '';
+    if (inMonth && !isPast) {
+      let free = 0;
+      for (let s = 0; s < SLOTS_PER_DAY; s++) {
+        const ss = new Date(day.getTime() + (DAY_START_HOUR * 60 + s * SLOT_MINUTES) * 60000);
+        const se = new Date(ss.getTime() + SLOT_MINUTES * 60000);
+        if (ss < new Date()) continue;
+        if (slotStatusAt(ss, se).state === 'open') free++;
+      }
+      statusHtml = free > 0
+        ? `<div class="bk-month-status">${free} open</div>`
+        : `<div class="bk-month-status full">Full</div>`;
+      cell.addEventListener('click', () => {
+        anchorDate = day;
+        currentView = 'day';
+        setActiveViewButton('day');
+        renderCalendar();
+      });
+    }
+    cell.innerHTML = `<div class="bk-month-daynum">${dp.day}</div>${statusHtml}`;
+    grid.appendChild(cell);
+    day = addDays(gridStart, i + 1);
+  }
+
+  wrap.innerHTML = '';
+  wrap.appendChild(grid);
+}
+
+function setActiveViewButton(view) {
+  document.querySelectorAll('.vm-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+}
+
+// ── BOOKING MODAL ──
+function openBookingModal(slotStart, dayUtc, slotIndex) {
+  const maxFree = countFreeConsecutive(dayUtc, slotIndex);
+  if (maxFree < 1) return;
+  pendingSlot = { start: slotStart, maxFreeSlots: maxFree };
+  renderBookingForm();
+  document.getElementById('bk-modal-overlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('bk-modal-overlay').classList.remove('open');
+  pendingSlot = null;
+}
+
+function priceRangeFor(units) { return { min: 10 * units, max: 50 * units }; }
+
+function renderBookingForm() {
+  const body = document.getElementById('bk-modal-body');
+  const maxUnits = pendingSlot.maxFreeSlots;
+  const durationOptions = [];
+  for (let u = 1; u * SLOT_MINUTES <= MAX_DURATION_MINUTES && u <= maxUnits; u++) {
+    const mins = u * SLOT_MINUTES;
+    const label = mins < 60 ? `${mins} min` : (mins % 60 === 0 ? `${mins/60} hour${mins/60>1?'s':''}` : `${(mins/60).toFixed(1)} hours`);
+    durationOptions.push({ mins, label });
+  }
+
+  body.innerHTML = `
+    <h2>Book your session</h2>
+    <div class="bk-modal-sub">${fmtDateLong(pendingSlot.start)} · starting ${fmtTime(pendingSlot.start)}</div>
+
+    <div class="field">
+      <label>Session length</label>
+      <select id="f-duration">
+        ${durationOptions.map(o => `<option value="${o.mins}">${o.label}</option>`).join('')}
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Your contribution (sliding scale)</label>
+      <div class="bk-price-row">
+        <input type="range" id="f-price" min="10" max="50" step="1" value="30">
+        <div class="bk-price-val" id="f-price-val">$30</div>
+      </div>
+      <div class="bk-price-hint" id="f-price-hint">$10–$50 for 30 minutes. Pay what fits your budget — every bit supports the work.</div>
+    </div>
+
+    <div class="field-row">
+      <div class="field"><label>First name</label><input type="text" id="f-first" maxlength="60"></div>
+      <div class="field"><label>Last name</label><input type="text" id="f-last" maxlength="60"></div>
+    </div>
+    <div class="field"><label>Personal email</label><input type="email" id="f-email" maxlength="160"></div>
+    <div class="field"><label>School</label><input type="text" id="f-school" maxlength="160"></div>
+    <div class="field">
+      <label>Type of feedback</label>
+      <select id="f-type">
+        <option value="Admissions essay">Admissions essay</option>
+        <option value="General writing help">General writing help</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Link to your work (Google Doc)</label>
+      <input type="url" id="f-doc" placeholder="https://docs.google.com/…">
+      <div class="bk-price-hint">Make sure sharing is set to "Anyone with the link can comment" (or edit).</div>
+    </div>
+
+    <button class="btn-primary" id="f-submit">Request this slot →</button>
+    <div class="status-msg" id="f-status"></div>
+  `;
+
+  const durSel = document.getElementById('f-duration');
+  const priceInput = document.getElementById('f-price');
+  const priceVal = document.getElementById('f-price-val');
+  const priceHint = document.getElementById('f-price-hint');
+
+  function syncPriceRange() {
+    const units = (+durSel.value) / SLOT_MINUTES;
+    const { min, max } = priceRangeFor(units);
+    priceInput.min = min; priceInput.max = max;
+    const mid = Math.round((min + max) / 2);
+    priceInput.value = mid;
+    priceVal.textContent = `$${mid}`;
+    priceHint.textContent = `$${min}–$${max} for ${durSel.options[durSel.selectedIndex].text}. Pay what fits your budget.`;
+  }
+  durSel.addEventListener('change', syncPriceRange);
+  priceInput.addEventListener('input', () => priceVal.textContent = `$${priceInput.value}`);
+  syncPriceRange();
+
+  document.getElementById('f-submit').addEventListener('click', submitBooking);
+}
+
+async function submitBooking() {
+  const status = document.getElementById('f-status');
+  const btn = document.getElementById('f-submit');
+  const first = document.getElementById('f-first').value.trim();
+  const last = document.getElementById('f-last').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const school = document.getElementById('f-school').value.trim();
+  const type = document.getElementById('f-type').value;
+  const doc = document.getElementById('f-doc').value.trim();
+  const durationMin = +document.getElementById('f-duration').value;
+  const amount = +document.getElementById('f-price').value;
+
+  if (!first || !last) { status.textContent = 'Please enter your first and last name.'; status.className = 'status-msg err'; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { status.textContent = 'Please enter a valid email address.'; status.className = 'status-msg err'; return; }
+  if (!school) { status.textContent = 'Please enter your school.'; status.className = 'status-msg err'; return; }
+  if (!doc) { status.textContent = 'Please paste a link to your Google Doc.'; status.className = 'status-msg err'; return; }
+
+  const startUtc = pendingSlot.start;
+  const endUtc = new Date(startUtc.getTime() + durationMin * 60000);
+
+  // Re-check availability right before writing, in case someone else grabbed it
+  const fresh = await fetchBookingsInRange(startUtc, endUtc);
+  const conflict = fresh.some(b => new Date(b.start_time) < endUtc && new Date(b.end_time) > startUtc);
+  if (conflict) {
+    status.textContent = 'Sorry, that time was just booked by someone else. Please pick another slot.';
+    status.className = 'status-msg err';
+    return;
+  }
+
+  btn.disabled = true;
+  status.textContent = 'Reserving your slot…';
+  status.className = 'status-msg';
+
+  try {
+    const row = {
+      start_time: startUtc.toISOString(),
+      end_time: endUtc.toISOString(),
+      duration_minutes: durationMin,
+      first_name: first, last_name: last, email, school,
+      feedback_type: type, doc_link: doc, amount, status: 'pending_payment', is_admin_block: false
+    };
+    await sbFetch('bookings', { method: 'POST', body: row });
+    showConfirmation({ startUtc, endUtc, first, amount });
+    renderCalendar();
+  } catch (e) {
+    status.textContent = 'Error: ' + e.message;
+    status.className = 'status-msg err';
+    btn.disabled = false;
+  }
+}
+
+function showConfirmation({ startUtc, endUtc, first, amount }) {
+  const body = document.getElementById('bk-modal-body');
+  const visitorLine = visitorTz !== CAL_TIMEZONE
+    ? `<br>(${fmtTimeVisitorTz(startUtc)} your local time)`
+    : '';
+  const note = `LitGloss - ${first} - ${fmtDateShort(startUtc)} ${fmtTime(startUtc)}`;
+  body.innerHTML = `
+    <div class="bk-confirm">
+      <h3>✓ Slot reserved</h3>
+      <div class="bk-confirm-box">
+        <b>${fmtDateLong(startUtc)}</b><br>
+        ${fmtTime(startUtc)} – ${fmtTime(endUtc)} (${CAL_TIMEZONE.replace('_',' ')})${visitorLine}
+      </div>
+      <div class="bk-venmo-box">
+        <b>Complete payment to confirm</b><br>
+        Send <b>$${amount}</b> via Venmo to confirm this session. Please include this note so it's easy to match up:
+        <div class="bk-note-copy">${note}</div>
+        <a class="venmo-btn" href="${VENMO_LINK}" target="_blank" rel="noopener">Pay on Venmo →</a>
+        <div style="margin-top:8px;font-size:12px;color:#6B21A8;">Your slot is held, but not fully confirmed, until payment is received.</div>
+      </div>
+    </div>
+  `;
+}
+
+// ── TOOLBAR EVENTS ──
+document.querySelectorAll('.vm-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentView = btn.dataset.view;
+    setActiveViewButton(currentView);
+    renderCalendar();
+  });
+});
+document.getElementById('bk-prev').addEventListener('click', () => { shiftAnchor(-1); });
+document.getElementById('bk-next').addEventListener('click', () => { shiftAnchor(1); });
+document.getElementById('bk-today').addEventListener('click', () => { anchorDate = new Date(); renderCalendar(); });
+
+function shiftAnchor(dir) {
+  const mid = zonedStartOfDay(anchorDate);
+  if (currentView === 'week') anchorDate = addDays(mid, 7 * dir);
+  else if (currentView === 'day') anchorDate = addDays(mid, 1 * dir);
+  else {
+    const p = utcToZonedParts(mid);
+    anchorDate = zonedToUtc(p.year, p.month + dir, 1, 0, 0);
+  }
+  renderCalendar();
+}
+
+document.getElementById('bk-modal-close').addEventListener('click', closeModal);
+document.getElementById('bk-modal-overlay').addEventListener('click', (e) => { if (e.target.id === 'bk-modal-overlay') closeModal(); });
+
+// ── ADMIN ──
+document.getElementById('open-admin-link').addEventListener('click', () => {
+  if (isAdmin) { openAdminPanel(); return; }
+  document.getElementById('admin-gate').classList.add('open');
+  document.getElementById('admin-gate-pw').value = '';
+  document.getElementById('admin-gate-err').textContent = '';
+});
+document.getElementById('admin-gate-btn').addEventListener('click', tryUnlockAdmin);
+document.getElementById('admin-gate-pw').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlockAdmin(); });
+
+function tryUnlockAdmin() {
+  const pw = document.getElementById('admin-gate-pw').value;
+  if (pw === ADMIN_PASSWORD) {
+    isAdmin = true;
+    document.getElementById('admin-gate').classList.remove('open');
+    openAdminPanel();
+  } else {
+    document.getElementById('admin-gate-err').textContent = 'Incorrect password.';
+  }
+}
+
+function openAdminPanel() {
+  document.getElementById('bk-admin-overlay').classList.add('open');
+  populateBlockStartOptions();
+  const today = new Date();
+  document.getElementById('block-date').value = new Intl.DateTimeFormat('en-CA', { timeZone: CAL_TIMEZONE }).format(today);
+  loadAdminLists();
+  renderCalendar(); // refresh in case view is day, to show names
+}
+document.getElementById('admin-close-btn').addEventListener('click', () => {
+  document.getElementById('bk-admin-overlay').classList.remove('open');
+});
+
+function populateBlockStartOptions() {
+  const sel = document.getElementById('block-start');
+  sel.innerHTML = '';
+  for (let i = 0; i < SLOTS_PER_DAY; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = timeLabelFor(i);
+    sel.appendChild(opt);
+  }
+}
+
+document.getElementById('block-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const status = document.getElementById('block-status');
+  const dateStr = document.getElementById('block-date').value;
+  const slotIdx = +document.getElementById('block-start').value;
+  const durationMin = +document.getElementById('block-duration').value;
+  if (!dateStr) { status.textContent = 'Pick a date.'; status.className = 'status-msg err'; return; }
+
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const startUtc = zonedToUtc(y, m - 1, d, DAY_START_HOUR, 0);
+  const blockStart = new Date(startUtc.getTime() + slotIdx * SLOT_MINUTES * 60000);
+  const blockEnd = new Date(blockStart.getTime() + durationMin * 60000);
+
+  status.textContent = 'Blocking…';
+  status.className = 'status-msg';
+  try {
+    await sbFetch('bookings', {
+      method: 'POST',
+      body: {
+        start_time: blockStart.toISOString(), end_time: blockEnd.toISOString(),
+        duration_minutes: durationMin, first_name: 'Blocked', status: 'blocked', is_admin_block: true
+      }
+    });
+    status.textContent = 'Blocked.';
+    status.className = 'status-msg ok';
+    loadAdminLists();
+    renderCalendar();
+  } catch (err) {
+    status.textContent = 'Error: ' + err.message;
+    status.className = 'status-msg err';
+  }
+});
+
+async function loadAdminLists() {
+  const blockedEl = document.getElementById('blocked-list');
+  const bookingsEl = document.getElementById('admin-bookings-list');
+  blockedEl.innerHTML = '<div class="bk-empty">Loading…</div>';
+  bookingsEl.innerHTML = '<div class="bk-empty">Loading…</div>';
+  try {
+    const nowIso = new Date().toISOString();
+    const rows = await sbFetch(`bookings?status=neq.cancelled&end_time=gte.${encodeURIComponent(nowIso)}&order=start_time.asc&select=*`) || [];
+    const blocks = rows.filter(r => r.is_admin_block);
+    const bookings = rows.filter(r => !r.is_admin_block);
+
+    blockedEl.innerHTML = blocks.length ? blocks.map(b => `
+      <div class="bk-list-item">
+        <div class="bk-list-info"><b>${fmtDateLong(new Date(b.start_time))}</b><br>${fmtTime(new Date(b.start_time))} – ${fmtTime(new Date(b.end_time))}</div>
+        <div class="bk-list-actions"><button onclick="unblockRow('${b.id}')">Unblock</button></div>
+      </div>`).join('') : '<div class="bk-empty">No blocked times upcoming.</div>';
+
+    bookingsEl.innerHTML = bookings.length ? bookings.map(b => `
+      <div class="bk-list-item">
+        <div class="bk-list-info">
+          <span class="bk-list-tag ${b.status}">${b.status.replace('_',' ')}</span><br>
+          <b>${escHtml(b.first_name||'')} ${escHtml(b.last_name||'')}</b> · ${escHtml(b.email||'')}<br>
+          ${fmtDateLong(new Date(b.start_time))}, ${fmtTime(new Date(b.start_time))} – ${fmtTime(new Date(b.end_time))}<br>
+          ${escHtml(b.school||'')} · ${escHtml(b.feedback_type||'')} · $${b.amount ?? '—'}<br>
+          ${b.doc_link ? `<a href="${escHtml(b.doc_link)}" target="_blank" rel="noopener">View doc →</a>` : ''}
+        </div>
+        <div class="bk-list-actions">
+          ${b.status !== 'paid' ? `<button class="paid-btn" onclick="markPaid('${b.id}')">Mark paid</button>` : ''}
+          <button class="cancel-btn" onclick="cancelBooking('${b.id}')">Cancel</button>
+        </div>
+      </div>`).join('') : '<div class="bk-empty">No upcoming bookings.</div>';
+  } catch (e) {
+    blockedEl.innerHTML = bookingsEl.innerHTML = `<div class="bk-empty">Error loading: ${e.message}</div>`;
+  }
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function markPaid(id) {
+  await sbFetch(`bookings?id=eq.${id}`, { method: 'PATCH', body: { status: 'paid' } });
+  loadAdminLists(); renderCalendar();
+}
+async function cancelBooking(id) {
+  if (!confirm('Cancel this booking? The slot will become available again.')) return;
+  await sbFetch(`bookings?id=eq.${id}`, { method: 'PATCH', body: { status: 'cancelled' } });
+  loadAdminLists(); renderCalendar();
+}
+async function unblockRow(id) {
+  await sbFetch(`bookings?id=eq.${id}`, { method: 'DELETE' });
+  loadAdminLists(); renderCalendar();
+}
+window.markPaid = markPaid;
+window.cancelBooking = cancelBooking;
+window.unblockRow = unblockRow;
+
+// ── INIT ──
+renderCalendar();
+</script>
+</body>
+</html>

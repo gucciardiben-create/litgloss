@@ -104,6 +104,7 @@ body{font-family:Georgia,serif;background:#fafaf8;color:#111;min-height:100vh;di
   <div class="nav-links">
     <a href="dreamsongs.html">Dream Songs</a>
     <a href="moby.html">Moby-Dick</a>
+    <a href="book.html">Book a Session</a>
   </div>
 </nav>
 
@@ -284,7 +285,7 @@ document.getElementById('et-strip-spaces').addEventListener('click', () => {
   setEditorText(getEditorText().split('\n').map(l => l.replace(/^[ \t]+/, '')).join('\n'));
 });
 document.getElementById('et-straight-quotes').addEventListener('click', () => {
-  setEditorText(getEditorText().replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"'));
+  setEditorText(getEditorText().replace(/[‘’]/g, "'").replace(/[“”]/g, '"'));
 });
 
 document.getElementById('create-btn').addEventListener('click', async () => {
