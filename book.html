@@ -173,6 +173,7 @@ body{font-family:Georgia,serif;background:#fafaf8;color:#111;min-height:100vh;di
   <h1>Book a Writing Feedback Session</h1>
   <p>Pick an open half-hour slot below — sessions run any length from 30 minutes up. Pricing is sliding-scale, pay what fits your budget.</p>
   <div class="price-note">$10–$50 per half hour · scales with session length</div>
+  <div id="bk-opens-note" style="display:none;margin-top:8px;font-size:13px;color:#7C3AED;font-family:sans-serif;">Appointments open August 1, 2026 — feel free to look around before then.</div>
 </div>
 
 <div class="bk-toolbar">
@@ -342,9 +343,15 @@ function fmtTimeVisitorTz(date) {
   return new Intl.DateTimeFormat('en-US', { timeZone: visitorTz, hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(date);
 }
 
+// ── BOOKING WINDOW ──
+// Nothing before this instant can be booked, no matter how far back a visitor scrolls the
+// calendar. To reopen bookings on a different date later, just change the date here.
+const BOOKING_OPENS_UTC = zonedToUtc(2026, 7, 1, 0, 0); // August 1, 2026, 12:00 AM (month is 0-indexed: 7 = August)
+
 // ── STATE ──
 let currentView = 'week'; // 'week' | 'day' | 'month'
 let anchorDate = new Date(); // any Date; we only read its zoned Y/M/D
+if (anchorDate < BOOKING_OPENS_UTC) anchorDate = BOOKING_OPENS_UTC; // land visitors on the first bookable day
 let bookingsCache = []; // rows fetched for the currently visible range
 let isAdmin = false;
 let pendingSlot = null; // {start: Date, maxFreeSlots: n} while modal open
@@ -394,7 +401,7 @@ function countFreeConsecutive(dayStartUtc, slotIndex) {
   for (let i = slotIndex; i < SLOTS_PER_DAY; i++) {
     const s = new Date(dayStartUtc.getTime() + (DAY_START_HOUR * 60 + i * SLOT_MINUTES) * 60000);
     const e = new Date(s.getTime() + SLOT_MINUTES * 60000);
-    if (s < now) break;
+    if (s < now || s < BOOKING_OPENS_UTC) break;
     if (slotStatusAt(s, e).state !== 'open') break;
     count++;
     if (count * SLOT_MINUTES >= MAX_DURATION_MINUTES) break;
@@ -547,7 +554,8 @@ function makeSlotCell(slotStart, slotEnd, dayUtc, slotIndex) {
   const cell = document.createElement('div');
   const now = new Date();
   const status = slotStatusAt(slotStart, slotEnd);
-  const isPast = slotStart < now;
+  const notYetOpen = slotStart < BOOKING_OPENS_UTC;
+  const isPast = slotStart < now || notYetOpen;
 
   let cls = 'bk-slot';
   if (isPast) cls += ' bk-slot-past';
@@ -555,7 +563,7 @@ function makeSlotCell(slotStart, slotEnd, dayUtc, slotIndex) {
   else if (status.state === 'paid') cls += ' bk-slot-paid';
   else if (status.state === 'pending') cls += ' bk-slot-pending';
   cell.className = cls;
-  cell.title = `${fmtTime(slotStart)} – ${fmtTime(slotEnd)}`;
+  cell.title = notYetOpen ? 'Booking opens August 1, 2026' : `${fmtTime(slotStart)} – ${fmtTime(slotEnd)}`;
 
   if (!isPast && status.state === 'open') {
     cell.addEventListener('click', () => openBookingModal(slotStart, dayUtc, slotIndex));
@@ -584,7 +592,7 @@ function renderMonth(anchorMidnightUtc) {
   let day = gridStart;
   for (let i = 0; i < 42; i++) {
     const inMonth = day.getTime() >= monthStart.getTime() && day.getTime() < monthEndExcl.getTime();
-    const isPast = day.getTime() < todayMidnight.getTime();
+    const isPast = day.getTime() < todayMidnight.getTime() || day.getTime() < BOOKING_OPENS_UTC.getTime();
     const isToday = day.getTime() === todayMidnight.getTime();
     const dp = utcToZonedParts(day);
 
@@ -759,8 +767,9 @@ async function submitBooking() {
       first_name: first, last_name: last, email, school,
       feedback_type: type, doc_link: doc, amount, status: 'pending_payment', is_admin_block: false
     };
-    await sbFetch('bookings', { method: 'POST', body: row });
-    showConfirmation({ startUtc, endUtc, first, amount });
+    const created = await sbFetch('bookings', { method: 'POST', body: row });
+    const newId = created && created[0] && created[0].id;
+    showConfirmation({ startUtc, endUtc, first, amount, id: newId });
     renderCalendar();
   } catch (e) {
     status.textContent = 'Error: ' + e.message;
@@ -769,12 +778,24 @@ async function submitBooking() {
   }
 }
 
-function showConfirmation({ startUtc, endUtc, first, amount }) {
+function showConfirmation({ startUtc, endUtc, first, amount, id }) {
   const body = document.getElementById('bk-modal-body');
   const visitorLine = visitorTz !== CAL_TIMEZONE
     ? `<br>(${fmtTimeVisitorTz(startUtc)} your local time)`
     : '';
   const note = `LitGloss - ${first} - ${fmtDateShort(startUtc)} ${fmtTime(startUtc)}`;
+  const manageLink = id ? `${location.origin}${location.pathname}?manage=${id}` : '';
+  const manageHtml = id ? `
+      <div class="bk-venmo-box" style="background:#F3F4F6;border-color:#9CA3AF;margin-top:12px;" id="bk-manage-box">
+        <b>Need to cancel?</b><br>
+        Save this link, it lets you manage or cancel this booking later:
+        <div class="bk-note-copy" id="bk-manage-link-text">${manageLink}</div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button type="button" class="vm-btn" style="flex:1;" id="bk-manage-copy-btn">Copy link</button>
+          <button type="button" class="vm-btn" style="flex:1;border-color:#DC2626;color:#DC2626;" id="bk-manage-cancel-btn">Cancel booking</button>
+        </div>
+        <div class="status-msg" id="bk-manage-status"></div>
+      </div>` : '';
   body.innerHTML = `
     <div class="bk-confirm">
       <h3>✓ Slot reserved</h3>
@@ -789,8 +810,84 @@ function showConfirmation({ startUtc, endUtc, first, amount }) {
         <a class="venmo-btn" href="${VENMO_LINK}" target="_blank" rel="noopener">Pay on Venmo →</a>
         <div style="margin-top:8px;font-size:12px;color:#6B21A8;">Your slot is held, but not fully confirmed, until payment is received.</div>
       </div>
+      ${manageHtml}
     </div>
   `;
+
+  if (id) {
+    document.getElementById('bk-manage-copy-btn').addEventListener('click', () => {
+      navigator.clipboard.writeText(manageLink).then(() => {
+        const s = document.getElementById('bk-manage-status');
+        s.textContent = 'Link copied.'; s.className = 'status-msg ok';
+      }).catch(() => {});
+    });
+    document.getElementById('bk-manage-cancel-btn').addEventListener('click', async () => {
+      if (!confirm('Cancel this booking? The slot will become available again.')) return;
+      const s = document.getElementById('bk-manage-status');
+      s.textContent = 'Cancelling…'; s.className = 'status-msg';
+      try {
+        await sbFetch(`bookings?id=eq.${id}`, { method: 'PATCH', body: { status: 'cancelled' } });
+        const box = document.getElementById('bk-manage-box');
+        box.innerHTML = '<b>Booking cancelled.</b> This slot is now open again.';
+        renderCalendar();
+      } catch (e) {
+        s.textContent = 'Error: ' + e.message; s.className = 'status-msg err';
+      }
+    });
+  }
+}
+
+// ── SELF-SERVICE MANAGE / CANCEL (via ?manage=<id> link) ──
+async function handleManageLinkOnLoad() {
+  const id = new URLSearchParams(location.search).get('manage');
+  if (!id) return;
+  let rows;
+  try {
+    rows = await sbFetch(`bookings?id=eq.${encodeURIComponent(id)}&select=*`);
+  } catch (e) {
+    rows = null;
+  }
+  const row = rows && rows[0];
+  const body = document.getElementById('bk-modal-body');
+  document.getElementById('bk-modal-overlay').classList.add('open');
+
+  if (!row) {
+    body.innerHTML = `<h2>Booking not found</h2><p style="font-size:13px;color:#666;margin-top:8px;">This link doesn't match a booking. Double check the link, or reach out directly if you need help.</p>`;
+    return;
+  }
+  if (row.status === 'cancelled') {
+    body.innerHTML = `<h2>Already cancelled</h2><p style="font-size:13px;color:#666;margin-top:8px;">This booking (${fmtDateLong(new Date(row.start_time))}, ${fmtTime(new Date(row.start_time))}) has already been cancelled. Nothing more to do here.</p>`;
+    return;
+  }
+  const isPastSession = new Date(row.end_time) < new Date();
+  const startD = new Date(row.start_time), endD = new Date(row.end_time);
+  body.innerHTML = `
+    <h2>Manage your booking</h2>
+    <div class="bk-modal-sub">${row.first_name || ''} ${row.last_name || ''}</div>
+    <div class="bk-confirm-box" style="margin-top:10px;">
+      <b>${fmtDateLong(startD)}</b><br>
+      ${fmtTime(startD)} – ${fmtTime(endD)} (${CAL_TIMEZONE.replace('_',' ')})<br>
+      Status: ${row.status.replace('_',' ')}
+    </div>
+    ${isPastSession
+      ? `<p style="font-size:13px;color:#999;margin-top:12px;">This session has already passed and can't be cancelled online.</p>`
+      : `<button class="btn-primary" style="background:#DC2626;margin-top:14px;" id="bk-selfmanage-cancel">Cancel this booking</button>`}
+    <div class="status-msg" id="bk-selfmanage-status"></div>
+  `;
+  if (!isPastSession) {
+    document.getElementById('bk-selfmanage-cancel').addEventListener('click', async () => {
+      if (!confirm('Cancel this booking? The slot will become available again.')) return;
+      const s = document.getElementById('bk-selfmanage-status');
+      s.textContent = 'Cancelling…'; s.className = 'status-msg';
+      try {
+        await sbFetch(`bookings?id=eq.${encodeURIComponent(id)}`, { method: 'PATCH', body: { status: 'cancelled' } });
+        body.innerHTML = '<h2>✓ Cancelled</h2><p style="font-size:13px;color:#666;margin-top:8px;">Your booking has been cancelled and the slot is open again.</p>';
+        renderCalendar();
+      } catch (e) {
+        s.textContent = 'Error: ' + e.message; s.className = 'status-msg err';
+      }
+    });
+  }
 }
 
 // ── TOOLBAR EVENTS ──
@@ -803,7 +900,11 @@ document.querySelectorAll('.vm-btn').forEach(btn => {
 });
 document.getElementById('bk-prev').addEventListener('click', () => { shiftAnchor(-1); });
 document.getElementById('bk-next').addEventListener('click', () => { shiftAnchor(1); });
-document.getElementById('bk-today').addEventListener('click', () => { anchorDate = new Date(); renderCalendar(); });
+document.getElementById('bk-today').addEventListener('click', () => {
+  const now = new Date();
+  anchorDate = now < BOOKING_OPENS_UTC ? BOOKING_OPENS_UTC : now;
+  renderCalendar();
+});
 
 function shiftAnchor(dir) {
   const mid = zonedStartOfDay(anchorDate);
@@ -954,7 +1055,11 @@ window.cancelBooking = cancelBooking;
 window.unblockRow = unblockRow;
 
 // ── INIT ──
+if (new Date() < BOOKING_OPENS_UTC) {
+  document.getElementById('bk-opens-note').style.display = 'inline-block';
+}
 renderCalendar();
+handleManageLinkOnLoad();
 </script>
 </body>
 </html>
