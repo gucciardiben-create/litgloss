@@ -76,8 +76,59 @@ h1{font-size:36px;font-weight:400;letter-spacing:-.02em;color:#f5f0e8;margin-bot
 .para-item.selected{background:#2a2018;color:#c4a882;border-color:#8b6f4e;}
 .para-idx{font-size:10px;color:#4a4640;font-family:sans-serif;min-width:20px;}
 </style>
+<style>
+/* ── LitGloss site password gate ── */
+body.lg-locked > *:not(.lg-gate){display:none !important;}
+body.lg-locked{overflow:hidden;height:100%;}
+.lg-gate{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:sans-serif;}
+.lg-gate-box{background:#fff;border-radius:16px;padding:2rem;width:320px;max-width:90%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.2);}
+.lg-gate-box h3{font-size:17px;font-weight:500;margin-bottom:6px;font-family:Georgia,serif;color:#111;}
+.lg-gate-box p{font-size:13px;color:#999;margin-bottom:1.2rem;}
+.lg-gate-pw{width:100%;font-size:14px;padding:9px 12px;border:0.5px solid #ccc;border-radius:8px;font-family:sans-serif;outline:none;text-align:center;letter-spacing:.08em;margin-bottom:8px;box-sizing:border-box;}
+.lg-gate-pw:focus{border-color:#7C3AED;}
+.lg-gate-btn{width:100%;padding:10px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;font-family:sans-serif;cursor:pointer;}
+.lg-gate-btn:hover{background:#333;}
+.lg-gate-err{font-size:12px;color:#DC2626;min-height:16px;margin-top:4px;}
+</style>
 </head>
-<body>
+<body class="lg-locked">
+<div class="lg-gate" id="lg-gate">
+  <div class="lg-gate-box">
+    <h3>Lit<span style="color:#7C3AED;">Gloss</span></h3>
+    <p>This page is password protected.</p>
+    <input class="lg-gate-pw" type="password" id="lg-gate-pw" placeholder="Password…" autocomplete="off"/>
+    <button class="lg-gate-btn" id="lg-gate-btn">Unlock</button>
+    <div class="lg-gate-err" id="lg-gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var SITE_PASSWORD = 'litgloss2024'; // change to match your preferred password
+  var LS_KEY = 'lg_site_pw_ok';
+  function unlock(){
+    document.body.classList.remove('lg-locked');
+    var gate = document.getElementById('lg-gate');
+    if (gate) gate.remove();
+  }
+  if (localStorage.getItem(LS_KEY) === SITE_PASSWORD) { unlock(); return; }
+  var pwInput = document.getElementById('lg-gate-pw');
+  var btn = document.getElementById('lg-gate-btn');
+  var err = document.getElementById('lg-gate-err');
+  function tryUnlock(){
+    if (pwInput.value === SITE_PASSWORD) {
+      localStorage.setItem(LS_KEY, SITE_PASSWORD);
+      unlock();
+    } else {
+      err.textContent = 'Incorrect password.';
+      pwInput.value = '';
+      pwInput.focus();
+    }
+  }
+  btn.addEventListener('click', tryUnlock);
+  pwInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') tryUnlock(); });
+  pwInput.focus();
+})();
+</script>
 
 <div class="header">
   <div class="logo">LitGloss</div>
